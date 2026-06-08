@@ -489,7 +489,9 @@ exit 0 → print EVIDENCE → ONLY NOW say «done»
 
 **Проблема:** checker только с `pytest` + coverage = хорошая CI-обёртка. Агент говорит «готово» словами — checker не может возразить.
 
-**Решение:** **AST Prosecutor** — локальный бинарный скрипт, который **сам** парсит код (AST + import graph + complexity metrics) и бьёт по рукам за грязную архитектуру. **Слова агента ≠ доказательство. Exit 0 = единственная правда.**
+**Решение:** **AST Prosecutor** — **исходники**, которые **агент сам пишет** в `scripts/prime_check/` ([AGENT-5](#agent-5--prime-check)). Не .exe, не скачиваемый бинарник, **не в репо MAWYXX Prime**. Локальный Python/Node/Rust скрипт парсит AST + import graph и выдаёт FAIL/FINDING. **Слова агента ≠ доказательство. Exit 0 = единственная правда.**
+
+**«7 Binary Traps»** = бинарный **вердикт** (pass/fail), не скомпилированный файл.
 
 **Skin & Engine:** нам похер имена папок (`Skin`). Engine = prosecutor читает `architecture.*` scopes из config и проверяет **outcomes** по графу импортов и AST — не по слову «Domain» в пути.
 
@@ -526,7 +528,7 @@ architecture:
   file_max_lines: 300                                    # file-size-guard
 ```
 
-#### 🔱 7 Binary Traps — что prosecutor чекает локально по коду
+#### 🔱 7 Binary Traps — что prosecutor-скрипт (написанный агентом) чекает по AST
 
 | # | Gate | AST / analysis | Outcome | Rule |
 |---|------|----------------|---------|------|
