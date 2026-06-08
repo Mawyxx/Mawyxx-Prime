@@ -37,6 +37,7 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | **SOLID** | SRP, OCP, LSP, ISP, DIP — named in §5 |
 | **Fail-fast** | Validate at system boundary |
 | **Typed errors** | Domain errors, not magic exceptions in depth |
+| **DI for time/ID** | `uuid()`, `Date.now()` behind interfaces — mentioned, not enforced |
 
 ### Production patterns
 
@@ -92,40 +93,18 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP on red |
 | **Stack adapters** | AGENT-5 | python · node · rust · go · kotlin · swift |
 | **Forbidden phrases** | AGENT-0 | «~99% coverage» · «run tests yourself» = violations |
-| **Super-Architect invariants** | **B15** | Anti-Null · Deep Immutability · Side-Effect Injection |
 
 ---
 
-## Super-Architect — 3 mega-improvements (B15)
+## Cross-cutting invariants (woven into rules — like layers / SSOT)
 
-*v3 hints at typed errors and DI for time. v5.2 **B15** makes three invariants law + `prime_check` gates.*
+Not a separate module. Same status as **layer law** or **SSOT** — live inside **A05 · A06 · A10 · A15 · B06**.
 
-### 1. Anti-Null Pattern
-
-| | |
-|--|--|
-| **Problem** | Agent returns `None` / `null` on failure → `AttributeError` / NPE deeper in the stack |
-| **Rule** | No raw `None` / `null` in Domain/Application as error or «empty» signal |
-| **Code** | `Result[Data, Err]` or `Option[Data]` — both branches handled explicitly (pattern matching) |
-| **Gate** | `anti-null-gate` · **A10** · `err-variant-gate` |
-
-### 2. Deep Immutability & Pure Functions
-
-| | |
-|--|--|
-| **Problem** | UC mutates `order.status` in-place → race conditions under parallel requests |
-| **Rule** | Domain/Application entities & VO are **100% immutable** |
-| **Code** | State change = **new instance** — `frozen=True` / Pydantic frozen / `Readonly<T>` / `copy()` |
-| **Gate** | `immutability-gate` · **B06** FSM transitions return new aggregate |
-
-### 3. Side-Effect Injection (Deterministic Runtime)
-
-| | |
-|--|--|
-| **Problem** | `datetime.now()` / `uuid4()` inside UC → flaky tests, non-reproducible logic |
-| **Rule** | No nondeterminism inside Domain/Application — inject via ports only |
-| **Code** | `ITimeProvider` · `IIdGenerator` · `IRandom` — fixed fakes in unit tests |
-| **Gate** | `deterministic-runtime` · **A15** · **A06** DI |
+| Invariant | Problem v3 leaves open | Where in v5.2 | Gate |
+|-----------|------------------------|---------------|------|
+| **Anti-Null** | Agent `return None` → NPE / `AttributeError` downstream | **A10** Result contract — only `Result` / `Option`, explicit branches | `anti-null-gate` · `err-variant-gate` |
+| **Immutability** | UC mutates `order.status` in-place → races | **A05** layer law (frozen entities) · **B06** FSM (new aggregate per transition) | `immutability-gate` |
+| **Side-Effect Injection** | `datetime.now()` / `uuid4()` in UC → flaky tests | **A06** DI ports · **A15** deterministic time/ID/random | `deterministic-runtime` |
 
 ---
 
@@ -135,18 +114,15 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 
 | v3.0 | v5.2 improvement | Rules · gates |
 |------|------------------|---------------|
-| «4 layers» in prose | Layer table + import graph enforcement | **A05** · `import-boundaries` · `import-graph-gate` · `no-transport-in-domain` · `handler-purity-gate` |
-| DI described | No concrete in UC; wiring only in composition root | **A06** · `di-purity` · `di-graph-gate` |
+| «4 layers» in prose | Layer table + import graph + **immutable domain** | **A05** · `import-boundaries` · `immutability-gate` · `handler-purity-gate` |
+| DI described | Ports for time/ID/random; no concrete in UC | **A06** · `di-purity` · **A15** · `deterministic-runtime` |
 | Design-first implied | Design artifact before code: routes, Err, test_matrix | **A07** · AGENT-OMEGA PHASE 1 |
 | Anti-duplication verbal | No `*_v2` policy forks | **A08** · `anti-fork-gate` |
 | Single policy owner | Policy facades — one SSOT | **A09** |
-| Result / typed errors | Result in UC; transport maps at edge; every Err tested | **A10** · `err-variant-gate` |
+| Result / typed errors | **Anti-Null:** `Result`/`Option` only — no `None` in UC/domain; every Err tested | **A10** · `anti-null-gate` · `err-variant-gate` |
 | File size «split if hard to test» | Hard limits: >300 fail, complexity >10 fail | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
 | CQRS «when needed» | Formal CQRS rule when read/write diverge | **B01** |
-| FSM «no illegal jumps» | Every edge in tests | **B06** · `fsm-transition-gate` |
-| Deterministic domain mentioned | Time/ID/random via ports only; no hidden globals | **A15** · **B15** · `deterministic-runtime` |
-| Nullable returns implied | Anti-Null: Result/Option only in UC/domain | **A10** · **B15** · `anti-null-gate` |
-| Mutable entities implied | Deep immutability in domain/app | **B15** · `immutability-gate` |
+| FSM «no illegal jumps» | Every edge tested; transition returns **new** immutable state | **B06** · `fsm-transition-gate` · `immutability-gate` |
 
 ### Security
 
@@ -210,7 +186,8 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B03 SRE/observability  B08 Agent self-review   B13 Ops/runbook
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
-        B15 Super-Architect    Anti-Null · Immutability · Side-Effect Injection
+
+Cross-cutting (in A05·A06·A10·A15·B06): Anti-Null · Immutability · Side-Effect Injection
 ```
 
 ---

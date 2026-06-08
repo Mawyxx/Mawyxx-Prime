@@ -37,6 +37,7 @@
 | **SOLID** | SRP, OCP, LSP, ISP, DIP — в §5 |
 | **Fail-fast** | Валидация на границе системы |
 | **Typed errors** | Доменные ошибки, не magic exceptions в глубине |
+| **DI для time/ID** | `uuid()`, `Date.now()` за интерфейсами — упомянуто, не enforced |
 
 ### Production-паттерны
 
@@ -92,40 +93,18 @@
 | **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP |
 | **Stack adapters** | AGENT-5 | python · node · rust · go · kotlin · swift |
 | **Forbidden phrases** | AGENT-0 | «~99%» · «запустите сами» = нарушение |
-| **Super-Architect** | **B15** | Anti-Null · Immutability · Side-Effect Injection |
 
 ---
 
-## Super-Architect — 3 мега-улучшения (B15)
+## Сквозные инварианты (вшиты в правила — как слои / SSOT)
 
-*v3 намекает на typed errors и DI для time. v5.2 **B15** делает три инварианта законом + gates в `prime_check`.*
+Не отдельный модуль. Тот же статус, что **layer law** или **SSOT** — живут в **A05 · A06 · A10 · A15 · B06**.
 
-### 1. Anti-Null Pattern
-
-| | |
-|--|--|
-| **Боль** | Агент возвращает `None` / `null` при сбое → `AttributeError` / NPE глубже по стеку |
-| **Закон** | Сырые `None` / `null` в Domain/Application как ошибка или «пусто» — **запрещены** |
-| **Код** | `Result[Data, Err]` или `Option[Data]` — обе ветки явно (pattern matching) |
-| **Gate** | `anti-null-gate` · **A10** · `err-variant-gate` |
-
-### 2. Deep Immutability & Pure Functions
-
-| | |
-|--|--|
-| **Боль** | UC мутирует `order.status` in-place → гонки при параллельных запросах |
-| **Закон** | Entity/VO в Domain/Application — **100% immutable** |
-| **Код** | Смена состояния = **новый экземпляр** — `frozen=True` / Pydantic frozen / `Readonly<T>` / `copy()` |
-| **Gate** | `immutability-gate` · **B06** FSM возвращает новый aggregate |
-
-### 3. Side-Effect Injection (детерминированный runtime)
-
-| | |
-|--|--|
-| **Боль** | `datetime.now()` / `uuid4()` внутри UC → flaky tests, невоспроизводимая логика |
-| **Закон** | Недетерминизм в Domain/Application — **только** через injected ports |
-| **Код** | `ITimeProvider` · `IIdGenerator` · `IRandom` — фиксированные fakes в unit-тестах |
-| **Gate** | `deterministic-runtime` · **A15** · **A06** DI |
+| Инвариант | Дыра v3 | Где в v5.2 | Gate |
+|-----------|---------|------------|------|
+| **Anti-Null** | Агент `return None` → NPE / `AttributeError` ниже по стеку | **A10** Result — только `Result` / `Option`, явные ветки | `anti-null-gate` · `err-variant-gate` |
+| **Immutability** | UC мутирует `order.status` in-place → гонки | **A05** frozen entities · **B06** FSM (новый aggregate на transition) | `immutability-gate` |
+| **Side-Effect Injection** | `datetime.now()` / `uuid4()` в UC → flaky tests | **A06** DI ports · **A15** детерминированный time/ID/random | `deterministic-runtime` |
 
 ---
 
@@ -135,12 +114,12 @@
 
 | v3.0 | Улучшение в v5.2 | Правила · gates |
 |------|------------------|-----------------|
-| «4 слоя» текстом | Таблица слоёв + import graph | **A05** · `import-boundaries` · `import-graph-gate` · `no-transport-in-domain` · `handler-purity-gate` |
-| DI описан | Нет concrete в UC; wiring только в root | **A06** · `di-purity` · `di-graph-gate` |
+| «4 слоя» текстом | Таблица слоёв + import graph + **immutable domain** | **A05** · `import-boundaries` · `immutability-gate` · `handler-purity-gate` |
+| DI описан | Ports для time/ID/random; нет concrete в UC | **A06** · `di-purity` · **A15** · `deterministic-runtime` |
 | Design-first намёком | Design artifact: routes, Err, test_matrix | **A07** · AGENT-OMEGA PHASE 1 |
 | Анти-дубли словами | Нет `*_v2` policy forks | **A08** · `anti-fork-gate` |
 | Один владелец политики | Policy facades — SSOT | **A09** |
-| Typed errors | Result в UC; Err в тестах | **A10** · `err-variant-gate` |
+| Typed errors | **Anti-Null:** только `Result`/`Option` — не `None` в UC/domain; Err в тестах | **A10** · `anti-null-gate` · `err-variant-gate` |
 | «Режь если трудно тестить» | Лимиты: >300 строк fail, complexity >10 | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
 | CQRS «когда надо» | Формальное правило CQRS | **B01** |
 | FSM «без прыжков» | Каждое ребро в тестах | **B06** · `fsm-transition-gate` |
