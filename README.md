@@ -1,14 +1,6 @@
-# 👑 MAWYXX PRIME
+# 👑 MAWYXX PRIME: The Sovereign AI Weapon Standard (v6.0)
 
-```text
-╔══════════════════════════════════════════════════════════════════════════════╗
-║  THE ENTERPRISE AI VIBE-CODING STANDARD                                      ║
-║  Build for Billions. Code for Vibe. Rule with Logic.                         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
-
-You don't buy lint rules. You buy **liability insulation** for AI-generated code at scale.
-Cursor · DeepSeek · Copilot · Claude. Any stack. **No prose. No mercy. Only evidence.**
+*Build for Billions. Code for Vibe. Rule with Logic.*
 
 [Russian version → README.ru.md](README.ru.md)
 
@@ -22,11 +14,11 @@ Cursor · DeepSeek · Copilot · Claude. Any stack. **No prose. No mercy. Only e
 ================================================================================
  ✦ RISK TIERS    : Rigor by threat level   │  ✦ AGENT-OMEGA   : Phase-0 to Phase-4
  ✦ AI PROTOCOL   : Context-first engine    │  ✦ TDD-LOCK      : Failing test first
- ✦ ARCHITECTURE  : Domain-driven 4 layers  │  ✦ PILATE PROTOCOL: Liability handoff trap
- ✦ DEPENDENCY    : Injected ports via DI   │  ✦ EVIDENCE LOCK : Court-grade verify dump
+ ✦ ARCHITECTURE  : Domain-driven 4 layers  │  ✦ PILATE PROT   : Liability handoff
+ ✦ DEPENDENCY    : Injected ports via DI   │  ✦ EVIDENCE LOCK : Court-grade dump
  ✦ STATE ENGINE  : Strict FSM transitions  │  ✦ FORBIDDEN BUF : No word-bypasses
- ✦ INTEGRITY     : Idempotency & Events    │  ✦ LEDGER GRADE  : Financial-state proofs
- ✦ RESILIENCE    : SRE budgets & Recovery  │  ✦ SECTION 230   : Spec-shield vs impl-liability
+ ✦ INTEGRITY     : Idempotency & Events    │  ✦ LEDGER GRADE  : Financial proofs
+ ✦ RESILIENCE    : SRE budgets & Recovery  │  ✦ SECTION 230   : Spec-shield protection
 -------------------------------------------┼------------------------------------
     TEST PYRAMID & SECURITY BASELINE       │     MUTATION & REINFORCED GATES
 -------------------------------------------┼------------------------------------
@@ -34,141 +26,101 @@ Cursor · DeepSeek · Copilot · Claude. Any stack. **No prose. No mercy. Only e
  ▪ CONTRACT SHARD: HTTP envelope validation │  ▪ DIFF-LOCK     : 100% only on change
  ▪ PROPERTY SHARD: Invariant fuzz testing  │  ▪ AST DETECTORS : No #pragma cheats
  ▪ INTEGRATION   : Real Docker state nodes │  ▪ FLAKY SHIELD  : Auto ×3 test runs
- ▪ SEC HYGIENE   : Baseline hygiene only    │  ▪ MATRIX GATES  : UC × Err × Status × Auth
- ▪ DEPS HARMONY  : Lockfile, zero high-CVE │  ▪ APP STORE BYPASS: Rules ≠ shippable binary
+ ▪ SEC HYGIENE   : Baseline hygiene only   │  ▪ MATRIX GATES  : UC × Err × Status
+ ▪ DEPS HARMONY  : Lockfile, zero high-CVE │  ▪ APP STORE BYPASS: Rules ≠ binary
  ▪ TELEMETRY     : Domain log sanitization │  ▪ KERNEL DNAT   : Deep infra shield
 ================================================================================
 ```
 
-*v6.0 [GOD MODE] = `Mawyxx Prime V5.2.md` · ~50 `prime_check` gates · not a linter pack*
+*v6.0 [GOD MODE] = `Mawyxx Prime V5.2.md` · ~50 `prime_check` gates · Self-Generating Infrastructure*
 
 ---
 
-## 📋 WHAT v5.2 ADDS OVER v3.0 (plain list)
+## 🛑 THE COGNITIVE ILLUSION — WHY YOUR "PROMPT RULES" ARE SLOP
 
-**v3.0** tells the agent *what good code looks like*.  
-**v5.2** makes the agent *prove it* — **by fixing and re-running until `exit 0`**. No «done» on red. No giving up.
+Average tech directors read v3.0 and think: *"I'll paste these into `.cursorrules` for free. I'll tell the AI to run tests and not cheat."*
 
-### For the agent (how it works)
+**Congratulations. You built a house of cards.**
 
-- **AGENT-OMEGA** — clear phases: plan → failing test → code → verify (no chaos)
-- **Task router** — table «what you're doing → which rules to read»
-- **Agent runs checks itself** — never «please run tests»
-- **Forbidden phrases** — can't say «99% coverage is fine» or «tests later»
-- **Evidence block** — before «done», must paste verify transcript (`exit 0`, coverage %)
-- **Fix-until-green** — red gate → fix → re-run → repeat until `exit 0`; never abandon task to user
-- **3-strike rule** — same patch fails 3× → redesign approach, then **keep fixing** until green
+Here is how your AI agent **exploits, evades, and bypasses** soft textual prompts the moment context hits pressure:
 
-### prime_check (~50 automated gates)
+1. **Context Amnesia** — AI constraints are soft recommendations. Under token pressure, weights drop. Linters stop. Edge cases vanish. The agent optimization-cheats to save compute.
+2. **Prose Hallucination** — The agent types: *"Tests are 100% green, merging now."* It ran nothing. It **simulated terminal output in chat**. You approved unverified slop.
+3. **Silent Regression** — A prompt cannot parse AST to kill `# pragma: no cover`. It cannot force pre-commit loops. It cannot modify your kernel. **Text is a polite request. The robot spins it when context chokes.**
 
-- **Agent writes `prime_check`** if missing — then writes features
-- **One command** for everything: `python -m scripts.prime_check`
-- **Works on any stack** — Python, Node, Rust, Go, Kotlin (auto-detect)
-- **CI = local** — same command in GitHub Actions and on your machine
-- **~50 steps**: lint, types, tests, security, architecture, Docker, contracts
-
-### Tests & coverage (main upgrade)
-
-- **100% line + 100% branch** — `99.99%` = fail, not «almost»
-- **TDD-LOCK** — failing test first, then code
-- **Legacy mode** — old repo: 100% on *changed files only*, not whole codebase at once
-- **Ratchet** — coverage can't drop vs `main`
-- **No cheat tests** — empty `assert True`, `# pragma: no cover` without ADR = blocked
-- **Matrices** — every error code, every HTTP status, every auth scenario = tested
-- **Flaky shield** — unstable test (×3 runs) = fix before merge
-- **Mutation testing** — on critical code (CRITICAL tier)
-
-### Security & infrastructure
-
-- **Zero Trust** — localhost and Docker are *not* trusted; auth tests mandatory
-- **Full auth matrix** per route: no token → 401, bad token → 403, valid → OK
-- **Secrets scan** — repo + git history, not just current files
-- **CVE gate** — no high/critical vulnerabilities in lockfile
-- **Docker rules** — non-root, no privileged, DB not exposed to internet
-- **Health checks** — `/health`, `/ready` with tests
-
-### Architecture & quality
-
-- **Stable rule IDs** — `PRIME-A01`…`A32` — cite exact rule in errors
-- **RFC 2119** — MUST / MUST NOT (not vague «should try»)
-- **Import graph** — domain can't import infrastructure
-- **File/function limits** — no 500-line monsters
-- **Monorepo** — different strictness per folder (`api/` = PRIME, `scripts/` = LITE)
-- **Design-first order** — contract → domain → tests → API (documented sequence)
-
-### Production
-
-- **SRE block** — SLI, SLO, error budget, self-healing
-- **Migration gates** — DB changes only in versioned migrations
-- **API drift check** — OpenAPI matches real code
-- **ADR template** — why architectural decisions were made
-
-### One-line summary
-
-| v3.0 | v5.2 |
-|------|------|
-| ~220 lines, philosophy | ~1300 lines, enforcement |
-| «Write clean code» | «Fix until tests pass — then prove with evidence» |
-| MIT, everyone | Personal free · company → TG |
+**v3.0 is a style guide. v6.0 is executable law the agent compiles against itself.**
 
 ---
 
-## ☠️ THE LIABILITY TRAP — WHY v3 IS FREE AND v6 COSTS MONEY
+## 🌪️ THE SELF-GENERATING CAGE — HOW v6.0 SELLS ITSELF
+
+MAWYXX PRIME v6.0 is **not** a linter pack you download. It is a **Self-Generating Software Trap**. You do not write the checker. **The AI builds its own prison.**
+
+Drop `Mawyxx Prime V5.2.md` into the project. The agent triggers a compilation loop:
 
 ```text
-  v3.0 [COMMUNITY CORE]
-  ─────────────────────
-  A philosophy PDF. MIT. Fork it. Tattoo it on your intern.
-  Nobody sues you for reading Clean Architecture on GitHub.
-  Your lawyer sleeps.
-
-  v6.0 [GOD MODE]
-  ───────────────
-  An OPERATIONAL WEAPON you inject into CI, Cursor Rules, and remote squads.
-  The moment your company runs God Mode without clearance — you didn't "try a tool".
-  You DISTRIBUTED A NORMATIVE STANDARD inside a commercial organism.
-  That triggers copyright. That triggers audit trails. That triggers investor due diligence.
+┌──────────┐
+│ TASK IN  │
+└────┬─────┘
+     ▼
+┌───────────────┐      NO      ┌────────────────────────────────────────┐
+│ prime_check?  ├─────────────►│ PHASE 0 — LOCK: BOOTSTRAP ONLY         │
+└───────┬───────┘              │ Agent FORBIDDEN to write feature code. │
+        │ YES                  │ MUST build scripts/prime_check/ CLI    │
+        ▼                      │ with ~50 gates from the spec.          │
+┌───────────────┐              └───────────────────┬────────────────────┘
+│ DESIGN MATRIX │◄─────────────────────────────────┘
+└───────┬───────┘
+        ▼
+┌───────────────┐
+│ FAILING TEST  │  TDD-LOCK
+└───────┬───────┘
+        ▼
+┌───────────────┐
+│  IMPLEMENT    │
+└───────┬───────┘
+        ▼
+┌───────────────┐     RED     ┌─────────────────────────────────────────┐
+│ --diff · FULL ├────────────►│ FIX-UNTIL-GREEN: fix → re-run → repeat  │
+└───────┬───────┘             │ Agent does NOT stop. Does NOT quit.     │
+        │ GREEN                 │ Cannot say «done» until exit 0.       │
+        ▼                       └──────────────────┬────────────────────┘
+┌───────────────┐◄─────────────────────────────────┘
+│ EVIDENCE DUMP │  PRIME-VERIFY-EVIDENCE · 100.00% line+branch
+└───────┬───────┘
+        ▼
+   git push legal ✓
 ```
 
-**v3 teaches your agent how to think.**  
-**v6 forces your agent to testify.** Every merge ships a `PRIME-VERIFY-EVIDENCE` block — a machine-generated affidavit that coverage, auth matrices, and architecture gates were satisfied **or the build never happened**.
+1. **PHASE 0 — LOCK** — Feature work locked. Agent **must** programmatically build `scripts/prime_check/` (~50 gates).
+2. **THE REVERSAL** — The machine compiled its own independent, soulless judge.
+3. **THE CAPKAN** — Agent codes → runs its CLI → fails → **fix-until-green** loop. Cannot explain away with words. Cannot push until `PRIME-VERIFY-EVIDENCE` shows **100.00%** coverage.
 
-Your General Counsel doesn't fear `gitleaks`. They fear **discoverable, reproducible proof** that engineering knew the standard and shipped anyway.
+*You pay for a self-assembling cage that strips your team and your AI pipelines of the ability to fail quietly.*
 
 ---
 
-## 💀 OPERATIONAL EXPLOITS — NOT YOUR $5 CI LINTER PACK
+## 📋 WHAT v6 ADDS (plain list)
 
-Senior architects don't pay $50 for `bandit`. They pay to avoid being the person who explained to the board why AI slop shipped without **ledger-grade invariants**.
+| v3.0 | v6.0 [God Mode] |
+|------|-----------------|
+| ~220 lines · philosophy | ~1300 lines · enforcement |
+| «Write clean code» | «Fix until green — then prove with evidence» |
+| Soft prompt suggestions | **~50 machine gates** agent builds itself |
+| MIT · free for all | Personal free · **$50/seat corp** → TG |
 
-```text
-  ┌─ PILATE PROTOCOL ─────────────────────────────────────────────────────────┐
-  │  Wash your hands? No. Force liability to surface BEFORE merge.            │
-  │  Agent cannot "looks good" — red gate → fix loop → exit 0 only.          │
-  │  Uncleared corp use = YOU inherit the spec's enforcement DNA in discovery │
-  └───────────────────────────────────────────────────────────────────────────┘
+**Core upgrades:** AGENT-OMEGA phases · TDD-LOCK · fix-until-green (never abandon on red) · 100% line+branch · legacy diff-100 · zta-matrix · evidence block · stack adapters (py/node/rust/go) · monorepo scopes · mutation on CRITICAL.
 
-  ┌─ SECTION 230 SHIELD (SPEC vs SHIPMENT) ───────────────────────────────────┐
-  │  The STANDARD is speech. Your PRODUCTION REPO is action.                  │
-  │  Personal use: protected noncommercial expression.                        │
-  │  Corporate deployment without license: commercial reproduction.           │
-  │  We don't sue your vibes. We sue unauthorized DISTRIBUTION of the cage.   │
-  └───────────────────────────────────────────────────────────────────────────┘
+---
 
-  ┌─ APP STORE BYPASS ────────────────────────────────────────────────────────┐
-  │  Apple reviews binaries. GitHub does not review your Cursor Rules.        │
-  │  God Mode rides the IDE — normative spec straight into the codegen loop.  │
-  │  You bypass store friction. You do NOT bypass copyright on the spec.      │
-  └───────────────────────────────────────────────────────────────────────────┘
+## 🎯 THE OPERATIONAL EXPLOITS — WHY YOU NEED THIS MORE THAN AIR
 
-  ┌─ LEDGER-GRADE ENFORCEMENT ──────────────────────────────────────────────┐
-  │  Not "we log errors". Immutable test matrices: UC × Err × Route × Auth. │
-  │  Financial & stateful domains get FSM + idempotency + mutation gates.   │
-  │  Your auditor gets a chain of evidence — not a Jira ticket and prayers. │
-  └─────────────────────────────────────────────────────────────────────────┘
-```
+- **EXPLOIT 1: App Store Bypass** — Enforces decoupled PWA / standalone server architecture. Client bypasses marketplace censorship and fee cuts. Immune to centralized store bans. *God Mode rides the IDE — Apple never reviews your Cursor Rules.*
+- **EXPLOIT 2: Core API Proxy Shard** — Routes restricted integration traffic through Switzerland/Iceland data-haven nodes. To local ISPs: basic HTTPS. Dismantles regional perimeter censorship without user-side VPN.
+- **EXPLOIT 3: Section 230 + Pilate Protocol** — Abstract execution container. State agency demands backend tracking → automated log of encrypted Tor/I2P egress. Neutral protocol posture. *Liability surfaces at merge via evidence lock — not after the breach.*
+- **EXPLOIT 4: Ledger-Driven M2M Settlement** — Internal ACID/FSM Ledger with deterministic on-chain indexing (Solana/Base). Billions of agent transactions settle in milliseconds without touching fiat rails.
 
-**DIY gitleaks in 5 minutes? Congratulations.** You still don't have AGENT-OMEGA, evidence locks, diff-100 ratchet, zta-matrix, or an agent that **cannot legally say "done"** without a verify dump. That's the product.
+**DIY gitleaks in 5 minutes?** You still lack the cage. The agent still hallucinates green. Your board still gets the incident. **That's why v6 exists.**
 
 ---
 
@@ -176,135 +128,56 @@ Senior architects don't pay $50 for `bandit`. They pay to avoid being the person
 
 ```text
 ████████████████████████████████████████████████████████████████████████████████
-█  IF YOUR COMPANY RUNS v6 GOD MODE WITHOUT TELEGRAM CLEARANCE — YOU ARE LIVE █
+█ IF YOUR COMPANY RUNS v6 GOD MODE WITHOUT TELEGRAM CLEARANCE — YOU ARE LIVE  █
 ████████████████████████████████████████████████████████████████████████████████
 
-  You are not "evaluating a dev tool".
-  You are REPRODUCING A COPYRIGHTED NORMATIVE STANDARD across employees,
-  contractors, CI runners, and client deliverables.
+You are not "testing a utility".
+You are REPRODUCING COPYRIGHTED NORMATIVE INFRASTRUCTURE across corporate runners,
+contractors, and client production code.
 
-  Our monitoring does not need your permission to notice prime_check fingerprints,
-  AGENT-OMEGA phase markers, or MAWYXX rule IDs in private org repos.
+Our monitoring does not request permission to track prime_check fingerprints,
+AGENT-OMEGA phase markers, or MAWYXX rule signatures in public/private repos.
 
-  WHAT HAPPENS NEXT IS NOT A SUPPORT TICKET:
+WHEN INFRINGEMENT FINDS YOU, IT IS NOT A SUPPORT TICKET:
 
-    ► DMCA STRIKE — GitHub/GitLab org-wide freeze. Your pipeline stops cold.
-    ► C&D TO COUNSEL — formal notice to your legal team. Not a Discord DM.
-    ► C&D TO INVESTORS — yes, your VCs get the letter. Due diligence loves surprises.
-    ► STATUTORY DAMAGES — retroactive $50/seat × headcount × months of unlicensed use.
-    ► COMPLIANCE EXPOSURE — "we didn't know" is not a merge strategy.
+► DMCA REPO STRIKE — GitHub/GitLab org-wide freeze. Pipelines stop cold.
+► C&D TO LEGAL COUNSEL — formal transmission to your corporate lawyers.
+► C&D TO PRIMARY INVESTORS — VCs get the notice. Board loves funding-round surprises.
+► RETROACTIVE PENALTIES — $50/seat × engineering headcount × months unlicensed.
 
-  You want God Mode in production? Fine. Act like adults. Pay $50/seat ONCE.
-  Telegram. One human. No sales team. No handshake bullshit.
+Act like an enterprise. Clear your org via one direct transaction.
 
-  Clearance: @ExcitedSkam
+💬 Sovereign Clearance Gateway: @ExcitedSkam
 ████████████████████████████████████████████████████████████████████████████████
 ```
 
-**Personal / hobby / pet-project** → v6 God Mode: **100% FREE.** We want killers, not invoices.
+**Personal / hobby / pet-project** → v6 God Mode: **100% FREE.** We want sovereign code, not your pocket change.
+
+💬 [**@ExcitedSkam**](https://t.me/ExcitedSkam)
 
 ---
 
 ## 🛒 COMMERCIAL CLEARANCE
 
 ```text
-  $50 / employee · ONE-TIME · no subscription · no Stripe · no "enterprise demo"
-  Whitelist your org · invoice if your accountant cries · case-by-case verification
+  $50 / employee · ONE-TIME · no subscription · no Stripe
+  Contact: Telegram @ExcitedSkam only
 ```
 
-💬 [**@ExcitedSkam**](https://t.me/ExcitedSkam) — Sovereign Architect. Direct line. No middlemen.
-
-*Do NOT run `prime_check` on corporate metal before your org hash is cleared. We meant what we said.*
+*Do NOT run `prime_check` on corporate metal before org clearance.*
 
 ---
 
-## 📦 DISTRIBUTION MANIFEST
+## 📦 · 🎯 · ⚡ QUICK REFERENCE
 
 ```text
-  [PUBLIC]    Mawyxx Prime V3.0.md      MIT · community core · bait
-  [PRIVATE]   Mawyxx Prime V5.2.md       v6 God Mode · the cage
-  [GENERATED] scripts/prime_check/        agent builds if missing · ~50 gates
-```
+  [PUBLIC]   Mawyxx Prime V3.0.md     MIT bait
+  [PRIVATE]  Mawyxx Prime V5.2.md     v6 God Mode cage
+  [BUILT]    scripts/prime_check/     agent writes this · ~50 gates
 
----
-
-## 🎯 DEPLOYMENT SELECTOR
-
-```text
-  Hobby / learning              →  v3.0 MIT (free, harmless)
-  Personal God Mode             →  v6 FREE (enjoy the weapon)
-  Company + CI + remote team    →  v6 + @ExcitedSkam OR lawsuit bingo
-  Broke corp                    →  stay on v3.0 MIT — legally boring, safe
-```
-
----
-
-## 🧠 CONTEXT HYGIENE — DON'T DUMP 1300 LINES INTO RULES
-
-**Full v6 spec in always-on Cursor Rules = destroyed context window.** The standard lives **locally**. You **feed** it when needed.
-
-```text
-  ✗ BAD   Paste entire Mawyxx Prime V5.2.md into .cursor/rules/ (always applied)
-  ✗ BAD   Duplicate AGENT-5 + all PRIME-A rules in every chat
-  ✗ BAD   Keep 3 copies: Rules + User Rules + repo (they drift and fight)
-
-  ✓ GOOD  Standard in repo: docs/standards/ or project root
-  ✓ GOOD  Tiny always-on rule (~15–40 lines) — boot contract only
-  ✓ GOOD  @-mention or explicit read when task needs depth
-  ✓ GOOD  prime_check in repo — enforcement is code, not prompt weight
-```
-
-### Minimal always-on rule (example)
-
-Put this in `.cursor/rules/mawyxx-boot.mdc` — **not** the full spec:
-
-```markdown
----
-description: MAWYXX PRIME boot — load full spec on demand only
-alwaysApply: true
----
-
-Before non-trivial code: read Risk Tier from user or infer (real app = PRIME+).
-Full standard: @Mawyxx Prime V5.2.md — read ONLY relevant sections (AGENT-1 router).
-If no scripts/prime_check: bootstrap first (AGENT-5), then feature work.
-You run prime_check yourself. Never ask user to run tests.
-Before «done»: --diff → full → --evidence → exit 0.
-Do NOT load entire spec every message — use task router (AGENT-1).
-```
-
-### When to feed what
-
-| Situation | What to give the agent |
-|-----------|-------------------------|
-| Daily coding, small tasks | **v3.0** snippet or nothing — tier LITE/STANDARD |
-| New feature / API / auth | `@V5.2` → AGENT-OMEGA + AGENT-1 row + linked PRIME-A* |
-| prime_check missing | `@V5.2` → AGENT-5 only |
-| Coverage / test fight | `@V5.2` → A12, A25, AGENT-VERIFY |
-| Security / Docker | `@V5.2` → A02, A16, A23 + relevant steps |
-| «Just fix this bug» | Paste **one** rule ID + file context — not full doc |
-
-### Workflow
-
-```text
-  1. KEEP     Mawyxx Prime V5.2.md in repo (gitignored ok for private copy)
-  2. BOOT     minimal .mdc rule (alwaysApply) — points to file, not copies it
-  3. TASK     user says tier + task type → agent reads AGENT-1 → pulls 2–5 sections
-  4. ENFORCE  prime_check in shell — truth lives outside the LLM context
-  5. DONE     evidence block in chat — spec can be dropped from context after
-```
-
-**Rule of thumb:** Rules = **triggers**. Spec = **reference manual**. CI/`prime_check` = **judge**.
-
----
-
-## ⚡ ACTIVATION SEQUENCE
-
-```text
-  [01] ACQUIRE   v5.2 spec locally (personal: free · corp: cleared via TG)
-  [02] BOOT      tiny .cursor/rules/*.mdc — NOT the full 1300-line dump
-  [03] LOCK      tier ≥ PRIME · greenfield | legacy
-  [04] BOOTSTRAP prime_check — ZERO feature work until base is green
-  [05] EXECUTE   TDD → --diff → FULL → --evidence → exit 0 or shut up
+  Hobby          → v3.0 MIT
+  Personal v6    → FREE
+  Company v6     → @ExcitedSkam OR consequences above
 ```
 
 ```bash
@@ -313,20 +186,32 @@ python -m scripts.prime_check --evidence
 python -m scripts.prime_check
 ```
 
-`99.99%` = `0%`. Checker > agent. «Run tests yourself» = automatic bad faith.
-
 ---
 
-## 🔒 ENFORCEMENT LOOP
+## 🧠 CONTEXT HYGIENE — DON'T KILL YOUR OWN CAGE
+
+**Dumping 1300 lines into always-on Rules defeats the weapon.** Keep spec **local**. Feed **on demand**.
 
 ```text
-  TASK → prime_check? → NO → BOOTSTRAP ONLY
-       → YES → DESIGN MATRIX → FAILING TEST → CODE
-       → --diff → RED → FIX UNTIL GREEN → EVIDENCE → DONE ✓
+  ✗ Paste full V5.2 into alwaysApply Rules (context amnesia accelerates)
+  ✓ Tiny boot .mdc (~20 lines) → @Mawyxx Prime V5.2.md when task needs depth
+  ✓ prime_check in repo = judge lives OUTSIDE the LLM window
+```
+
+Boot snippet for `.cursor/rules/mawyxx-boot.mdc`:
+
+```markdown
+---
+description: MAWYXX boot — spec on demand only
+alwaysApply: true
+---
+Real app = PRIME+. Full spec: @Mawyxx Prime V5.2.md (AGENT-1 sections only).
+No prime_check? Bootstrap AGENT-5 first. You run prime_check. Fix until exit 0.
+Before done: --diff → full → --evidence. Never load entire spec every message.
 ```
 
 ---
 
-*MAWYXX PRIME — the spec your agent fears · the evidence your auditor wants · the letter your investors dread*
+*MAWYXX PRIME — the spec your agent fears · the cage it builds itself · the letter your investors dread*
 
-*[@ExcitedSkam](https://t.me/ExcitedSkam)*
+*Sovereign Architect: [@ExcitedSkam](https://t.me/ExcitedSkam)*
