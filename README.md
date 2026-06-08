@@ -238,6 +238,8 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 **AST Prosecutor ≠ CI wrapper.** Checker parses import graphs and AST locally — agent words don't count, `exit 0` does.
 
+**On RED:** report = EXEC SUMMARY → FIX PLAN (P1→P3) → per-finding `file:line` + code snippet + **hint** + **rerun** cmd. Agent fixes in that order — not raw linter spam.
+
 ---
 
 ## License

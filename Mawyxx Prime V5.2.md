@@ -501,8 +501,9 @@ AST Prosecutor:      tests + coverage + import graph + DI purity + nondeterminis
 ```
 
 **MUST:** architecture gates реализованы через **AST/import graph** — не regex-only, не «надеемся на линтер».
-**MUST:** каждый FAIL → structured Finding (rule ID, file:line, snippet, hint, rerun cmd).
+**MUST:** каждый FAIL → structured Finding (rule ID, file:line, snippet, hint, rerun cmd) — см. [Report output](#report-output--agent-readable-diagnostics). Агент **не гадает** по сырому pytest/ruff — читает EXEC SUMMARY → FIX PLAN → Finding.
 **MUST NOT:** stub step `return []` — prosecutor gates = real parsers per stack adapter.
+**MUST NOT:** «import-graph failed» без file:line, import chain и hint куда перенести код.
 
 #### Config: role scopes (Skin → Engine mapping)
 
@@ -675,6 +676,10 @@ FAIL PRIME-A25 [coverage-branch-100] P1
     PlaceOrderUC       → src/application/place_order.py:34
   CONTEXT LEAK (cross-module domain entity import):
     payments → users.domain.User  → src/payments/charge.py:3
+  ARCHITECTURE (AST Prosecutor):
+    import-graph-gate  src/core/order.py:4  core → sqlalchemy.orm
+    di-purity-gate     src/app/place_order.py:28  PostgresOrderRepo() inside UC
+    anti-null-gate     src/app/get_order.py:12  return None as failure path
 
 ▸ STEP TIMELINE                   ← что прошло / что упало
   ✓ lint                    1.2s
@@ -713,6 +718,13 @@ Run `python -m scripts.prime_check --evidence` for handoff block.
 | `error-context-gate` | MATRIX GAPS → ERR CONTEXT | `Err` без rule_id / state_snapshot / correlation_id |
 | `test-matrix-gate` | MATRIX GAPS → DESIGN | UC из design artifact без теста в repo |
 | `import-boundaries` | FINDINGS | forbidden import chain: A → B → C |
+| `import-graph-gate` | FINDINGS + ARCHITECTURE | import edge core→infra; banned module; full chain A→B→C |
+| `di-purity-gate` | FINDINGS + ARCHITECTURE | `new ConcreteRepo()` file:line; suggest inject/port |
+| `deterministic-runtime-gate` | FINDINGS + ARCHITECTURE | `uuid4`/`now` call file:line; suggest ITimeProvider |
+| `anti-null-gate` | FINDINGS + ARCHITECTURE | `return None` / nullable return; suggest explicit error |
+| `handler-purity-gate` | FINDINGS + ARCHITECTURE | handler logic lines count; business if in route |
+| `cyclomatic-gate` / `file-size-guard` | FINDINGS | function complexity N>max; file LOC; extract target |
+| `anti-fork-gate` | FINDINGS | `*_v2` path; duplicate policy hash; extend SSOT hint |
 | `gitleaks` / `no-secrets` | FINDINGS | file:line + redacted match + rotate hint |
 | `mutation-critical` | FINDINGS | survived mutant location + test that should kill |
 

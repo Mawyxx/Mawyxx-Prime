@@ -238,6 +238,8 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 **AST Prosecutor ≠ CI-обёртка.** Checker сам парсит AST и import graph — слова агента не считаются, только `exit 0`.
 
+**При RED:** отчёт = EXEC SUMMARY → FIX PLAN (P1→P3) → на каждый FAIL: `file:line` + сниппет + **hint** + команда **rerun**. Агент чинит по плану — не по сырому логу pytest.
+
 ---
 
 ## Лицензия
