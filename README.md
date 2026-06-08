@@ -18,7 +18,7 @@ Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.2** nam
 |------|---------|--------|
 | `Mawyxx Prime V3.0.md` | 10 sections · ~220 lines | **MIT · open** |
 | `Mawyxx Prime V5.2.md` | AGENT-0…5 · **A01–A32** · **B01–B14** · ~1300 lines | **Open in repo** · corp use = paid |
-| `scripts/prime_check/` | Agent builds per **AGENT-5** | Not shipped — agent creates in your project |
+| `scripts/prime_check/` | **Agent creates FULL** per **AGENT-5** (~50 steps, config, CI) | **Not in repo** — agent bootstraps, configures, runs, fixes — **user does nothing** |
 
 ---
 
@@ -79,7 +79,7 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | **Agent phases** | AGENT-OMEGA 0→4 | LOCK → design → TDD → implement → verify — mandatory order |
 | **Task router** | AGENT-1 | Maps task type → which rules apply |
 | **Merge gate spec** | A22 · AGENT-5 | `prime_check` — only way to declare «done» at PRIME+ |
-| **Agent builds checker** | AGENT-5 | If no `scripts/prime_check/` → PHASE 0 bootstrap ~50 steps |
+| **Agent owns checker 100%** | AGENT-5 · A22 | No checker? Agent creates FULL: scaffold, ~50 steps, yaml, CI, deps, run, fix until green — **never asks user** |
 | **Fix until green** | FIX-UNTIL-GREEN · A30 | Red gate → fix → re-run — agent never abandons |
 | **TDD lock** | A24 | Failing test **before** production code, same PR |
 | **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` — chat «done» without it = invalid |
@@ -207,13 +207,27 @@ Outcomes (Part A/B + Pattern Catalog): Explicit errors · Immutability When · I
 
 ---
 
-## How v5.2 verifies (prime_check)
+## Checker = agent job (not yours)
 
-Agent runs: `python -m scripts.prime_check` → **exit 0** + **PRIME-VERIFY-EVIDENCE**
+On tier ≥ PRIME the **agent** owns the quality gate end-to-end:
 
 ```text
-PHASE 0  bootstrap prime_check if missing
-PHASE 1  design artifact (test_matrix, routes, Err list)
+MISSING?  → agent scaffolds scripts/prime_check/ + all ~50 step modules
+CONFIG?   → agent writes prime_check.config.yaml (tier, scopes, stack)
+CI?       → agent adds workflow — same command as local
+DEPS?     → agent adds pytest/ruff/eslint/… for gates
+RUN?      → agent executes in shell — never «run tests yourself»
+RED?      → agent fixes code AND/OR checker → re-run → exit 0
+DONE?     → agent prints PRIME-VERIFY-EVIDENCE
+```
+
+**You** don't install, configure, or run the checker. **Agent does.**
+
+## How v5.2 verifies
+
+```text
+PHASE 0  agent bootstraps FULL checker if missing (STOP feature until green)
+PHASE 1  design artifact
 PHASE 2  failing tests first (TDD-LOCK)
 PHASE 3  implement
 PHASE 4  --only → --diff → full → evidence · fix-until-green
@@ -239,7 +253,7 @@ Open ≠ free for corporations. The spec is public; commercial deployment on com
 
 ```markdown
 # .cursor/rules/mawyxx-boot.mdc — keep short; load @Mawyxx Prime V5.2.md on demand
-Project Skin + Empire Engine. Tier by risk. No quality gate? AGENT-5 bootstrap. Fix until exit 0 — always.
+Project Skin + Empire Engine. Tier by risk. No checker? Agent builds FULL (steps, config, CI) — runs & fixes alone. Never ask user to run tests.
 ```
 
 ```bash

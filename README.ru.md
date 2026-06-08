@@ -18,7 +18,7 @@
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | 10 разделов · ~220 строк | **MIT · открыт** |
 | `Mawyxx Prime V5.2.md` | AGENT-0…5 · **A01–A32** · **B01–B14** · ~1300 строк | **Открыт в репо** · корп = платно |
-| `scripts/prime_check/` | Агент пишет по **AGENT-5** | Не в репо — агент создаёт в проекте |
+| `scripts/prime_check/` | **Агент создаёт FULL** по **AGENT-5** (~50 steps, config, CI) | **Не в репо** — агент bootstrap, config, run, fix — **пользователь не трогает** |
 
 ---
 
@@ -79,7 +79,7 @@
 | **Фазы агента** | AGENT-OMEGA 0→4 | LOCK → design → TDD → code → verify — строгий порядок |
 | **Task router** | AGENT-1 | Тип задачи → какие правила применять |
 | **Merge gate** | A22 · AGENT-5 | `prime_check` — единственное «готово» на PRIME+ |
-| **Агент пишет checker** | AGENT-5 | Нет `scripts/prime_check/` → PHASE 0 · ~50 шагов |
+| **Checker = 100% агент** | AGENT-5 · A22 | Нет checker? Агент FULL: scaffold, ~50 steps, yaml, CI, deps, run, fix до green — **не просит пользователя** |
 | **Fix until green** | FIX-UNTIL-GREEN · A30 | Red → чини → re-run — агент не бросает |
 | **TDD lock** | A24 | Failing test **до** prod-кода, тот же PR |
 | **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` — без него ответ невалиден |
@@ -207,13 +207,27 @@ Outcomes (Part A/B + Pattern Catalog): Explicit errors · Immutability When · I
 
 ---
 
-## Как v5.2 проверяет (prime_check)
+## Checker = работа агента (не твоя)
 
-Агент гоняет: `python -m scripts.prime_check` → **exit 0** + **PRIME-VERIFY-EVIDENCE**
+На tier ≥ PRIME **агент** владеет quality gate целиком:
 
 ```text
-PHASE 0  bootstrap prime_check если нет
-PHASE 1  design artifact (test_matrix, routes, Err)
+НЕТ?     → агент scaffold scripts/prime_check/ + все ~50 step-модулей
+CONFIG?  → агент пишет prime_check.config.yaml (tier, scopes, stack)
+CI?      → агент добавляет workflow — та же команда что local
+DEPS?    → агент добавляет pytest/ruff/eslint/… для gates
+RUN?     → агент гоняет в shell — никогда «запустите сами»
+RED?     → агент чинит код И/ИЛИ checker → re-run → exit 0
+DONE?    → агент печатает PRIME-VERIFY-EVIDENCE
+```
+
+**Ты** не ставишь, не настраиваешь, не запускаешь checker. **Агент.**
+
+## Как v5.2 проверяет
+
+```text
+PHASE 0  агент bootstrap FULL checker если нет (STOP фича до green)
+PHASE 1  design artifact
 PHASE 2  failing tests first (TDD-LOCK)
 PHASE 3  реализация
 PHASE 4  --only → --diff → full → evidence · fix-until-green
@@ -239,7 +253,7 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 ```markdown
 # .cursor/rules/mawyxx-boot.mdc — короткий boot; @Mawyxx Prime V5.2.md по задаче
-Project Skin + Empire Engine. Tier по риску. Нет quality gate? AGENT-5. Чини до exit 0 — всегда.
+Project Skin + Empire Engine. Tier по риску. Нет checker? Агент FULL (steps, config, CI) — сам гоняет и чинит. Не проси пользователя запускать тесты.
 ```
 
 ```bash

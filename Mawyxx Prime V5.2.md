@@ -26,6 +26,22 @@
 **When** в правилах = **какой механизм** включить (FSM, idempotency ledger, context-leak…), **не** «можно писать хуже».  
 **Никогда:** «проект маленький → без тестов», «тут React → логика в компоненте ок», «потом допишем prime_check».
 
+### Checker = 100% работа агента (не пользователя)
+
+На tier ≥ PRIME **человек не настраивает checker**. Агент **сам**, в этой сессии:
+
+| Задача | Кто | Запрещено пользователю |
+|--------|-----|------------------------|
+| Создать `scripts/prime_check/` с нуля | **Агент** | «добавьте checker в репо» |
+| Написать **все** step-модули (~50) | **Агент** | «реализуйте gates сами» |
+| `prime_check.config.yaml` (tier, scopes, stack) | **Агент** | «настройте config» |
+| CI workflow (local ≡ CI) | **Агент** | «добавьте job в GitHub Actions» |
+| Dev-deps для lint/test/coverage | **Агент** | «установите pytest/ruff» |
+| Запуск `--only` / `--diff` / FULL | **Агент** в shell | «запустите тесты» / «проверьте сами» |
+| Чинить код **и** checker до `exit 0` | **Агент** | «не могу починить gate» |
+
+**Нет checker в репо → STOP фичу → [AGENT-5](#agent-5--prime-check) bootstrap FULL → green → только потом задача пользователя.**
+
 **Цель:** **High Cohesion** внутри модулей, **Low Coupling** между ними. Код предсказуемый, тестируемый, наблюдаемый, готовый к росту.
 
 **Applicability keywords (RFC 2119 + WHEN):**
@@ -96,7 +112,9 @@ normative_keywords: RFC_2119
 self_correction: stop_the_line        # pause NEW layers on broken base; still FIX until green
 agent_phases: OMEGA → BOOT → ROUTE → VERIFY   # see AGENT-OMEGA
 agent_runs_verify: true
-agent_bootstraps_prime_check: true
+agent_bootstraps_prime_check: true    # agent creates FULL checker if missing — not user
+agent_owns_checker_config: true       # yaml, CI, steps, stack adapter — agent configures
+agent_runs_checker_in_shell: true     # agent executes; NEVER ask user to run
 agent_evidence_required: true
 verify_final: <stack-native quality gate>   # e.g. python -m scripts.prime_check | npm run prime:check | make prime-check
 verify_evidence: <same> --evidence
@@ -111,8 +129,8 @@ prime_check_config: scripts/prime_check.config.yaml
 stack_adapters: python | node | rust | go | kotlin | swift
 ```
 
-**Agent rule:** нет quality gate (tier ≥ PRIME) → **bootstrap** [AGENT-5](#agent-5--prime-check), потом фича.  
-**Agent rule:** checker = истина; red → **fix loop** до `exit 0` + evidence block — **не stop, а repair**.  
+**Agent rule:** нет quality gate (tier ≥ PRIME) → агент **сам** пишет FULL checker ([AGENT-5](#agent-5--prime-check)), config, CI — потом фича. Пользователь **не участвует**.  
+**Agent rule:** checker = истина; red → агент чинит **код и/или checker** → re-run → `exit 0` + evidence — **не stop, не делегировать**.  
 **Agent rule:** **Project Skin** — форма как в репо. **Empire Engine** — дисциплина tier **всегда**, без «сойдёт для этого проекта». Конфликт формы → ADR; конфликт качества → **Empire wins**.
 
 ---
@@ -125,9 +143,11 @@ stack_adapters: python | node | rust | go | kotlin | swift
 
 ```text
 assign tier → tier ≥ PRIME?
-  → prime_check exists? NO → STOP all feature work → bootstrap AGENT-5 only
-  → adoption_mode? greenfield | legacy (A31)
-  → stack? detect → pick adapter (AGENT-5 stack matrix)
+  → quality gate exists + config + CI? NO → STOP all feature work
+      → agent bootstraps FULL checker (AGENT-5): scaffold, ~50 steps, yaml, CI, deps
+      → agent runs FULL → green (or legacy ratchet ADR) → ONLY THEN feature
+  → adoption_mode? greenfield | legacy (A31) — agent sets in config
+  → stack? agent detects → picks adapter → wires tools in checker
 ```
 
 ### PHASE 1 — DESIGN ARTIFACT (в ответе до кода)
@@ -168,7 +188,8 @@ print PRIME-VERIFY-EVIDENCE block ([A26](#prime-a26--evidence-block))
 
 - «покрытие ~99%» / «достаточно для merge»
 - «запустите тесты» / «проверьте сами»
-- «prime_check добавим позже»
+- «prime_check добавим позже» / «настройте checker по README»
+- «установите pytest» / «добавьте GitHub Actions» / «создайте scripts/prime_check»
 - «edge case — можно без теста»
 - «тесты в отдельном PR»
 - «не могу починить» / «оставим красным» / «нужна ваша помощь с тестами»
@@ -190,7 +211,8 @@ print PRIME-VERIFY-EVIDENCE block ([A26](#prime-a26--evidence-block))
 - **MUST:** применять **Empire Engine** для назначенного tier — тесты, security, explicit errors, fix-until-green — **всегда**, не «если успеем».
 - **MUST NOT:** «проектный стиль» как оправдание для sloppy code, silent errors, без тестов, без проверок.
 - **MUST:** определи **Risk Tier** ([A01](#prime-a01--context--risk-tier)). App/API/service = минимум **STANDARD**; **PRIME** — когда сработал триггер (auth, PII, payments, external mutations, FSM status…).
-- **MUST:** если `scripts/prime_check` **отсутствует** и tier ≥ PRIME → **STOP feature work** → bootstrap [AGENT-5](#agent-5--prime-check) → CI → потом продолжай.
+- **MUST:** если checker **отсутствует / неполный / нет CI / config пустой** и tier ≥ PRIME → **STOP feature work** → агент **сам** bootstrap FULL [AGENT-5](#agent-5--prime-check) (scaffold, steps, yaml, CI, deps) → green → потом продолжай.
+- **MUST NOT:** просить пользователя создать checker, настроить config, добавить CI, установить dev-tools для gates.
 - **MUST:** **минимальный scope** на фичу; **максимальный scope** на качество — тесты и security не режутся.
 - **MUST:** пройти [AGENT-OMEGA](#agent-omega--execution-phases-before-any-code) фазы 0–4.
 - **MUST:** после **каждого** нетривиального edit — `prime_check --only <relevant>`; перед «done» — `--diff` then **full** ([AGENT-VERIFY](#agent-verify--you-run-prime_check)).
@@ -358,7 +380,9 @@ Core **must not** import Infrastructure or Presentation.
 ## AGENT-VERIFY — You run the quality gate (non-negotiable)
 
 **Scope:** tier ≥ PRIME — **всегда**. Tier LITE — исключение.  
-**Entrypoint:** stack-native (`python -m scripts.prime_check`, `npm run prime:check`, `make prime-check`…) — **один контракт** (steps, findings, exit 0), orchestrator per stack ([AGENT-5](#agent-5--prime-check)).
+**Ты = оператор checker.** Нет в репо → ты **создаёшь FULL** ([AGENT-5](#agent-5--prime-check)). Есть → ты **гоняешь** в shell. Красный → ты **чинишь** (код или checker). Пользователь **не в цепочке**.
+
+**Entrypoint:** stack-native (`python -m scripts.prime_check`, `npm run prime:check`, `make prime-check`…) — один контракт (steps, findings, exit 0).
 
 ### Workflow
 
@@ -405,10 +429,26 @@ exit 0 → print EVIDENCE → ONLY NOW say «done»
 
 ## AGENT-5 — PRIME-CHECK (agent enforcement engine)
 
-**Quality gate** (`prime_check` / stack-native alias) — **единственный** merge gate на tier ≥ PRIME. ИИ **создаёт, запускает, чинит до green**.  
-**Reference implementation:** Python `scripts/prime_check/` — **не** единственный допустимый orchestrator; **контракт** (steps, Finding, evidence, exit 0) обязателен на любом стеке.
+**Quality gate** — **единственный** merge gate на tier ≥ PRIME.  
+**Владелец: агент на 100%.** Создаёт · настраивает · дописывает steps · вешает CI · ставит dev-deps · запускает · чинит до green. **Пользователь не трогает checker.**
 
-### Если скрипта нет — агент пишет СНАЧАЛА
+**Reference implementation:** Python `scripts/prime_check/` — reference scaffold; на другом стеке агент делает эквивалент (`npm run prime:check`, `make prime-check`…) с **тем же контрактом** (steps, Finding, evidence, exit 0).
+
+### Agent ownership checklist (MUST — агент делает сам)
+
+```text
+[ ] Detect stack → pick adapter row (lint, types, unit, coverage, security)
+[ ] Scaffold orchestrator + reporter + finding + evidence + steps/
+[ ] Implement ALL applicable steps for tier (~50 — не заглушки)
+[ ] Write prime_check.config.yaml: tier, adoption_mode, runtime_scope, monorepo_scopes
+[ ] Wire CI job — identical command to local
+[ ] Add dev-deps to project (pytest, ruff, eslint… — что нужно gates)
+[ ] Run --list → all steps registered
+[ ] Run FULL → fix checker bugs → fix codebase → exit 0
+[ ] Document entrypoint in README fragment if project has no docs
+```
+
+### Если скрипта нет — агент пишет СНАЧАЛА (пользователь ждёт)
 
 ```text
 1. Detect stack (py/node/rust/go/mobile) → pick adapter row (stack matrix below)
@@ -452,7 +492,9 @@ exit 0 → print EVIDENCE → ONLY NOW say «done»
 - **MUST:** `--list` / `--only <step>` / `--diff` / `--evidence` / `--json` / `--report <path>` / full run.
 - **MUST:** local ≡ CI (identical command).
 - **MUST:** новый route/UC/Err/dockerfile → тесты + gates **в том же PR**.
-- **MUST:** агент **сам** запускает — не ждёт пользователя.
+- **MUST:** агент **сам** создаёт, настраивает, запускает, чинит checker — **никогда** не делегирует пользователю.
+- **MUST:** checker сломан / step missing → агент **чинит checker**, не обходит manual lint.
+- **MUST NOT:** «у вас нет prime_check — настройте по README» / «запустите npm test» / «добавьте workflow».
 - **MUST NOT:** обрезать coverage/matrix findings без `... and N more` + путь к `--report`.
 - **MUST NOT:** печатать только «tests failed» без file:line, rule ID и hint.
 - **MUST NOT:** в спеке, отчётах или ответах агента — disclaimers «prime_check не делает X» / «это только маркетинг» / README vs reality. Один продуктовый голос.
@@ -1375,11 +1417,12 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 ### Purpose
 
 **Единственный** способ сказать «готово» на tier ≥ PRIME: **project quality gate** → **exit 0**.  
-Entrypoint = stack-native (`python -m scripts.prime_check`, `npm run prime:check`, `make prime-check`…). Python scaffold — **reference impl**, не единственный. ИИ **пишет** gate если нет. ИИ **запускает** всегда сам.
+**Агент владеет checker целиком:** создаёт · config · CI · ~50 steps · dev-deps · запуск · fix до green. Пользователь **не настраивает и не запускает**.
 
 ### MUST
 
-- **MUST:** `scripts/prime_check` exists; if not — agent creates **before** feature ([AGENT-5](#agent-5--prime-check)).
+- **MUST:** quality gate **exists + configured + CI wired**; if not — agent bootstraps **FULL** checker **before** feature ([AGENT-5](#agent-5--prime-check)).
+- **MUST:** agent writes `prime_check.config.yaml`, implements steps, adds CI job, installs gate dev-deps — **сам**.
 - **MUST:** full matrix перед «done»; agent runs in shell ([AGENT-VERIFY](#agent-verify--you-run-prime_check)).
 - **MUST:** CI = local (identical command).
 - **MUST:** ALL applicable steps from AGENT-5 (~50).
@@ -1395,7 +1438,8 @@ Entrypoint = stack-native (`python -m scripts.prime_check`, `npm run prime:check
 - Skip any mandatory step.
 - 99.x% coverage.
 - Exclude without ADR + ticket + sunset.
-- Ask user to run checker.
+- Ask user to run checker, configure yaml, add CI, or install pytest/ruff/eslint for gates.
+- Ship stub checker with `pass` steps — каждый step = real enforcement.
 - Different CI vs local rules.
 
 **LITE scripts only:** exempt from prime_check.
@@ -1761,7 +1805,8 @@ Gates проверяют Engine, не заставляют одну колонк
 | TDD-LOCK | failing test before implementation (A24) |
 | merge-blocking | prime_check must pass before merge |
 | zero_tolerance | 99.99% = 0%; checker > agent words |
-| agent_bootstraps_prime_check | if script missing, agent writes it first |
+| agent_bootstraps_prime_check | if missing — agent writes FULL checker (steps, config, CI) |
+| agent_owns_checker | agent creates, configures, runs, fixes checker — user never |
 | Finding | one actionable issue: rule ID, step, file:line, hint, rerun cmd |
 | FIX PLAN | ordered repair list in prime_check report — agent follows P1→P3 |
 | COVERAGE MAP | per-file line/branch % + exact uncovered lines from reporter |
