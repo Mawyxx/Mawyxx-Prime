@@ -3,7 +3,7 @@
 ```text
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  THE ENTERPRISE AI VIBE-CODING STANDARD                                      ║
-║  Build for Billions. Code for Vibe. Rule with Logic.                        ║
+║  Build for Billions. Code for Vibe. Rule with Logic.                         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -75,28 +75,28 @@ Senior architects don't pay $50 for `bandit`. They pay to avoid being the person
 ```text
   ┌─ PILATE PROTOCOL ─────────────────────────────────────────────────────────┐
   │  Wash your hands? No. Force liability to surface BEFORE merge.            │
-  │  Agent cannot "looks good to me" — only exit 0 or stop-the-line.        │
-  │  Uncleared corp use = YOU inherit the spec's enforcement DNA in discovery│
+  │  Agent cannot "looks good to me" — only exit 0 or stop-the-line.          │
+  │  Uncleared corp use = YOU inherit the spec's enforcement DNA in discovery │
   └───────────────────────────────────────────────────────────────────────────┘
 
   ┌─ SECTION 230 SHIELD (SPEC vs SHIPMENT) ───────────────────────────────────┐
   │  The STANDARD is speech. Your PRODUCTION REPO is action.                  │
-  │  Personal use: protected noncommercial expression.                         │
-  │  Corporate deployment without license: commercial reproduction.            │
+  │  Personal use: protected noncommercial expression.                        │
+  │  Corporate deployment without license: commercial reproduction.           │
   │  We don't sue your vibes. We sue unauthorized DISTRIBUTION of the cage.   │
   └───────────────────────────────────────────────────────────────────────────┘
 
   ┌─ APP STORE BYPASS ────────────────────────────────────────────────────────┐
-  │  Apple reviews binaries. GitHub does not review your Cursor Rules.       │
-  │  God Mode rides the IDE — normative spec straight into the codegen loop. │
-  │  You bypass store friction. You do NOT bypass copyright on the spec.     │
+  │  Apple reviews binaries. GitHub does not review your Cursor Rules.        │
+  │  God Mode rides the IDE — normative spec straight into the codegen loop.  │
+  │  You bypass store friction. You do NOT bypass copyright on the spec.      │
   └───────────────────────────────────────────────────────────────────────────┘
 
   ┌─ LEDGER-GRADE ENFORCEMENT ──────────────────────────────────────────────┐
   │  Not "we log errors". Immutable test matrices: UC × Err × Route × Auth. │
-  │  Financial & stateful domains get FSM + idempotency + mutation gates.    │
-  │  Your auditor gets a chain of evidence — not a Jira ticket and prayers.  │
-  └───────────────────────────────────────────────────────────────────────────┘
+  │  Financial & stateful domains get FSM + idempotency + mutation gates.   │
+  │  Your auditor gets a chain of evidence — not a Jira ticket and prayers. │
+  └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 **DIY gitleaks in 5 minutes? Congratulations.** You still don't have AGENT-OMEGA, evidence locks, diff-100 ratchet, zta-matrix, or an agent that **cannot legally say "done"** without a verify dump. That's the product.
@@ -170,11 +170,69 @@ Senior architects don't pay $50 for `bandit`. They pay to avoid being the person
 
 ---
 
+## 🧠 CONTEXT HYGIENE — DON'T DUMP 1300 LINES INTO RULES
+
+**Full v6 spec in always-on Cursor Rules = destroyed context window.** The standard lives **locally**. You **feed** it when needed.
+
+```text
+  ✗ BAD   Paste entire Mawyxx Prime V5.2.md into .cursor/rules/ (always applied)
+  ✗ BAD   Duplicate AGENT-5 + all PRIME-A rules in every chat
+  ✗ BAD   Keep 3 copies: Rules + User Rules + repo (they drift and fight)
+
+  ✓ GOOD  Standard in repo: docs/standards/ or project root
+  ✓ GOOD  Tiny always-on rule (~15–40 lines) — boot contract only
+  ✓ GOOD  @-mention or explicit read when task needs depth
+  ✓ GOOD  prime_check in repo — enforcement is code, not prompt weight
+```
+
+### Minimal always-on rule (example)
+
+Put this in `.cursor/rules/mawyxx-boot.mdc` — **not** the full spec:
+
+```markdown
+---
+description: MAWYXX PRIME boot — load full spec on demand only
+alwaysApply: true
+---
+
+Before non-trivial code: read Risk Tier from user or infer (real app = PRIME+).
+Full standard: @Mawyxx Prime V5.2.md — read ONLY relevant sections (AGENT-1 router).
+If no scripts/prime_check: bootstrap first (AGENT-5), then feature work.
+You run prime_check yourself. Never ask user to run tests.
+Before «done»: --diff → full → --evidence → exit 0.
+Do NOT load entire spec every message — use task router (AGENT-1).
+```
+
+### When to feed what
+
+| Situation | What to give the agent |
+|-----------|-------------------------|
+| Daily coding, small tasks | **v3.0** snippet or nothing — tier LITE/STANDARD |
+| New feature / API / auth | `@V5.2` → AGENT-OMEGA + AGENT-1 row + linked PRIME-A* |
+| prime_check missing | `@V5.2` → AGENT-5 only |
+| Coverage / test fight | `@V5.2` → A12, A25, AGENT-VERIFY |
+| Security / Docker | `@V5.2` → A02, A16, A23 + relevant steps |
+| «Just fix this bug» | Paste **one** rule ID + file context — not full doc |
+
+### Workflow
+
+```text
+  1. KEEP     Mawyxx Prime V5.2.md in repo (gitignored ok for private copy)
+  2. BOOT     minimal .mdc rule (alwaysApply) — points to file, not copies it
+  3. TASK     user says tier + task type → agent reads AGENT-1 → pulls 2–5 sections
+  4. ENFORCE  prime_check in shell — truth lives outside the LLM context
+  5. DONE     evidence block in chat — spec can be dropped from context after
+```
+
+**Rule of thumb:** Rules = **triggers**. Spec = **reference manual**. CI/`prime_check` = **judge**.
+
+---
+
 ## ⚡ ACTIVATION SEQUENCE
 
 ```text
-  [01] ACQUIRE   v5.2 spec (personal: free · corp: cleared via TG)
-  [02] INJECT    Cursor Rules / .cursor/rules/
+  [01] ACQUIRE   v5.2 spec locally (personal: free · corp: cleared via TG)
+  [02] BOOT      tiny .cursor/rules/*.mdc — NOT the full 1300-line dump
   [03] LOCK      tier ≥ PRIME · greenfield | legacy
   [04] BOOTSTRAP prime_check — ZERO feature work until base is green
   [05] EXECUTE   TDD → --diff → FULL → --evidence → exit 0 or shut up

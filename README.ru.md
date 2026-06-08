@@ -170,11 +170,69 @@ General Counsel не боится `gitleaks`. Он боится **воспрои
 
 ---
 
+## 🧠 CONTEXT HYGIENE — НЕ ПИХАЙ 1300 СТРОК В RULES
+
+**Весь v6 в always-on Rules = убитый context window.** Стандарт **лежит локально**. В агента **кидаешь по необходимости**.
+
+```text
+  ✗ ПЛОХО  Весь Mawyxx Prime V5.2.md в .cursor/rules/ (always applied)
+  ✗ ПЛОХО  Копировать AGENT-5 + все PRIME-A в каждый чат
+  ✗ ПЛОХО  Три копии: Rules + User Rules + репо (разъезжаются)
+
+  ✓ НОРМ   Файл в репо: docs/standards/ или корень проекта
+  ✓ НОРМ   Крошечное always-on правило (~15–40 строк) — только boot
+  ✓ НОРМ   @-упоминание файла или «прочитай секцию X» по задаче
+  ✓ НОРМ   prime_check в репо — enforcement в коде, не в промпте
+```
+
+### Минимальное always-on правило (пример)
+
+В `.cursor/rules/mawyxx-boot.mdc` — **не** полная спека:
+
+```markdown
+---
+description: MAWYXX PRIME boot — полную спеку грузить только по запросу
+alwaysApply: true
+---
+
+Перед нетривиальным кодом: tier от пользователя (реальный app = PRIME+).
+Полный стандарт: @Mawyxx Prime V5.2.md — только нужные секции (AGENT-1 router).
+Нет scripts/prime_check → сначала bootstrap (AGENT-5), потом фича.
+prime_check запускаешь САМ. Не проси пользователя.
+Перед «готово»: --diff → full → --evidence → exit 0.
+НЕ грузи всю спеку каждое сообщение — task router (AGENT-1).
+```
+
+### Что кидать когда
+
+| Ситуация | Что дать агенту |
+|----------|-----------------|
+| Обычный код, мелочи | **v3.0** или ничего — LITE/STANDARD |
+| Фича / API / auth | `@V5.2` → AGENT-OMEGA + строка AGENT-1 + нужные PRIME-A* |
+| Нет prime_check | `@V5.2` → только AGENT-5 |
+| Coverage / тесты | `@V5.2` → A12, A25, AGENT-VERIFY |
+| Security / Docker | `@V5.2` → A02, A16, A23 |
+| «Пофикси баг» | **один** rule ID + контекст файла — не весь док |
+
+### Workflow
+
+```text
+  1. ХРАНИ   Mawyxx Prime V5.2.md в репо (можно gitignore для приватной копии)
+  2. BOOT    маленький .mdc (alwaysApply) — ссылка на файл, не копия
+  3. ЗАДАЧА  tier + тип → агент читает AGENT-1 → тянет 2–5 секций
+  4. СУД      prime_check в shell — истина вне контекста LLM
+  5. ГОТОВО   evidence в чат — спеку можно выкинуть из контекста
+```
+
+**Правило:** Rules = **триггеры**. Спека = **справочник**. CI/prime_check = **судья**.
+
+---
+
 ## ⚡ АКТИВАЦИЯ
 
 ```text
-  [01] ПОЛУЧИТЬ  v5.2 spec (лично: free · корп: clearance в TG)
-  [02] ВНЕДРИТЬ  Cursor Rules
+  [01] ПОЛУЧИТЬ  v5.2 spec локально (лично: free · корп: clearance в TG)
+  [02] BOOT      крошечный .cursor/rules/*.mdc — НЕ полный дамп на 1300 строк
   [03] LOCK      tier ≥ PRIME · greenfield | legacy
   [04] BOOTSTRAP prime_check — НОЛЬ фич до green base
   [05] TDD → --diff → FULL → --evidence → exit 0 или заткнись
