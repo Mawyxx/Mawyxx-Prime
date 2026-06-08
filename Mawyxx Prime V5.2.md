@@ -489,9 +489,7 @@ exit 0 → print EVIDENCE → ONLY NOW say «done»
 
 **Проблема:** checker только с `pytest` + coverage = хорошая CI-обёртка. Агент говорит «готово» словами — checker не может возразить.
 
-**Решение:** **AST Prosecutor** — **исходники**, которые **агент сам пишет** в `scripts/prime_check/` ([AGENT-5](#agent-5--prime-check)). Не .exe, не скачиваемый бинарник, **не в репо MAWYXX Prime**. Локальный Python/Node/Rust скрипт парсит AST + import graph и выдаёт FAIL/FINDING. **Слова агента ≠ доказательство. Exit 0 = единственная правда.**
-
-**«7 Binary Traps»** = бинарный **вердикт** (pass/fail), не скомпилированный файл.
+**Решение:** **AST Prosecutor** — Python/Node/Go **исходники** в `scripts/prime_check/`, которые **агент сам пишет** по [AGENT-5](#agent-5--prime-check). **Не в репо MAWYXX Prime** — нет готового checker'а, .exe или pip-пакета. Скрипт парсит AST + import graph → structured Finding. **Слова агента ≠ доказательство. Exit 0 = единственная правда.**
 
 **Skin & Engine:** нам похер имена папок (`Skin`). Engine = prosecutor читает `architecture.*` scopes из config и проверяет **outcomes** по графу импортов и AST — не по слову «Domain» в пути.
 
@@ -528,7 +526,7 @@ architecture:
   file_max_lines: 300                                    # file-size-guard
 ```
 
-#### 🔱 7 Binary Traps — что prosecutor-скрипт (написанный агентом) чекает по AST
+#### 🔱 7 AST architecture gates — что prosecutor-скрипт (написанный агентом) проверяет локально
 
 | # | Gate | AST / analysis | Outcome | Rule |
 |---|------|----------------|---------|------|
@@ -551,7 +549,7 @@ architecture:
 | **Kotlin** | detekt architecture | PSI | detekt complexity |
 | **Swift** | SourceKit | SwiftSyntax | swiftlint |
 
-**Agent MUST:** при bootstrap создать `steps/architecture/` с реализацией **всех 7 traps** для detected stack — не откладывать «на потом».
+**Agent MUST:** при bootstrap создать `steps/architecture/` с реализацией **всех 7 AST gates** для detected stack — не откладывать «на потом».
 
 #### Example FAIL (agent-readable — не спорить, чинить)
 
@@ -841,7 +839,7 @@ architecture:                      # AST Prosecutor — agent maps Skin → scop
 | `dead-code-gate` | vulture/knip — no unused export | A11 |
 | `file-size-guard` | >300 fail; >200 allowlist | A11 |
 | `cyclomatic-gate` | function complexity >10 fail | A11 |
-| **ARCHITECTURE — AST Prosecutor (7 Binary Traps)** | | |
+| **ARCHITECTURE — AST Prosecutor (7 gates)** | | |
 | `import-boundaries` | quick role import check | A05 |
 | `import-graph-gate` | **AST** import DAG; core ↛ infra/presentation/banned | A05 |
 | `deterministic-runtime` | **AST** nondeterminism ban in testable_core_scope | A06, A15 |
@@ -1920,8 +1918,8 @@ Gates проверяют Engine, не заставляют одну колонк
 | Stop-the-line | do not stack NEW code on broken base; still fix until green |
 | Fail-Fast | validate at boundary; trust inside ([A17](#prime-a17--clean-code)) |
 | Prime Check | ~50-step merge gate — [AGENT-5](#agent-5--prime-check), [A22](#prime-a22--prime-check) |
-| AST Prosecutor | local AST + import graph gates — 7 Binary Traps; words ≠ proof |
-| 7 Binary Traps | import-graph · di-purity · deterministic-runtime · anti-null · handler-purity · cyclomatic · anti-fork |
+| AST Prosecutor | agent-written scripts in `scripts/prime_check/` — local AST + import graph; words ≠ proof |
+| 7 AST architecture gates | import-graph · di-purity · deterministic-runtime · anti-null · handler-purity · cyclomatic · anti-fork |
 | AGENT-OMEGA | execution phases 0–4 before any code |
 | runtime_scope | paths where 100% coverage required (greenfield) |
 | coverage-diff-100 | 100% on changed files (legacy) |
