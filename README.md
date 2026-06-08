@@ -80,6 +80,7 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | **Task router** | AGENT-1 | Maps task type → which rules apply |
 | **Merge gate spec** | A22 · AGENT-5 | `prime_check` — only way to declare «done» at PRIME+ |
 | **Agent owns checker 100%** | AGENT-5 · A22 | No checker? Agent creates FULL: scaffold, ~50 steps, yaml, CI, deps, run, fix until green — **never asks user** |
+| **AST Prosecutor** | AGENT-5 | 7 Binary Traps: import graph, DI purity, nondeterminism, anti-null, thin handlers, complexity, anti-fork — **local AST, not CI-only** |
 | **Fix until green** | FIX-UNTIL-GREEN · A30 | Red gate → fix → re-run — agent never abandons |
 | **TDD lock** | A24 | Failing test **before** production code, same PR |
 | **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` — chat «done» without it = invalid |
@@ -233,7 +234,9 @@ PHASE 3  implement
 PHASE 4  --only → --diff → full → evidence · fix-until-green
 ```
 
-~50 steps: static · architecture · security · pyramid · matrices · coverage · data/ops · evidence.
+~50 steps: static · **AST Prosecutor (7 traps)** · security · pyramid · matrices · coverage · data/ops · evidence.
+
+**AST Prosecutor ≠ CI wrapper.** Checker parses import graphs and AST locally — agent words don't count, `exit 0` does.
 
 ---
 

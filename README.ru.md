@@ -80,6 +80,7 @@
 | **Task router** | AGENT-1 | Тип задачи → какие правила применять |
 | **Merge gate** | A22 · AGENT-5 | `prime_check` — единственное «готово» на PRIME+ |
 | **Checker = 100% агент** | AGENT-5 · A22 | Нет checker? Агент FULL: scaffold, ~50 steps, yaml, CI, deps, run, fix до green — **не просит пользователя** |
+| **AST Prosecutor** | AGENT-5 | 7 Binary Traps: import graph, DI purity, nondeterminism, anti-null, thin handlers, complexity, anti-fork — **локальный AST, не только CI** |
 | **Fix until green** | FIX-UNTIL-GREEN · A30 | Red → чини → re-run — агент не бросает |
 | **TDD lock** | A24 | Failing test **до** prod-кода, тот же PR |
 | **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` — без него ответ невалиден |
@@ -233,7 +234,9 @@ PHASE 3  реализация
 PHASE 4  --only → --diff → full → evidence · fix-until-green
 ```
 
-~50 шагов: static · architecture · security · pyramid · matrices · coverage · data/ops · evidence.
+~50 шагов: static · **AST Prosecutor (7 traps)** · security · pyramid · matrices · coverage · data/ops · evidence.
+
+**AST Prosecutor ≠ CI-обёртка.** Checker сам парсит AST и import graph — слова агента не считаются, только `exit 0`.
 
 ---
 

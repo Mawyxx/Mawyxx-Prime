@@ -485,6 +485,89 @@ exit 0 → print EVIDENCE → ONLY NOW say «done»
 
 Агент **адаптирует имена шагов**, не правила. `pytest-unit` → `vitest-unit` и т.д.
 
+### AST Prosecutor — не CI-обёртка, а ИИ-прокурор
+
+**Проблема:** checker только с `pytest` + coverage = хорошая CI-обёртка. Агент говорит «готово» словами — checker не может возразить.
+
+**Решение:** **AST Prosecutor** — локальный бинарный скрипт, который **сам** парсит код (AST + import graph + complexity metrics) и бьёт по рукам за грязную архитектуру. **Слова агента ≠ доказательство. Exit 0 = единственная правда.**
+
+**Skin & Engine:** нам похер имена папок (`Skin`). Engine = prosecutor читает `architecture.*` scopes из config и проверяет **outcomes** по графу импортов и AST — не по слову «Domain» в пути.
+
+```text
+CI-only checker:     tests pass? coverage OK? → merge
+AST Prosecutor:      tests + coverage + import graph + DI purity + nondeterminism
+                     + explicit errors + thin handlers + complexity + anti-fork
+                     → FAIL PRIME-Axx [gate] file:line hint → agent MUST fix
+```
+
+**MUST:** architecture gates реализованы через **AST/import graph** — не regex-only, не «надеемся на линтер».
+**MUST:** каждый FAIL → structured Finding (rule ID, file:line, snippet, hint, rerun cmd).
+**MUST NOT:** stub step `return []` — prosecutor gates = real parsers per stack adapter.
+
+#### Config: role scopes (Skin → Engine mapping)
+
+Агент **сам** заполняет при bootstrap — по фактической структуре репо:
+
+```yaml
+architecture:
+  core_scope: [src/core/**, domain/**, internal/models/**]       # testable business logic
+  application_scope: [src/app/**, usecases/**, services/**]
+  presentation_scope: [src/api/**, routes/**, controllers/**, pages/**]
+  infrastructure_markers: [infra/**, adapters/**, repositories/**]
+  # imports FROM these paths INTO core_scope = FAIL import-graph-gate
+  banned_imports_in_core:          # extend per stack
+    python: [sqlalchemy, fastapi, httpx, requests, oracledb, pymongo, redis, celery]
+    node: [express, axios, pg, mongodb, typeorm]
+    go: [net/http, database/sql, gorm]
+  testable_core_scope: [core_scope + application_scope]  # deterministic-runtime, anti-null
+  handler_max_logic_lines: 15                            # handler-purity-gate
+  cyclomatic_max: 10                                   # cyclomatic-gate (A11)
+  file_max_lines: 300                                    # file-size-guard
+```
+
+#### 🔱 7 Binary Traps — что prosecutor чекает локально по коду
+
+| # | Gate | AST / analysis | Outcome | Rule |
+|---|------|----------------|---------|------|
+| 1 | **`import-graph-gate`** | Парсит `import`/`require`/`use` во всех файлах → строит DAG. Любой edge **core → infrastructure/presentation** или **core → banned module** = violation. | `sqlalchemy` в core file → instant FAIL | [A05](#prime-a05--layer-law) |
+| 2 | **`di-purity-gate`** | AST: `New(...)` / `new Foo()` / прямой вызов конструктора infra-класса (`PostgresRepository()`, `MongoClient()`, `axios.create`) внутри `application_scope` / `core_scope`. Allowlist: value objects, DTO, pure factories in tests. | Hardcoded DB client в UC → FAIL | [A06](#prime-a06--di--ports) |
+| 3 | **`deterministic-runtime-gate`** | AST + regex в `testable_core_scope`: `datetime.now`, `time.time`, `uuid4`, `random.randint`, `Date.now`, `Math.random`, `Uuid::new_v4`. Denylist per adapter. | `uuid4()` в core → FAIL, flaky tests impossible | [A15](#prime-a15--deterministic-time) |
+| 4 | **`anti-null-gate`** | Type checker + AST: return type `Optional`/`| None`/`null` на application entry; `return None` / `return null` как исход; nullable chain без guard. **Outcome:** no silent null as failure — not «must be Result monad» (Go `error`, Rust `Result`, typed throw OK). | `-> Order \| None: return None` → FAIL | [A10](#prime-a10--result) |
+| 5 | **`handler-purity-gate`** | AST: считает **логические** строки в `presentation_scope` handlers (exclude imports, decorators shell, blank). Flags: `if/else` business branches, SQL, direct repo calls, loops >1 nesting. | Handler >15 lines logic or business `if` → FAIL | [A05](#prime-a05--layer-law) |
+| 6 | **`cyclomatic-gate`** + **`file-size-guard`** | AST: McCabe per function; LOC per file. Thresholds from config (`cyclomatic_max: 10`, `file_max_lines: 300`). Ratchet: complexity не растёт vs `main` on touched files. | 400-line god-service, complexity 14 → FAIL | [A11](#prime-a11--decomposition) |
+| 7 | **`anti-fork-gate`** | Glob + AST fingerprint: `*_v2`, `*Copy`, `*Old`, `*New` policy files; duplicate validation/error-map blocks (hash AST bodies across repo). | Second auth validator file → FAIL | [A08](#prime-a08--anti-fork) |
+
+#### Stack-native AST tooling (agent wires per detected stack)
+
+| Stack | Import graph | AST parse | Complexity |
+|-------|--------------|-----------|------------|
+| **Python** | `libcst` / `ast` + `importlib` | `ast.NodeVisitor` | `radon` / `lizard` |
+| **TS/Node** | `@typescript-eslint/parser` + `madge` | TS AST | `eslint complexity` |
+| **Rust** | `syn` / `cargo tree` | `syn` | `cargo-geiger` + custom |
+| **Go** | `go/parser` + `golang.org/x/tools/go/packages` | `go/ast` | `gocyclo` |
+| **Kotlin** | detekt architecture | PSI | detekt complexity |
+| **Swift** | SourceKit | SwiftSyntax | swiftlint |
+
+**Agent MUST:** при bootstrap создать `steps/architecture/` с реализацией **всех 7 traps** для detected stack — не откладывать «на потом».
+
+#### Example FAIL (agent-readable — не спорить, чинить)
+
+```text
+FAIL PRIME-A05 [import-graph-gate] P1
+  file:    src/core/order.py:4
+  issue:   core imports infrastructure: sqlalchemy.orm
+  snippet: |
+    > 4 | from sqlalchemy.orm import Session
+  hint:    move persistence to adapters/; core depends on port Protocol only
+  rerun:   python -m scripts.prime_check --only import-graph-gate
+
+FAIL PRIME-A06 [di-purity-gate] P1
+  file:    src/app/place_order.py:28
+  issue:   direct instantiation PostgresOrderRepo() inside application entry
+  hint:    inject IOrderRepository via constructor / FastAPI Depends
+  rerun:   python -m scripts.prime_check --only di-purity-gate
+```
+
 ### AI MUST maintain
 
 - **MUST:** `python -m scripts.prime_check` — Windows/Linux/macOS.
@@ -688,6 +771,15 @@ forbidden_patterns:
   - "assert True"
   - "expect(1).toBe(1)"
 docker_files: [Dockerfile, docker-compose.yml, compose*.yml]
+architecture:                      # AST Prosecutor — agent maps Skin → scopes
+  core_scope: [domain/**, src/core/**]
+  application_scope: [application/**, usecases/**]
+  presentation_scope: [api/**, routes/**, controllers/**]
+  testable_core_scope: [domain/**, application/**]
+  handler_max_logic_lines: 15
+  cyclomatic_max: 10
+  file_max_lines: 300
+  banned_imports_in_core: {python: [sqlalchemy, fastapi], node: [express, pg]}
 ```
 
 ### FULL step map — ~50 steps (mandatory at PRIME+)
@@ -707,20 +799,20 @@ docker_files: [Dockerfile, docker-compose.yml, compose*.yml]
 | `dead-code-gate` | vulture/knip — no unused export | A11 |
 | `file-size-guard` | >300 fail; >200 allowlist | A11 |
 | `cyclomatic-gate` | function complexity >10 fail | A11 |
-| **ARCHITECTURE** | | |
-| `import-boundaries` | domain/app ↛ infra | A05 |
-| `import-graph-gate` | full dependency graph valid | A05 |
-| `deterministic-runtime` | no time/uuid/random in domain/app | A06, A15 |
-| `anti-null-gate` | no None/null return in UC/domain | A10 |
+| **ARCHITECTURE — AST Prosecutor (7 Binary Traps)** | | |
+| `import-boundaries` | quick role import check | A05 |
+| `import-graph-gate` | **AST** import DAG; core ↛ infra/presentation/banned | A05 |
+| `deterministic-runtime` | **AST** nondeterminism ban in testable_core_scope | A06, A15 |
+| `anti-null-gate` | **AST** + types: no silent null as failure path | A10 |
 | `immutability-gate` | domain/app entities immutable; no in-place mutation | A05, B06 |
 | `context-leak-gate` | no cross-bounded-context import of domain entities | A04, A05, B05 |
 | `idempotency-matrix-gate` | state-changing UC has key + ledger + double-submit test | A14, A09, A12 |
 | `error-context-gate` | every Err type: rule_id + state_snapshot + trace_id | A10, B03 |
 | `no-transport-in-domain` | no HTTPException/throw in domain | A10 |
-| `di-purity` | no `new ConcreteRepo()` in UC | A06 |
+| `di-purity` | **AST** no hardcoded infra `new`/`()` in core/app | A06 |
 | `di-graph-gate` | wiring only in composition root | A06 |
-| `handler-purity-gate` | handler >15 lines logic fail | A05 |
-| `anti-fork-gate` | no `*_v2` policy dupes | A08 |
+| `handler-purity-gate` | **AST** presentation handler ≤15 logic lines, no business if | A05 |
+| `anti-fork-gate` | **AST** fingerprint: `*_v2`, duplicate policy blocks | A08 |
 | `no-string-sql` | no f-string SQL | A18 |
 | `no-ddl-in-app` | DDL only migrations/ | A20 |
 | **SECURITY** | | |
@@ -1786,6 +1878,8 @@ Gates проверяют Engine, не заставляют одну колонк
 | Stop-the-line | do not stack NEW code on broken base; still fix until green |
 | Fail-Fast | validate at boundary; trust inside ([A17](#prime-a17--clean-code)) |
 | Prime Check | ~50-step merge gate — [AGENT-5](#agent-5--prime-check), [A22](#prime-a22--prime-check) |
+| AST Prosecutor | local AST + import graph gates — 7 Binary Traps; words ≠ proof |
+| 7 Binary Traps | import-graph · di-purity · deterministic-runtime · anti-null · handler-purity · cyclomatic · anti-fork |
 | AGENT-OMEGA | execution phases 0–4 before any code |
 | runtime_scope | paths where 100% coverage required (greenfield) |
 | coverage-diff-100 | 100% on changed files (legacy) |
