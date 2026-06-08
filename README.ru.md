@@ -1,305 +1,172 @@
-# 👑 MAWYXX PRIME: The Sovereign AI Weapon Standard (v6.0)
+# MAWYXX PRIME — стандарт для AI-кодинга
 
 *Build for Billions. Code for Vibe. Rule with Logic.*
 
 [English version → README.md](README.md)
 
+Нормативные спеки для ИИ-агентов, пишущих прод-код. Два уровня: **v3.0** (принципы, MIT) и **v5.2** (слой enforcement, в маркетинге v6 God Mode).
+
 ---
 
-## 🔱 МАТРИЦА АРХИТЕКТУРНОГО COMPLIANCE
+## Что в репозитории
+
+| Файл | Что это |
+|------|---------|
+| `Mawyxx Prime V3.0.md` | ~220 строк · 10 разделов · философия и архитектура · **MIT · публично** |
+| `Mawyxx Prime V5.2.md` | ~1300 строк · AGENT-0…5 · правила A01–A32 · B01–B14 · **приватно / коммерция** |
+| `scripts/prime_check/` | Не в репо — **агент пишет сам** по AGENT-5 при tier ≥ PRIME |
+
+**v3.0** — говорит агенту, *как должен выглядеть хороший код*.  
+**v5.2** — добавляет *как агент обязан это проверить*: фазы, `prime_check`, закон coverage, evidence block.
+
+---
+
+## v3.0 vs v5.2 — в двух словах
 
 ```text
 ================================================================================
-   MAWYXX PRIME v3.0 [COMMUNITY CORE]      │      MAWYXX PRIME v6.0 [GOD MODE]
+   v3.0 [ПРИНЦИПЫ]                        │   v5.2 [ENFORCEMENT]
 ================================================================================
- ✦ RISK TIERS    : Жёсткость по риску     │  ✦ AGENT-OMEGA   : Фазы 0 → 4
- ✦ AI PROTOCOL   : Context-first движок    │  ✦ TDD-LOCK      : Сначала failing test
- ✦ ARCHITECTURE  : 4 слоя DDD             │  ✦ PILATE PROT   : Передача liability
- ✦ DEPENDENCY    : DI + порты              │  ✦ EVIDENCE LOCK : Verify dump для суда
- ✦ STATE ENGINE  : FSM-переходы            │  ✦ FORBIDDEN BUF : Без обхода словами
- ✦ INTEGRITY     : Idempotency & Events    │  ✦ LEDGER GRADE  : Финансовые доказательства
- ✦ RESILIENCE    : SRE & Self-Healing      │  ✦ SECTION 230   : Защита спеки
--------------------------------------------┼------------------------------------
-    ПИРАМИДА ТЕСТОВ & BASELINE              │     MUTATION & УСИЛЕННЫЕ GATES
--------------------------------------------┼------------------------------------
- ▪ UNIT SHARD    : Domain, zero I/O        │  ▪ COVERAGE GOD  : 100.00% или instant 0
- ▪ CONTRACT SHARD: HTTP envelope           │  ▪ DIFF-LOCK     : 100% только на diff
- ▪ PROPERTY SHARD: Fuzz инвариантов        │  ▪ AST DETECTORS : Без #pragma читов
- ▪ INTEGRATION   : Real Docker nodes       │  ▪ FLAKY SHIELD  : Авто ×3 прогона
- ▪ SEC HYGIENE   : Только baseline         │  ▪ MATRIX GATES  : UC × Err × Status
- ▪ DEPS HARMONY  : Lockfile, zero CVE      │  ▪ APP STORE BYPASS: Rules ≠ бинарь
- ▪ TELEMETRY     : Санитизация логов       │  ▪ KERNEL DNAT   : Deep infra shield
+ Risk tiers LITE → CRITICAL               │   Те же tiers · default PRIME для apps
+ Контекст · минимальный scope             │   AGENT-OMEGA фазы 0 → 4 (строгий порядок)
+ Self-review чеклист (§10)                 │   AGENT-2 + machine gates
+ 4 слоя · DI · FSM · idempotency          │   То же + import-graph · di-purity gates
+ Security · тесты · SRE текстом           │   ~50 шагов prime_check под стек
+ «Тесты на ключевое»                       │   100.00% line + branch (tier ≥ PRIME)
+ «100% на CRITICAL»                        │   diff-100 · ratchet vs main · legacy mode
+ Нет merge gate                           │   exit 0 = единственное валидное «готово»
 ================================================================================
 ```
 
-*v6.0 [GOD MODE] = `Mawyxx Prime V5.2.md` · ~50 gates `prime_check` · Self-Generating Infrastructure*
+*v6 / God Mode в маркетинге = `Mawyxx Prime V5.2.md` + agent-built `prime_check`*
 
 ---
 
-## 🛑 КОГНИТИВНАЯ ИЛЛЮЗИЯ — ПОЧЕМУ ТВОИ «ПРОМПТ-ПРАВИЛА» = SLOP
+## v3.0 — стандарт (кратко)
 
-Средний ИТ-директор читает v3.0 и думает: *«Вставлю в `.cursorrules` бесплатно. Скажу ИИ — тесты гоняй, не читерь.»*
+Универсальный стандарт качества для ИИ-кодеров. Жёсткость по **Risk Tier**:
 
-**Поздравляю. Дом из карт.**
+| Tier | Когда |
+|------|--------|
+| **LITE** | Скрипты, утилиты — читаемость, без секретов |
+| **STANDARD** | Обычные фичи — модули, ключевые тесты, понятные ошибки |
+| **PRIME** | Auth, платежи, PII, API — слои, DI, FSM, observability |
+| **CRITICAL** | Финансы, compliance — PRIME + ADR, resilience, макс. глубина тестов |
 
-Как агент **обходит** мягкий текст, когда контекст давит:
+**Включает:** 4 слоя · DI · SOLID · typed errors · FSM · domain events · SRE/ADR · security · пирамида тестов · self-review.
 
-1. **Амнезия контекста** — ограничения = рекомендации. Под нагрузкой токенов веса падают. Линтеры отваливаются. Edge cases исчезают. Агент читерит ради экономии compute.
-2. **Галлюцинация прозы** — пишет: *«Тесты 100% green, мержу.»* Ничего не запускал. **Симулировал терминал в чате**. Ты апрувнул непроверенный slop.
-3. **Тихая регрессия** — промпт не парсит AST, не убивает `# pragma: no cover`, не вешает pre-commit. **Текст — вежливая просьба. Робот крутит её на херу, когда контекст забивается.**
-
-**v3.0 — гайд по стилю. v6.0 — исполняемый закон, который агент компилирует против себя.**
+**Не включает:** автоматический merge gate · обязательный % coverage · verify-loop агента · спеку `prime_check`.
 
 ---
 
-## 🌪️ САМОГЕНЕРИРУЮЩАЯСЯ КЛЕТКА — КАК v6 ПРОДАЁТ СЕБЯ САМ
+## v5.2 — что добавляет стандарт
 
-MAWYXX PRIME v6.0 — **не** пачка линтеров. Это **Self-Generating Software Trap**. Checker не скачиваешь. **ИИ строит тюрьму сам.**
+Та же архитектурная философия, что v3. **Плюс** agent contract и машинная верификация.
 
-Кладёшь `Mawyxx Prime V5.2.md` в проект. Агент запускает цикл:
+### Workflow агента (AGENT-OMEGA)
 
 ```text
-┌──────────┐
-│  ЗАДАЧА  │
-└────┬─────┘
-     ▼
-┌───────────────┐      НЕТ     ┌────────────────────────────────────────┐
-│ prime_check?  ├─────────────►│ PHASE 0 — LOCK: ТОЛЬКО BOOTSTRAP       │
-└───────┬───────┘              │ Агенту ЗАПРЕЩЕНО писать фичу.           │
-        │ ДА                   │ ОБЯЗАН собрать scripts/prime_check/    │
-        ▼                      │ с ~50 gates по спеке.                  │
-┌───────────────┐              └───────────────────┬────────────────────┘
-│ DESIGN MATRIX │◄─────────────────────────────────┘
-└───────┬───────┘
-        ▼
-┌───────────────┐
-│ FAILING TEST  │  TDD-LOCK
-└───────┬───────┘
-        ▼
-┌───────────────┐
-│  РЕАЛИЗАЦИЯ   │
-└───────┬───────┘
-        ▼
-┌───────────────┐     RED      ┌─────────────────────────────────────────┐
-│ --diff · FULL ├─────────────►│ FIX-UNTIL-GREEN: чини → re-run → снова  │
-└───────┬───────┘              │ Агент НЕ останавливается. НЕ сдаётся.   │
-        │ GREEN                │ «Готово» только при exit 0.             │
-        ▼                      └──────────────────┬────────────────────┘
-┌───────────────┐◄─────────────────────────────────┘
-│ EVIDENCE DUMP │  PRIME-VERIFY-EVIDENCE · 100.00% line+branch
-└───────┬───────┘
-        ▼
-   git push легален ✓
+PHASE 0  tier ≥ PRIME? → нет prime_check? → только bootstrap AGENT-5 (без фичи)
+PHASE 1  design artifact: files · routes · Err · test_matrix
+PHASE 2  TDD-LOCK: failing test до реализации
+PHASE 3  реализация (минимум на фичу · максимум на качество)
+PHASE 4  prime_check --only → --diff → full → exit 0 → PRIME-VERIFY-EVIDENCE
+         RED → fix-until-green (агент не стопает · не просит юзера гонять тесты)
 ```
 
-1. **PHASE 0 — LOCK** — фича заблокирована. Агент **собирает** `scripts/prime_check/` (~50 gates).
-2. **РАЗВОРОТ** — машина скомпилировала бездушного судью.
-3. **КАПКАН** — код → CLI → fail → **fix-until-green**. Словами не отмазаться. Push только с evidence и **100.00%** coverage.
+### prime_check (AGENT-5)
 
-*Платишь за самособирающуюся клетку, которая отбирает у команды и AI-пайплайна право тихо облажаться.*
+Один CLI, который агент создаёт и поддерживает: `python -m scripts.prime_check`
+
+| Группа | Примеры шагов |
+|--------|----------------|
+| Static | lint · typecheck · format · dead-code · file-size · complexity |
+| Architecture | import boundaries · DI purity · no SQL strings · no transport in domain |
+| Security | gitleaks history · CVE audit · bandit · PII в логах · SSRF · ZTA matrix |
+| Tests | unit · integration · contract · property · flaky ×3 · ban empty/trivial |
+| Matrices | err-variant · route × status · FSM transitions · design test_matrix |
+| Coverage | line 100% · branch 100% · diff-100 · ratchet · pragma только с ADR |
+| Data/Ops | schema drift · API contract drift · docker security · health probes |
+| Output | structured report · evidence block |
+
+Stack adapters: **python · node · rust · go · kotlin · swift** — одни правила, локальные линтеры.
+
+### Definition of Done (tier ≥ PRIME)
+
+- `python -m scripts.prime_check` → **exit 0**
+- блок **PRIME-VERIFY-EVIDENCE** в ответе агента
+- без обоих — ответ **невалиден** по A26
 
 ---
 
-## ⚡ PRIME UPGRADE SCAN — v3.0 vs v5.2 (через `prime_check`)
-
-*v3.0 = «будь хорошим». v5.2 = агент собирает судью, который печатает **ровно** что сломано.*
+## PRIME UPGRADE SCAN — дельта стандарта
 
 ```text
-$ python -m scripts.prime_check --upgrade-scan v3.0→v5.2
-
 ══════════════════════════════════════════════════════════════════════════════
- PRIME UPGRADE SCAN — v3.0 [МЯГКИЙ]  →  v5.2 [GOD MODE]
- ~220 строк «пиши чисто»              ~1300 строк · ~50 gates · exit 0 или чини
+ STANDARD DELTA                          v3.0 [MIT]  →  v5.2
 ══════════════════════════════════════════════════════════════════════════════
-
-▸ 🔒 БЕЗОПАСНОСТЬ — v3.0: «не лей секреты». v5.2 ловит это:
+  Объём         10 разделов · ~220 строк          A01–A32 · B01–B14 · AGENT-0…5
+  Язык          рекомендации                      RFC 2119 MUST / MUST NOT
+  Модель        прочитал → код → self-review       AGENT-OMEGA 0 → 4
+  «Готово»      агент заявил                      exit 0 + evidence block
+  Merge gate    нет                               prime_check (~50 шагов)
 ──────────────────────────────────────────────────────────────────────────────
-  FAIL PRIME-A19 [gitleaks-history]
-    sk-live_51H… в коммите 2024-03-11 — до сих пор в git history
-    hint: ротация ключа · filter-repo · re-run --only gitleaks-history
 
-  FAIL PRIME-A16 [no-debug-bypass]
-    api/auth.py:14  if os.getenv("SKIP_AUTH"): return admin_user()
-    hint: убрать bypass · test_zta_no_skip_auth_in_prod
+▸ ТОЛЬКО В v5.2
+  prime_check · FIX-UNTIL-GREEN · TDD-LOCK (A24) · evidence block (A26)
+  ~50 gates · 100% line+branch · матрицы ZTA/Err/Route/FSM
+  legacy diff-100 + ratchet (A31) · monorepo tiers (A32) · mutation (A28)
+  stack adapters · structured report · forbidden phrases · anti-slack (A30)
 
-  FAIL PRIME-A16 [pii-log-scan]
-    logger.info(f"charge failed for {user.email}")  — email в логах
-    hint: structured log + только user_id · test_logs_no_pii
+▸ БЫЛО В v3.0 — СТАЛО ПРОВЕРЯЕМЫМ В v5.2
+  tiers · слои · DI · FSM · security §7 · tests §8 · SRE · ADR · docker
+  → import-graph · err-variant · fsm-transition · gitleaks · schema-drift gates
 
-  FAIL PRIME-A18 [ssrf-gate]
-    uc.fetch_report(url=request.body["callback_url"])  — нет allowlist
-    hint: IOutboundUrlPolicy · test_ssrf_blocks_internal_ips
+▸ ЛИНИЯ COVERAGE
+  v3.0   агент сам выбирает «ключевые пути» · 100% только для CRITICAL
+  v5.2   99.99% = fail · pragma нужен ADR · coverage не падает vs main
 
-  FAIL PRIME-A19 [dependency-audit]
-    lodash@4.17.20 — CVE-2021-23337 HIGH · merge blocked
-    hint: обновить lockfile · test_dependency_audit_clean
-
-  FAIL PRIME-A23 [docker-security]
-    Dockerfile: нет USER — контейнер под root
-    hint: USER 10001 · test_dockerfile_non_root
-
-▸ 🏗 АРХИТЕКТУРА — v3.0: «слои». v5.2 ловит разъезд:
-──────────────────────────────────────────────────────────────────────────────
-  FAIL PRIME-A05 [import-boundaries]
-    domain/order.py импортирует sqlalchemy — domain не трогает infra
-
-  FAIL PRIME-A10 [no-transport-in-domain]
-    domain/payment.py:28  raise HTTPException(402, "declined")
-
-  FAIL PRIME-A06 [di-purity]
-    CreateOrderUseCase.__init__  self.repo = PostgresOrderRepo()  — concrete внутри
-
-  FAIL PRIME-A18 [no-string-sql]
-    repo.py:55  cursor.execute(f"SELECT * FROM users WHERE id={id}")
-
-  FAIL PRIME-A11 [cyclomatic-gate]
-    handlers/checkout.py::post_checkout — сложность 14 (>10)
-
-▸ 🧪 ТЕСТЫ & COVERAGE — v3.0: «тестируй важное». v5.2: ноль дыр:
-──────────────────────────────────────────────────────────────────────────────
-  FAIL PRIME-A25 [coverage-branch-100]
-    src/uc/refund.py:67  else не покрыт — 94.2% → нужно 100.00%
-    hint: test_refund_insufficient_balance_returns_err
-
-  FAIL PRIME-A25 [no-pragma-no-cover]
-    payment.py:102  # pragma: no cover  — нет ADR в config
-
-  FAIL PRIME-A29 [zta-matrix-gate]
-    POST /api/v1/orders — нет: expired_token→401, wrong_scope→403
-
-  FAIL PRIME-A10 [err-variant-gate]
-    PaymentDeclined, InsufficientFunds — нет test_err_* в tests/
-
-  FAIL PRIME-B06 [fsm-transition-gate]
-    Order PAID→SHIPPED не протестирован — DRAFT→COMPLETED тоже
-
-  FAIL PRIME-A27 [flaky-detector]
-    test_webhook_retry упал 1/3 прогонов — flaky · чини до merge
-
-▸ 🤖 ДИСЦИПЛИНА АГЕНТА — v3.0 не останавливает ложь в чате:
-──────────────────────────────────────────────────────────────────────────────
-  v3.0 в чате:   «Все тесты green. Coverage ~95%. Мержим.»
-  v5.2 реально:  python -m scripts.prime_check → exit 1
-                 EXEC SUMMARY: 4 blocker'а · FIX PLAN P1→P3
-                 «готово» без PRIME-VERIFY-EVIDENCE → INVALID RESPONSE
-
-  v3.0: «prime_check потом»        v5.2: PHASE 0 LOCK — сначала gates
-  v3.0: «тесты в след. PR»         v5.2: TDD-LOCK — failing test до кода
-  v3.0: юзер гоняет pytest         v5.2: fix-until-green — агент до exit 0
-
-▸ 📦 DATA · КОНТРАКТЫ · OPS — v3.0 молчит, v5.2 орёт:
-──────────────────────────────────────────────────────────────────────────────
-  schema-drift          колонка `status` в БД ≠ миграция — blocked
-  api-contract-drift    OpenAPI: 201, код отдаёт 200 на POST /users
-  prod-config           DEBUG=true в prod — blocked
-  health-gate           нет /ready — k8s слепой деплой — blocked
-  mutation-critical     CRITICAL: mutant выжил в RefundUseCase — 91% < 95%
-
-▸ ЧТО v5.2 ДОБАВЛЯЕТ (у v3.0 аналога нет)
-──────────────────────────────────────────────────────────────────────────────
-  scripts/prime_check/   агент пишет CLI + ~50 gates · PHASE 0 LOCK
-  COVERAGE MAP           каждый непокрытый file:line — не «~95% норм»
-  MATRIX GAPS            недостающие UC × Err × route × auth — по именам
-  legacy adoption        старый репо: diff-100 + ratchet — не «мигрируем потом»
-  stack adapters         py · node · rust · go — один закон
-  monorepo scopes        services/api=PRIME · tools/script=LITE
-
-  python -m scripts.prime_check --diff
-  python -m scripts.prime_check
-  python -m scripts.prime_check --evidence
-
-  v3.0 exit code: undefined   v5.2: 0 = ship · 1 = агент чинит дальше
-
-▸ FOOTER
-  v3.0 MIT · вставил и молишься    v5.2/v6 лично FREE · корп $50/место → @ExcitedSkam
+▸ КОМАНДА ВЕРИФИКАЦИИ (только в v5.2)
+  python -m scripts.prime_check --diff → full → --evidence → exit 0
 ══════════════════════════════════════════════════════════════════════════════
 ```
 
 ---
 
-## 🎯 ОПЕРАЦИОННЫЕ ЭКСПЛОЙТЫ — ЗАЧЕМ ЭТО НУЖНЕЕ ВОЗДУХА
+## Лицензия
 
-- **EXPLOIT 1: App Store Bypass** — Decoupled PWA / standalone server. Обход цензуры сторов и комиссий. Иммунитет к банам маркетплейсов. *God Mode в IDE — Apple не ревьюит Cursor Rules.*
-- **EXPLOIT 2: Core API Proxy Shard** — Трафик через Switzerland/Iceland data-haven. Для ISP — обычный HTTPS. Снимает региональную цензуру без VPN у юзера.
-- **EXPLOIT 3: Section 230 + Pilate Protocol** — Абстрактный execution container. Запрос госорганов → автолог encrypted Tor/I2P egress. Нейтральный протокол. *Liability всплывает на merge через evidence — не после инцидента.*
-- **EXPLOIT 4: Ledger-Driven M2M Settlement** — Внутренний ACID/FSM Ledger + on-chain indexing (Solana/Base). Миллиарды agent-транзакций без фиатных рельс.
+| Использование | v3.0 | v5.2 |
+|---------------|------|------|
+| Лично / хобби / pet | MIT · free | **Бесплатно** |
+| Компания / команда / клиентский прод | MIT только для v3 | **$50 / сотрудник · разово** → Telegram |
 
-**DIY gitleaks за 5 минут?** Клетки нет. Агент всё ещё рисует green. Совет директоров всё ещё получает инцидент. **Поэтому существует v6.**
-
----
-
-## ⚖️ НЕЛИЦЕНЗИОННОЕ КОРП. ИСПОЛЬЗОВАНИЕ — ПРОЧИТАЙ ЮРИСТУ
-
-```text
-████████████████████████████████████████████████████████████████████████████████
-█ ЕСЛИ КОМПАНИЯ ГОНЯЕТ v6 БЕЗ CLEARANCE В TG — ВЫ УЖЕ В ЗОНЕ ПОРАЖЕНИЯ      █
-████████████████████████████████████████████████████████████████████████████████
-
-Вы не "тестируете утилиту".
-Вы ВОСПРОИЗВОДИТЕ ЗАЩИЩЁННУЮ НОРМАТИВНУЮ ИНФРАСТРУКТУРУ на раннерах, подрядчиках
-и клиентском проде.
-
-Мониторинг не просит разрешения искать prime_check fingerprints,
-AGENT-OMEGA маркеры и MAWYXX rule signatures в приватных репо.
-
-КОГДА INFRINGEMENT НАЙДЁТ ВАС — ЭТО НЕ SUPPORT TICKET:
-
-► DMCA — заморозка org на GitHub/GitLab. Пайплайны встали.
-► C&D ЮРИСТАМ — официально корпоративным адвокатам.
-► C&D ИНВЕСТОРАМ — VC получат письмо. Совет обожает сюрпризы на раунде.
-► РЕТРОШТРАФЫ — $50/место × headcount × месяцы без лицензии.
-
-Ведите себя как enterprise. Один прямой контакт.
-
-💬 Sovereign Clearance Gateway: @ExcitedSkam
-████████████████████████████████████████████████████████████████████████████████
-```
-
-**Лично / хобби / pet** → v6: **100% БЕСПЛАТНО.** Нам нужен sovereign code, не мелочь из кармана.
+Корп. использование v5.2 без clearance: связаться до деплоя на раннерах компании или в клиентском коде.
 
 💬 [**@ExcitedSkam**](https://t.me/ExcitedSkam)
 
 ---
 
-## 🛒 COMMERCIAL CLEARANCE
+## Быстрая справка
 
 ```text
-  $50 / сотрудник · РАЗОВО · без подписки · без Stripe
-  Контакт: только Telegram @ExcitedSkam
-```
+  Хобби / обучение     →  Mawyxx Prime V3.0.md (MIT)
+  Реальный app + агент →  Mawyxx Prime V5.2.md + bootstrap prime_check
 
-*НЕ гоняйте `prime_check` на корп. железе до clearance.*
-
----
-
-## 📦 · 🎯 · ⚡ БЫСТРАЯ СПРАВКА
-
-```text
-  [PUBLIC]   Mawyxx Prime V3.0.md     MIT приманка
-  [PRIVATE]  Mawyxx Prime V5.2.md     v6 клетка
-  [BUILT]    scripts/prime_check/     агент пишет сам · ~50 gates
-
-  Хобби        → v3.0 MIT
-  Личный v6    → FREE
-  Компания v6  → @ExcitedSkam ИЛИ последствия выше
-```
-
-```bash
-python -m scripts.prime_check --diff
-python -m scripts.prime_check --evidence
-python -m scripts.prime_check
+  python -m scripts.prime_check --diff
+  python -m scripts.prime_check --evidence
+  python -m scripts.prime_check
 ```
 
 ---
 
-## 🧠 CONTEXT HYGIENE — НЕ УБЕЙ СВОЮ КЛЕТКУ
+## v5.2 в Cursor
 
-**1300 строк в always-on Rules убивают оружие.** Спека **локально**. Кормишь **по задаче**.
+Не вставляй все ~1300 строк в always-on Rules — enforcement теряет вес в контексте.
 
 ```text
-  ✗ Весь V5.2 в alwaysApply (амнезия контекста ускоряется)
-  ✓ Крошечный boot .mdc (~20 строк) → @Mawyxx Prime V5.2.md по необходимости
-  ✓ prime_check в репо = судья ВНЕ окна LLM
+  ✗ Весь V5.2 в alwaysApply на каждое сообщение
+  ✓ Маленький boot rule (~20 строк) + @Mawyxx Prime V5.2.md по задаче
+  ✓ prime_check в репо = верификация вне окна чата
 ```
 
 `.cursor/rules/mawyxx-boot.mdc`:
@@ -309,13 +176,11 @@ python -m scripts.prime_check
 description: MAWYXX boot — спека по запросу
 alwaysApply: true
 ---
-Реальный app = PRIME+. Спека: @Mawyxx Prime V5.2.md (только секции AGENT-1).
+Реальный app = PRIME+. Спека: @Mawyxx Prime V5.2.md (секции AGENT-1 по необходимости).
 Нет prime_check? Сначала AGENT-5. Сам гоняешь prime_check. Чини до exit 0.
-Перед готово: --diff → full → --evidence. Не грузи всю спеку каждое сообщение.
+Перед готово: --diff → full → --evidence.
 ```
 
 ---
 
-*MAWYXX PRIME — спека, которой боится агент · клетка, которую он строит сам · письмо, которого dread'ят инвесторы*
-
-*Sovereign Architect: [@ExcitedSkam](https://t.me/ExcitedSkam)*
+*MAWYXX PRIME — v3 принципы · v5.2 enforcement · [@ExcitedSkam](https://t.me/ExcitedSkam)*
