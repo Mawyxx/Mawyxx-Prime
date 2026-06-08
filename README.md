@@ -7,7 +7,8 @@
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
-Merge-blocking architecture standard for autonomous AI agents — Cursor, DeepSeek, Copilot, Claude. Any stack. Any domain. **No prose excuses. Only evidence.**
+You don't buy lint rules. You buy **liability insulation** for AI-generated code at scale.
+Cursor · DeepSeek · Copilot · Claude. Any stack. **No prose. No mercy. Only evidence.**
 
 [Russian version → README.ru.md](README.ru.md)
 
@@ -21,11 +22,11 @@ Merge-blocking architecture standard for autonomous AI agents — Cursor, DeepSe
 ================================================================================
  ✦ RISK TIERS    : Rigor by threat level   │  ✦ AGENT-OMEGA   : Phase-0 to Phase-4
  ✦ AI PROTOCOL   : Context-first engine    │  ✦ TDD-LOCK      : Failing test first
- ✦ ARCHITECTURE  : Domain-driven 4 layers  │  ✦ COMPLIANCE    : Zero-trust network
- ✦ DEPENDENCY    : Injected ports via DI   │  ✦ EVIDENCE LOCK : Strict verify dump
+ ✦ ARCHITECTURE  : Domain-driven 4 layers  │  ✦ PILATE PROTOCOL: Liability handoff trap
+ ✦ DEPENDENCY    : Injected ports via DI   │  ✦ EVIDENCE LOCK : Court-grade verify dump
  ✦ STATE ENGINE  : Strict FSM transitions  │  ✦ FORBIDDEN BUF : No word-bypasses
- ✦ INTEGRITY     : Idempotency & Events    │  ✦ RATIO GUARD   : 1.5× test-to-code
- ✦ RESILIENCE    : SRE budgets & Recovery  │  ✦ COMPACTNESS   : File <250, Func <15
+ ✦ INTEGRITY     : Idempotency & Events    │  ✦ LEDGER GRADE  : Financial-state proofs
+ ✦ RESILIENCE    : SRE budgets & Recovery  │  ✦ SECTION 230   : Spec-shield vs impl-liability
 -------------------------------------------┼------------------------------------
     TEST PYRAMID & SECURITY BASELINE       │     MUTATION & REINFORCED GATES
 -------------------------------------------┼------------------------------------
@@ -33,69 +34,127 @@ Merge-blocking architecture standard for autonomous AI agents — Cursor, DeepSe
  ▪ CONTRACT SHARD: HTTP envelope validation │  ▪ DIFF-LOCK     : 100% only on change
  ▪ PROPERTY SHARD: Invariant fuzz testing  │  ▪ AST DETECTORS : No #pragma cheats
  ▪ INTEGRATION   : Real Docker state nodes │  ▪ FLAKY SHIELD  : Auto ×3 test runs
- ▪ SEC HYGIENE   : Gitleaks & least priv   │  ▪ MATRIX GATES  : UC × Err × Status
- ▪ DEPS HARMONY  : Lockfile, zero high-CVE │  ▪ SECURITY LINT : AST-injection scan
+ ▪ SEC HYGIENE   : Baseline hygiene only    │  ▪ MATRIX GATES  : UC × Err × Status × Auth
+ ▪ DEPS HARMONY  : Lockfile, zero high-CVE │  ▪ APP STORE BYPASS: Rules ≠ shippable binary
  ▪ TELEMETRY     : Domain log sanitization │  ▪ KERNEL DNAT   : Deep infra shield
 ================================================================================
 ```
 
-*v6.0 [GOD MODE] = commercial spec `Mawyxx Prime V5.2.md` · ~50 `prime_check` gates · AGENT-OMEGA enforcement*
-
-### 🧠 Core Evolution
-
-| | v3.0 [Community Core] | v6.0 [God Mode] |
-|--|------------------------|-----------------|
-| **Nature** | Architecture blueprint | Operational cage |
-| **Agent** | Learns *how to design* | Forced *how to execute* |
-| **Done** | «Looks good» | `exit 0` + `PRIME-VERIFY-EVIDENCE` |
-| **Coverage** | Pyramid guidance | **100.00%** or merge blocked |
-| **License** | [MIT](https://opensource.org/license/MIT) · free for all | [PolyForm NC](https://polyformproject.org/licenses/noncommercial/1.0.0) · personal free |
-| **Corporate** | ✅ Use freely | ❌ **$50/seat** → [@ExcitedSkam](https://t.me/ExcitedSkam) |
+*v6.0 [GOD MODE] = `Mawyxx Prime V5.2.md` · ~50 `prime_check` gates · not a linter pack*
 
 ---
 
-## ⚖️ LEGAL COMPLIANCE PROTOCOL
+## ☠️ THE LIABILITY TRAP — WHY v3 IS FREE AND v6 COSTS MONEY
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  PUBLIC REPO     │  Mawyxx Prime V3.0.md          │  MIT · OPEN · FREE ALL  │
-│  COMMERCIAL SPEC │  Mawyxx Prime V5.2.md (v6 GM)  │  POLYFORM NC · TG ONLY  │
-└─────────────────────────────────────────────────────────────────────────────┘
+  v3.0 [COMMUNITY CORE]
+  ─────────────────────
+  A philosophy PDF. MIT. Fork it. Tattoo it on your intern.
+  Nobody sues you for reading Clean Architecture on GitHub.
+  Your lawyer sleeps.
+
+  v6.0 [GOD MODE]
+  ───────────────
+  An OPERATIONAL WEAPON you inject into CI, Cursor Rules, and remote squads.
+  The moment your company runs God Mode without clearance — you didn't "try a tool".
+  You DISTRIBUTED A NORMATIVE STANDARD inside a commercial organism.
+  That triggers copyright. That triggers audit trails. That triggers investor due diligence.
 ```
 
-**Personal / hobby / pet-project** → v6 God Mode: **100% FREE.**
+**v3 teaches your agent how to think.**  
+**v6 forces your agent to testify.** Every merge ships a `PRIME-VERIFY-EVIDENCE` block — a machine-generated affidavit that coverage, auth matrices, and architecture gates were satisfied **or the build never happened**.
 
-**Corporate use of v6** — CI/CD rules, remote team enforcement, client repos, internal standard — **STRICTLY PROHIBITED** without clearance:
+Your General Counsel doesn't fear `gitleaks`. They fear **discoverable, reproducible proof** that engineering knew the standard and shipped anyway.
+
+---
+
+## 💀 OPERATIONAL EXPLOITS — NOT YOUR $5 CI LINTER PACK
+
+Senior architects don't pay $50 for `bandit`. They pay to avoid being the person who explained to the board why AI slop shipped without **ledger-grade invariants**.
 
 ```text
-  UNAUTHORIZED CORPORATE USE
-  ──────────────────────────
-  ▸ Copyright infringement under PolyForm Noncommercial
-  ▸ Automated anomaly monitoring (public + private repos)
-  ▸ DMCA Takedown → GitHub/GitLab org freeze
-  ▸ Cease-and-Desist → legal counsel, board, PRIMARY INVESTORS
-  ▸ Statutory damages + retroactive license + compliance penalties
+  ┌─ PILATE PROTOCOL ─────────────────────────────────────────────────────────┐
+  │  Wash your hands? No. Force liability to surface BEFORE merge.            │
+  │  Agent cannot "looks good to me" — only exit 0 or stop-the-line.        │
+  │  Uncleared corp use = YOU inherit the spec's enforcement DNA in discovery│
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ SECTION 230 SHIELD (SPEC vs SHIPMENT) ───────────────────────────────────┐
+  │  The STANDARD is speech. Your PRODUCTION REPO is action.                  │
+  │  Personal use: protected noncommercial expression.                         │
+  │  Corporate deployment without license: commercial reproduction.            │
+  │  We don't sue your vibes. We sue unauthorized DISTRIBUTION of the cage.   │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ APP STORE BYPASS ────────────────────────────────────────────────────────┐
+  │  Apple reviews binaries. GitHub does not review your Cursor Rules.       │
+  │  God Mode rides the IDE — normative spec straight into the codegen loop. │
+  │  You bypass store friction. You do NOT bypass copyright on the spec.     │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ LEDGER-GRADE ENFORCEMENT ──────────────────────────────────────────────┐
+  │  Not "we log errors". Immutable test matrices: UC × Err × Route × Auth. │
+  │  Financial & stateful domains get FSM + idempotency + mutation gates.    │
+  │  Your auditor gets a chain of evidence — not a Jira ticket and prayers.  │
+  └───────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 🛒 Commercial Clearance
+**DIY gitleaks in 5 minutes? Congratulations.** You still don't have AGENT-OMEGA, evidence locks, diff-100 ratchet, zta-matrix, or an agent that **cannot legally say "done"** without a verify dump. That's the product.
+
+---
+
+## ⚖️ UNAUTHORIZED CORPORATE USE — READ THIS TO YOUR LAWYER
 
 ```text
-  PRICE     │  $50 / employee · ONE-TIME · no subscription
-  CHECKOUT  │  NONE — direct verification only
-  CONTACT   │  Telegram @ExcitedSkam
-  WARNING   │  Do NOT run prime_check on corp servers before org clearance
+████████████████████████████████████████████████████████████████████████████████
+█  IF YOUR COMPANY RUNS v6 GOD MODE WITHOUT TELEGRAM CLEARANCE — YOU ARE LIVE █
+████████████████████████████████████████████████████████████████████████████████
+
+  You are not "evaluating a dev tool".
+  You are REPRODUCING A COPYRIGHTED NORMATIVE STANDARD across employees,
+  contractors, CI runners, and client deliverables.
+
+  Our monitoring does not need your permission to notice prime_check fingerprints,
+  AGENT-OMEGA phase markers, or MAWYXX rule IDs in private org repos.
+
+  WHAT HAPPENS NEXT IS NOT A SUPPORT TICKET:
+
+    ► DMCA STRIKE — GitHub/GitLab org-wide freeze. Your pipeline stops cold.
+    ► C&D TO COUNSEL — formal notice to your legal team. Not a Discord DM.
+    ► C&D TO INVESTORS — yes, your VCs get the letter. Due diligence loves surprises.
+    ► STATUTORY DAMAGES — retroactive $50/seat × headcount × months of unlicensed use.
+    ► COMPLIANCE EXPOSURE — "we didn't know" is not a merge strategy.
+
+  You want God Mode in production? Fine. Act like adults. Pay $50/seat ONCE.
+  Telegram. One human. No sales team. No handshake bullshit.
+
+  Clearance: @ExcitedSkam
+████████████████████████████████████████████████████████████████████████████████
 ```
 
-💬 [**@ExcitedSkam**](https://t.me/ExcitedSkam)
+**Personal / hobby / pet-project** → v6 God Mode: **100% FREE.** We want killers, not invoices.
+
+---
+
+## 🛒 COMMERCIAL CLEARANCE
+
+```text
+  $50 / employee · ONE-TIME · no subscription · no Stripe · no "enterprise demo"
+  Whitelist your org · invoice if your accountant cries · case-by-case verification
+```
+
+💬 [**@ExcitedSkam**](https://t.me/ExcitedSkam) — Sovereign Architect. Direct line. No middlemen.
+
+*Do NOT run `prime_check` on corporate metal before your org hash is cleared. We meant what we said.*
 
 ---
 
 ## 📦 DISTRIBUTION MANIFEST
 
 ```text
-  [IN REPO]   Mawyxx Prime V3.0.md     ~220 lines   MIT community core
-  [PRIVATE]   Mawyxx Prime V5.2.md    ~1300 lines   v6 God Mode spec
-  [AGENT]     scripts/prime_check/     ~50 gates     agent bootstraps if missing
+  [PUBLIC]    Mawyxx Prime V3.0.md      MIT · community core · bait
+  [PRIVATE]   Mawyxx Prime V5.2.md       v6 God Mode · the cage
+  [GENERATED] scripts/prime_check/        agent builds if missing · ~50 gates
 ```
 
 ---
@@ -103,77 +162,44 @@ Merge-blocking architecture standard for autonomous AI agents — Cursor, DeepSe
 ## 🎯 DEPLOYMENT SELECTOR
 
 ```text
-  SCENARIO                          │  DEPLOY
-  ──────────────────────────────────┼──────────────────────────────────
-  Learn the philosophy              │  v3.0 [Community Core]
-  Personal Cursor / pet-project     │  v6 God Mode · FREE
-  Enterprise + CI + team            │  v6 God Mode · TG clearance REQUIRED
-  Corp without budget               │  v3.0 MIT (legal fallback)
-  One-off script, no network        │  v3.0 · tier LITE
+  Hobby / learning              →  v3.0 MIT (free, harmless)
+  Personal God Mode             →  v6 FREE (enjoy the weapon)
+  Company + CI + remote team    →  v6 + @ExcitedSkam OR lawsuit bingo
+  Broke corp                    →  stay on v3.0 MIT — legally boring, safe
 ```
 
 ---
 
-## ⚡ ACTIVATION SEQUENCE (v6 God Mode)
+## ⚡ ACTIVATION SEQUENCE
 
 ```text
-  [01] ACQUIRE   Mawyxx Prime V5.2.md  (personal: free · corp: @ExcitedSkam)
+  [01] ACQUIRE   v5.2 spec (personal: free · corp: cleared via TG)
   [02] INJECT    Cursor Rules / .cursor/rules/
-  [03] CLASSIFY  tier ≥ PRIME · adoption_mode: greenfield | legacy
-  [04] BOOTSTRAP prime_check if absent — NO feature work until green
-  [05] EXECUTE   TDD → --diff → FULL → --evidence → exit 0
+  [03] LOCK      tier ≥ PRIME · greenfield | legacy
+  [04] BOOTSTRAP prime_check — ZERO feature work until base is green
+  [05] EXECUTE   TDD → --diff → FULL → --evidence → exit 0 or shut up
 ```
 
 ```bash
 python -m scripts.prime_check --diff
 python -m scripts.prime_check --evidence
-python -m scripts.prime_check          # mandatory before «done»
+python -m scripts.prime_check
 ```
 
-**Agent law:** `99.99%` = `0%`. Checker truth > agent words. No «run tests yourself». No «tests later».
+`99.99%` = `0%`. Checker > agent. «Run tests yourself» = automatic bad faith.
 
 ---
 
-## 🔒 PRIME-CHECK ENFORCEMENT LOOP
+## 🔒 ENFORCEMENT LOOP
 
 ```text
-       ┌──────────┐
-       │  TASK IN │
-       └────┬─────┘
-            ▼
-    ┌───────────────┐     NO    ┌─────────────────┐
-    │ prime_check?  │──────────►│ BOOTSTRAP ONLY  │
-    └───────┬───────┘           └────────┬────────┘
-            │ YES                        │
-            ▼                            ▼
-    ┌───────────────┐           ┌─────────────────┐
-    │ DESIGN MATRIX │           │ FULL GREEN BASE │
-    └───────┬───────┘           └────────┬────────┘
-            ▼                            │
-    ┌───────────────┐                    │
-    │ FAILING TEST  │◄───────────────────┘
-    └───────┬───────┘
-            ▼
-    ┌───────────────┐
-    │  IMPLEMENT    │
-    └───────┬───────┘
-            ▼
-    ┌───────────────┐     RED   ┌─────────────────┐
-    │  --diff FULL  │◄─────────│  FIX · REDESIGN │
-    └───────┬───────┘          └────────▲────────┘
-            │ GREEN                     │
-            ▼                           │
-    ┌───────────────┐───────────────────┘
-    │ EVIDENCE DUMP │
-    └───────┬───────┘
-            ▼
-       ┌──────────┐
-       │ DONE ✓   │  ← only legal exit
-       └──────────┘
+  TASK → prime_check? → NO → BOOTSTRAP ONLY
+       → YES → DESIGN MATRIX → FAILING TEST → CODE
+       → --diff → RED → FIX UNTIL GREEN → EVIDENCE → DONE ✓
 ```
 
 ---
 
-*MAWYXX PRIME — predictable · measurable · testable · resilient · legally enforced*
+*MAWYXX PRIME — the spec your agent fears · the evidence your auditor wants · the letter your investors dread*
 
-*Sovereign Architect: [@ExcitedSkam](https://t.me/ExcitedSkam)*
+*[@ExcitedSkam](https://t.me/ExcitedSkam)*
