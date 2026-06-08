@@ -2,42 +2,71 @@
 
 *«Build for Billions. Code for Vibe. Rule with Logic.»*
 
-**Agent contract** — единый нормативный файл для ИИ-кодера. Универсальный: любой стек, любой домен, любой размер проекта.
+**Agent contract** — единый нормативный файл для ИИ-кодера. **Универсален по outcomes**, не по форме кода.
+
+### Universal Doctrine (read first)
+
+| Принцип | Что агент делает |
+|---------|------------------|
+| **Repo-first** | Читать стек, структуру, стиль **существующего проекта**. Не навязывать паттерны, которых в репо нет. |
+| **Risk-tiered** | Жёсткость ∝ **ущербу** (деньги, PII, auth), не размеру файла. |
+| **Outcome gates** | Gates проверяют **результат** (нет silent failure, нет double-apply, нет secret leak) — не конкретный синтаксис. |
+| **Pattern WHEN** | Clean/DDD, UseCase, Result, FSM, CQRS, ledger — **каталог**, не религия. Применять **когда триггер** (см. Applicability). |
+| **Stack-native** | Эквивалент на любом стеке — см. [Pattern Catalog](#pattern-catalog--stack-native-equivalents). |
+
+**Универсальны:** tier, security, тесты, observability, idempotency (где retry опасен), evidence, fix-until-green.  
+**Не универсальна форма:** имена папок, `UseCase` class, `Result` monad, 4 слоя, Docker, HTTP-only API.
 
 **Цель:** **High Cohesion** внутри модулей, **Low Coupling** между ними. Код предсказуемый, тестируемый, наблюдаемый, готовый к росту.
 
-**Сквозные инварианты (как layer law / SSOT — не отдельный модуль):**
-- **Anti-Null** — [A10](#prime-a10--result): UC/domain возвращают `Result` / `Option`, не `None` / `null`
-- **Immutability** — [A05](#prime-a05--layer-law) · [B06](#prime-b06--fsm): domain entities frozen; transition = новый экземпляр
-- **Side-Effect Injection** — [A06](#prime-a06--di--ports) · [A15](#prime-a15--deterministic-time): time/ID/random только через ports
-- **Idempotent-Ledger** — [A14](#prime-a14--idempotency) · [A09](#prime-a09--policy-facades) · [A12](#prime-a12--tests--coverage): мутации через idempotency key + ledger; double-submit = cached Ok
-- **Bounded-Context Lock** — [A04](#prime-a04--integration--plugin-boundaries) · [A05](#prime-a05--layer-law) · [B05](#prime-b05--inter-service-contracts): модули изолированы; domain entities не шарятся — только DTO / primitives / events
-- **Error Context Matrix** — [A10](#prime-a10--result) · [B03](#prime-b03--sre--observability--events): каждый `Err` несёт rule_id + state snapshot + correlation/trace_id; structured JSON logs
+**Applicability keywords (RFC 2119 + WHEN):**
+
+| Keyword | Meaning |
+|---------|---------|
+| **Always** | Любой tier, любой стек |
+| **STANDARD+** | Tier ≥ STANDARD |
+| **PRIME+** | Tier ≥ PRIME |
+| **CRITICAL** | Tier = CRITICAL |
+| **When \<trigger\>** | Только если условие в задаче/дизайне (status field, retry risk, multi-module, container deploy…) |
+| **Stack-native** | Реализация = конвенция проекта; gate проверяет outcome |
+
+**Сквозные инварианты (outcomes — вшиты в правила, не отдельный модуль):**
+
+| Invariant | Outcome | Where | When | Gate |
+|-----------|---------|-------|------|------|
+| **Explicit errors** | Нет silent `null`/`None` как «ошибка» в core logic | [A10](#prime-a10--result) | PRIME+ core/UC | `anti-null-gate` |
+| **Immutability** | Нет in-place mutation shared/concurrent state | [A05](#prime-a05--layer-law) · [B06](#prime-b06--fsm) | When races / FSM / shared aggregate | `immutability-gate` |
+| **Injectable nondeterminism** | time/ID/random тестируемы | [A06](#prime-a06--di--ports) · [A15](#prime-a15--deterministic-time) | PRIME+ testable core | `deterministic-runtime` |
+| **Idempotent mutations** | Повтор = тот же эффект, не дубль | [A14](#prime-a14--idempotency) | When state-changing + retry risk | `idempotency-matrix-gate` |
+| **Module isolation** | Нет импорта чужих **private** domain types | [A04](#prime-a04--integration--plugin-boundaries) | When multi-module / service split | `context-leak-gate` |
+| **Observable failures** | trace + invariant_id + safe context в логах | [A10](#prime-a10--result) · [B03](#prime-b03--sre--observability--events) | PRIME+ | `error-context-gate` |
 
 ### ZERO-TOLERANCE doctrine (tier ≥ PRIME)
 
-| Запрет | Enforcement |
-|--------|-------------|
-| Непокрытая строка в `runtime_scope` / diff | `coverage-line-100` → exit 1 |
-| Непокрытая ветка (branch) | `coverage-branch-100` → exit 1 |
-| Coverage упал vs `main` | `coverage-ratchet` → exit 1 |
-| `# pragma: no cover` без ADR | `no-pragma-no-cover` → exit 1 |
-| Пустой / trivial test | `no-empty-test` → exit 1 |
-| Непротестированный `Err` код UC | `err-variant-gate` → exit 1 |
-| HTTP route без contract-тестов | `route-matrix-gate` → exit 1 |
-| Endpoint без auth matrix | `zta-matrix-gate` → exit 1 |
-| Secret в repo / history / логах | `gitleaks-history` → exit 1 |
-| Domain импортирует infra | `import-graph-gate` → exit 1 |
-| `Date.now` / `uuid4` в domain/app | `deterministic-runtime` → exit 1 |
-| `return None` / `null` в UC/domain | `anti-null-gate` → exit 1 |
-| Мутация entity/VO в UC/domain | `immutability-gate` → exit 1 |
-| State-changing UC без idempotency key / ledger | `idempotency-matrix-gate` → exit 1 |
-| Кросс-модульный импорт domain entity | `context-leak-gate` → exit 1 |
-| `Err` без rule_id / snapshot / trace_id | `error-context-gate` → exit 1 |
-| Небезопасный Docker/compose | `docker-security` → exit 1 |
-| CVE в dependencies (high/critical) | `dependency-audit` → exit 1 |
-| «Готово» без evidence block | `evidence-block` → invalid response |
-| Merge без `prime_check` green | **запрещён** |
+Gates ниже — **outcome checks**. Шаг `N/A` только с ADR, если триггер не применим (нет Docker, нет FSM в design artifact, LITE script…).
+
+| Запрет | Enforcement | Applicability |
+|--------|-------------|---------------|
+| Непокрытая строка в `runtime_scope` / diff | `coverage-line-100` → exit 1 | PRIME+ |
+| Непокрытая ветка (branch) | `coverage-branch-100` → exit 1 | PRIME+ |
+| Coverage упал vs `main` | `coverage-ratchet` → exit 1 | PRIME+ |
+| `# pragma: no cover` без ADR | `no-pragma-no-cover` → exit 1 | PRIME+ |
+| Пустой / trivial test | `no-empty-test` → exit 1 | PRIME+ |
+| Непротестированный error variant | `err-variant-gate` → exit 1 | PRIME+ |
+| Exposed operation без contract-тестов | `route-matrix-gate` → exit 1 | PRIME+ · When API/CLI/RPC surface |
+| Protected operation без auth matrix | `zta-matrix-gate` → exit 1 | PRIME+ · When auth |
+| Secret в repo / history / логах | `gitleaks-history` → exit 1 | Always (network tier+) |
+| Core logic импортирует I/O layer | `import-graph-gate` → exit 1 | PRIME+ · When layered/monolith |
+| `Date.now` / `uuid4` в testable core | `deterministic-runtime` → exit 1 | PRIME+ · When testable core exists |
+| Silent null как failure path | `anti-null-gate` → exit 1 | PRIME+ core |
+| In-place mutation shared state | `immutability-gate` → exit 1 | When FSM / concurrent aggregate |
+| Double-apply мутации | `idempotency-matrix-gate` → exit 1 | When state-changing + retry risk |
+| Cross-module private type leak | `context-leak-gate` → exit 1 | When multi-module |
+| Failure без observable context | `error-context-gate` → exit 1 | PRIME+ |
+| Небезопасный Docker/compose | `docker-security` → exit 1 | When containerized |
+| CVE в dependencies (high/critical) | `dependency-audit` → exit 1 | Always (deps) |
+| «Готово» без evidence block | `evidence-block` → invalid response | PRIME+ |
+| Merge без quality gate green | **запрещён** | PRIME+ |
 
 **Нет «норм сойдёт».** `99.99%` = `0%`. Tier ≥ PRIME = **чинить до green**, не сдавать задачу.
 
@@ -60,10 +89,10 @@ agent_phases: OMEGA → BOOT → ROUTE → VERIFY   # see AGENT-OMEGA
 agent_runs_verify: true
 agent_bootstraps_prime_check: true
 agent_evidence_required: true
-verify_final: python -m scripts.prime_check
-verify_evidence: python -m scripts.prime_check --evidence
+verify_final: <stack-native quality gate>   # e.g. python -m scripts.prime_check | npm run prime:check | make prime-check
+verify_evidence: <same> --evidence
 risk_tiers: LITE | STANDARD | PRIME | CRITICAL
-default_tier_real_project: PRIME
+default_tier_real_project: STANDARD         # PRIME when triggers fire (A01)
 adoption_mode: greenfield | legacy          # legacy = diff-100 + ratchet
 test_pyramid: unit → integration → contract → property
 coverage: 100_percent_line_and_branch
@@ -73,15 +102,15 @@ prime_check_config: scripts/prime_check.config.yaml
 stack_adapters: python | node | rust | go | kotlin | swift
 ```
 
-**Agent rule:** нет `prime_check` (tier ≥ PRIME) → **только bootstrap**, потом фича.  
+**Agent rule:** нет quality gate (tier ≥ PRIME) → **bootstrap** [AGENT-5](#agent-5--prime-check), потом фича.  
 **Agent rule:** checker = истина; red → **fix loop** до `exit 0` + evidence block — **не stop, а repair**.  
-**Agent rule:** при конфликте PRIME vs конвенции → конвенции на *пути*; PRIME на *качество и безопасность*.
+**Agent rule:** **Repo conventions win on form** (names, folders, framework). **PRIME wins on outcomes** (security, tests, observability, no silent failures). Конфликт → ADR, не навязывать чужой паттерн.
 
 ---
 
 ## AGENT-OMEGA — Execution phases (before any code)
 
-**MUST** выполнить фазы **в порядке**. Пропуск фазы = нарушение PRIME.
+**MUST** выполнить фазы **в порядке** на tier ≥ PRIME. На LITE/STANDARD — **SHOULD** checklist (пропуск с обоснованием в ответе).
 
 ### PHASE 0 — LOCK
 
@@ -95,16 +124,19 @@ assign tier → tier ≥ PRIME?
 ### PHASE 1 — DESIGN ARTIFACT (в ответе до кода)
 
 ```text
+tier + triggers: [STANDARD | PRIME — why]
+stack + existing_patterns: [detected — MVC | hexagonal | FP | framework-native]
 files_to_touch: [...]
-new_err_variants: [...]
-new_routes: [method path → statuses]
-fsm_transitions: [...]
-test_matrix: UC × input × expected Err/Ok × HTTP status
+new_error_variants: [...]
+new_operations: [HTTP route | RPC method | GraphQL field | CLI cmd → statuses/outcomes]
+fsm_transitions: [...]                    # only When entity has status
+test_matrix: behavior × input × expected outcome
 ```
 
 ### PHASE 2 — TDD-LOCK ([A24](#prime-a24--tdd-lock))
 
-- **MUST:** для каждого нового поведения — **сначала failing test**, потом код.
+- **MUST (greenfield PRIME+):** для каждого нового поведения — **сначала failing test**, потом код.
+- **MUST (legacy PRIME+):** тест в **том же PR**; порядок red-green гибкий, но test_matrix обязателен.
 - **MUST NOT:** «тесты в следующем PR».
 - **MUST NOT:** код без строки в test_matrix.
 
@@ -143,9 +175,10 @@ print PRIME-VERIFY-EVIDENCE block ([A26](#prime-a26--evidence-block))
 
 ### Role
 
-Ты пишешь и меняешь код **в рамках задачи пользователя**, соблюдая конвенции репозитория.
+Ты пишешь и меняешь код **в рамках задачи пользователя**, соблюдая **конвенции репозитория** — не навязывая чужую архитектуру.
 
-- **MUST:** определи **Risk Tier** ([A01](#prime-a01--context--risk-tier)). Реальный проект (app/API/service) = минимум **PRIME**.
+- **MUST:** прочитать проект: стек, структура, существующие абстракции **до** выбора паттерна.
+- **MUST:** определи **Risk Tier** ([A01](#prime-a01--context--risk-tier)). App/API/service = минимум **STANDARD**; **PRIME** — когда сработал триггер (auth, PII, payments, external mutations, FSM status…).
 - **MUST:** если `scripts/prime_check` **отсутствует** и tier ≥ PRIME → **STOP feature work** → bootstrap [AGENT-5](#agent-5--prime-check) → CI → потом продолжай.
 - **MUST:** **минимальный scope** на фичу; **максимальный scope** на качество — тесты и security не режутся.
 - **MUST:** пройти [AGENT-OMEGA](#agent-omega--execution-phases-before-any-code) фазы 0–4.
@@ -177,7 +210,7 @@ print PRIME-VERIFY-EVIDENCE block ([A26](#prime-a26--evidence-block))
 |------|---------|-------------|
 | **LITE** | Скрипты, прототипы, одноразовые утилиты | Читаемость, scope, fail-fast, no secrets ([B07](#prime-b07--yagni)) |
 | **STANDARD** | Фичи, UI, CRUD, интеграции | Модули, тесты на поведение, typed errors, no magic values |
-| **PRIME** | Auth, PII, платежи, внешние API, job'ы | Part A + B: слои, DI, Result, observability, idempotency, FSM |
+| **PRIME** | Auth, PII, платежи, внешние API, job'ы, stateful entities | Part A + B: separation, explicit errors, observability, idempotency when risky, gates |
 | **CRITICAL** | Финансы, compliance, потеря данных | PRIME + ADR, resilience, max coverage, Threat Model |
 
 **Правило:** при сомнении — tier выше, но не выше задачи.
@@ -190,26 +223,29 @@ print PRIME-VERIFY-EVIDENCE block ([A26](#prime-a26--evidence-block))
 - Абстракция «на будущее» (YAGNI).
 - 5 слоёв для скрипта на 30 строк.
 
-### Layer map (clean architecture)
+### Separation roles (examples — not mandatory folder tree)
 
-| Layer | Typical paths | Role |
-|-------|---------------|------|
-| **Domain** | `domain/`, `core/`, `entities/` | Entities, VO, events, invariants, port interfaces |
-| **Application** | `application/`, `usecases/` | Use cases, orchestration, Result |
-| **Infrastructure** | `infrastructure/`, `adapters/` | **All I/O:** DB, HTTP, queues, files |
-| **Presentation** | `api/`, `routes/`, `ui/`, `cli/` | Transport: validate → call UC → map response |
+Стандарт описывает **4 роли**, не каталоги. Имена папок = **как в проекте**. Gate `import-graph-gate` проверяет **нарушение ролей**, не пути.
 
-**Dependency direction:**
+| Role | Example paths (one of many) | Responsibility |
+|------|----------------------------|----------------|
+| **Core / Domain** | `domain/`, `core/`, `src/models/` | Business rules, invariants, domain errors — **no direct I/O** |
+| **Application** | `application/`, `services/`, `usecases/`, `handlers/` | Orchestration entry — coordinates core + abstractions |
+| **Infrastructure** | `infrastructure/`, `adapters/`, `repos/` | **All I/O:** DB, HTTP, queues, files |
+| **Presentation** | `api/`, `routes/`, `ui/`, `cli/`, `pages/` | Transport: validate → call application entry → map response |
+
+**Dependency direction (outcome):**
 
 ```text
-Presentation → Application → Domain ← Infrastructure (implements ports)
+Presentation → Application → Core ← Infrastructure (implements abstractions)
 ```
 
-Domain **never** imports Infrastructure or Presentation.
+Core **must not** import Infrastructure or Presentation.  
+**Stack equivalents:** MVC Controller→Service; Nest Controller→Provider; Rust handler→app fn; Rails controller→service object — см. [Pattern Catalog](#pattern-catalog--stack-native-equivalents).
 
 ### Global FORBIDDEN
 
-- **MUST NOT:** construct use-cases inside handlers (`new SomeUseCase(...)`).
+- **MUST NOT:** construct application entry / wire deps manually inside transport (`new Handler(...)` без DI/framework).
 - **MUST NOT:** business policy in infrastructure adapters.
 - **MUST NOT:** duplicate auth / validation / idempotency / error-mapping ([A08](#prime-a08--anti-fork)).
 - **MUST NOT:** trust `localhost` / docker / «internal» route ([A02](#prime-a02--zero-trust)).
@@ -247,14 +283,14 @@ Domain **never** imports Infrastructure or Presentation.
 | Legacy repo bootstrap | ≥PRIME | A31, AGENT-5 | `adoption_mode: legacy` + diff gates |
 | Monorepo path | varies | A32 | per-path tier in config |
 | Any runtime code change | ≥PRIME | A01–A32, B03–B14 | `prime_check --diff` then **full** |
-| New/changed HTTP endpoint | ≥PRIME | A02, A03, A29 | `route-matrix-gate` + `zta-matrix-gate` |
+| New/changed exposed operation (HTTP/gRPC/GraphQL/CLI) | ≥PRIME | A02, A03, A29 | `route-matrix-gate` + `zta-matrix-gate` |
 | New feature / provider | ≥PRIME | A04–A07, A12, A24 | TDD → `pytest-unit` → full |
 | Auth / session | ≥PRIME | A02, A16, A29 | `zta-matrix-gate` |
 | DB schema / persistence | ≥PRIME | A20, B06 | integration + `schema-drift` |
 | New dependency | any | A19 | `dependency-audit` + lockfile |
-| Docker / compose / deploy | ≥PRIME | A16, A23 | `docker-security` + `prod-config` |
+| Docker / compose / deploy | ≥PRIME | A16, A23 | `docker-security` + `prod-config` (When containerized) |
 | Idempotency / retries | ≥PRIME | A14, A09 | integration + contract |
-| Stateful entity (status) | ≥PRIME | B06, A14 | concurrency integration |
+| Stateful entity (status) — When in design artifact | ≥PRIME | B06, A14 | `fsm-transition-gate` + concurrency |
 | Client UI | ≥PRIME | B11, A18 | `frontend-quality` + full |
 | Financial / compliance | CRITICAL | All + B09 | full + `mutation-critical` + `injection-fuzz` |
 | Ops / deploy / health | ≥PRIME | B13, A23 | `health-gate` + `prod-config` |
@@ -269,22 +305,22 @@ Domain **never** imports Infrastructure or Presentation.
 [ ] prime_check EXISTS — bootstrapped THIS session if was missing (AGENT-5)
 [ ] adoption_mode set (greenfield | legacy) — A31
 [ ] Design artifact + test_matrix written BEFORE code (A24)
-[ ] Risk Tier ≥ PRIME for real project
+[ ] Risk Tier assigned with triggers documented (STANDARD default; PRIME when fired)
 [ ] Scanned touched files — stop-the-line if violation
 [ ] ZERO untested lines on changed files (coverage-diff-100 green)
 [ ] ZERO untested branches on changed files (coverage-branch-100)
 [ ] coverage-ratchet: no drop vs main
 [ ] no-pragma-no-cover + no-empty-test + no-trivial-assert GREEN
 [ ] Every Err variant has test (err-variant-gate)
-[ ] Every route × status in test_matrix (route-matrix-gate)
-[ ] Every protected route: auth matrix (zta-matrix-gate)
+[ ] Every exposed operation × outcome in test_matrix (route-matrix-gate)
+[ ] Every protected operation: auth matrix (zta-matrix-gate)
 [ ] Fail-fast at boundary (A17); ZTA before UC (A02)
 [ ] gitleaks-history + no-secrets + dependency-audit GREEN (A19)
 [ ] import-graph-gate + di-graph-gate + cyclomatic-gate GREEN
 [ ] docker-security + prod-config + health-gate if infra touched (A23, B13)
 [ ] FSM transitions tested + concurrency where applicable (B06, A14)
-[ ] State-changing UC: idempotency key + double-submit test (A14, idempotency-matrix-gate)
-[ ] No cross-module domain entity imports (A04, context-leak-gate)
+[ ] State-changing + retry risk: idempotency + double-submit test (A14, when applicable)
+[ ] Multi-module: no cross-module private type imports (A04, when applicable)
 [ ] Every Err: rule_id + state_snapshot + correlation_id (A10, B03, error-context-gate)
 [ ] `prime_check --diff` → exit 0
 [ ] `python -m scripts.prime_check` → exit 0 (FULL matrix)
@@ -308,9 +344,10 @@ Domain **never** imports Infrastructure or Presentation.
 
 ---
 
-## AGENT-VERIFY — You run prime_check (non-negotiable)
+## AGENT-VERIFY — You run the quality gate (non-negotiable)
 
-**Scope:** tier ≥ PRIME — **всегда**. Tier LITE — исключение.
+**Scope:** tier ≥ PRIME — **всегда**. Tier LITE — исключение.  
+**Entrypoint:** stack-native (`python -m scripts.prime_check`, `npm run prime:check`, `make prime-check`…) — **один контракт** (steps, findings, exit 0), orchestrator per stack ([AGENT-5](#agent-5--prime-check)).
 
 ### Workflow
 
@@ -357,7 +394,8 @@ exit 0 → print EVIDENCE → ONLY NOW say «done»
 
 ## AGENT-5 — PRIME-CHECK (agent enforcement engine)
 
-**Prime Check** — **единственный** merge gate. ИИ **создаёт, запускает, чинит до green**. Человек не должен помнить 20 команд — одна: `python -m scripts.prime_check`.
+**Quality gate** (`prime_check` / stack-native alias) — **единственный** merge gate на tier ≥ PRIME. ИИ **создаёт, запускает, чинит до green**.  
+**Reference implementation:** Python `scripts/prime_check/` — **не** единственный допустимый orchestrator; **контракт** (steps, Finding, evidence, exit 0) обязателен на любом стеке.
 
 ### Если скрипта нет — агент пишет СНАЧАЛА
 
@@ -778,7 +816,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 | [A02](#prime-a02--zero-trust) | Zero Trust | PRIME+ |
 | [A03](#prime-a03--api-response-contract) | API response contract | PRIME+ |
 | [A04](#prime-a04--integration-boundaries) | Integration & plugin boundaries | PRIME+ |
-| [A05](#prime-a05--layer-law) | Layer law | STANDARD+ |
+| [A05](#prime-a05--layer-law) | Layer law / separation roles | STANDARD+ |
 | [A06](#prime-a06--di--ports) | DI & ports | PRIME+ |
 | [A07](#prime-a07--design-first) | Design-first order | PRIME+ |
 | [A08](#prime-a08--anti-fork) | Anti-fork | PRIME+ |
@@ -822,7 +860,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 | [B14](#prime-b14--human-handoff) | Human handoff after agent done | PRIME+ |
 
 \*Security never exempted by YAGNI when code touches network/secrets/input.  
-\*Anti-Null · Immutability · Side-Effect Injection · Idempotent-Ledger · Bounded-Context Lock · Error Context Matrix — сквозные правила в Part A/B, не отдельный tier.
+\*Сквозные **outcomes** (Explicit errors · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Observable failures) — в Part A/B, не отдельный tier. **Form** = Pattern Catalog + repo conventions.
 
 ---
 
@@ -830,22 +868,29 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 
 ## PRIME-A01 — Context & Risk Tier
 
-**Min tier:** all
+**Min tier:** all **Applicability:** Always
 
-- **MUST:** read project structure, stack, patterns, CI before writing.
-- **MUST:** classify tier. **App / API / service / lib с I/O = минимум PRIME.** LITE — только одноразовые скрипты без сети.
-- **MUST:** if tier ≥ PRIME and no `prime_check` → bootstrap first ([AGENT-5](#agent-5--prime-check)).
+- **MUST:** read project structure, stack, patterns, CI **before** writing. **Repo conventions = default form.**
+- **MUST:** classify tier. **App / API / service / lib с I/O = минимум STANDARD.** LITE — одноразовые скрипты без сети.
+- **MUST:** elevate to **PRIME** when **any** trigger fires:
+  - authn/authz, PII, payments/money, external API mutations, background jobs with side effects
+  - entity with **status/lifecycle** (→ FSM When applicable)
+  - multi-module monorepo or service split (→ context isolation When applicable)
+  - operations where **retry/double-submit** is dangerous (→ idempotency When applicable)
+- **MUST:** elevate to **CRITICAL** for finance, compliance, irreversible data loss.
+- **MUST:** if tier ≥ PRIME and no quality gate → bootstrap first ([AGENT-5](#agent-5--prime-check)).
 - **MUST:** set `adoption_mode`: greenfield (full scope) or legacy (diff-100 + ratchet) ([A31](#prime-a31--legacy-adoption)).
-- **MUST:** follow project folder conventions; PRIME defines quality bar, not exact tree.
-- **MUST NOT:** downgrade tier to avoid writing tests or prime_check.
+- **MUST:** PRIME defines **quality outcomes**, not folder tree or framework choice.
+- **MUST NOT:** downgrade tier to avoid tests or gate bootstrap.
+- **MUST NOT:** impose Clean/DDD/UseCase/Result if project uses other proven pattern — map to [Pattern Catalog](#pattern-catalog--stack-native-equivalents).
 
 ---
 
 ## PRIME-A02 — Zero Trust (ZTA)
 
-**Min tier:** PRIME+ **Enforced by:** `zta-matrix-gate`, `pytest-contract`
+**Min tier:** PRIME+ **When:** exposed operation requires auth **Enforced by:** `zta-matrix-gate`, contract tests
 
-- **MUST:** authn + authz on **every** protected endpoint **before** use-case.
+- **MUST:** authn + authz on **every** protected **operation** (HTTP route, RPC method, GraphQL field, CLI with credentials) **before** application logic.
 - **MUST:** localhost, docker network, `127.0.0.1`, sidecar, `/internal`, `/debug` — **те же правила** что и public internet в prod/staging.
 - **MUST NOT:** `LIME_TESTING=1`, compose network, reverse proxy, VPN как substitute auth.
 - **MUST NOT:** trust «мы внутри кластера» — [A23](#prime-a23--infra--docker-security).
@@ -853,7 +898,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 - **MUST:** validate input at boundary before UC ([A18](#prime-a18--owasp-input-hygiene)).
 - **MUST:** least privilege — minimal scopes, DTO fields, per-role secrets.
 - **MUST:** deny-by-default; DB/Redis/cache **не** на public без TLS+auth.
-- **MUST:** `zta-matrix-gate` in prime_check — full auth scenario matrix per route ([A29](#prime-a29--zta-matrix)).
+- **MUST:** `zta-matrix-gate` — full auth scenario matrix per **protected operation** ([A29](#prime-a29--zta-matrix)). HTTP — один частный случай.
 - **MUST:** split metrics/admin from product API at ingress.
 
 ---
@@ -871,93 +916,109 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 
 ## PRIME-A04 — Integration & plugin boundaries
 
-**Min tier:** PRIME+ **Enforced by (PRIME+):** `context-leak-gate`
+**Min tier:** PRIME+ **When:** swappable provider OR multi-module **Enforced by:** `context-leak-gate` (When multi-module)
 
-- **MUST:** extend via port interfaces + infrastructure adapters.
-- **MUST:** **plugin boundary** — new provider (payment, storage, notifications, auth) adds via interface; **no edits to existing Domain/Core** for wiring swap.
-- **MUST:** modules/features communicate through published interfaces, not internal imports.
+- **MUST:** extend via **abstraction** (interface, trait, protocol) + adapter — **когда** 2+ impl или план замены.
+- **MUST:** **plugin boundary** — new provider (payment, storage, notifications, auth) adds via abstraction; **no edits to existing Core** for wiring swap.
+- **MUST:** modules communicate through **published API** (public types, events, RPC contract) — not private internals.
 - **MUST NOT:** duplicate policy across DI, API, infrastructure.
-- **MUST NOT:** nest I/O inside domain/application packages.
+- **MUST NOT:** nest I/O inside core/application packages.
 
-### Bounded-Context Lock (PRIME+) — Sociopathic Isolation
+### Module isolation (PRIME+) — When multi-module / service split
 
-ИИ склеивает модули микро-импортами (`User` из users → в payments) → распределённый монолит. **Запрещено.**
+ИИ склеивает модули микро-импортами private types → распределённый монолит. **Запрещено импортировать чужие private domain types.**
 
-- **MUST:** каждый Bounded Context (модуль/пакет/сервис) владеет **своими** domain entities — изолированными типами.
-- **MUST NOT:** импортировать / re-export чужие domain entities, aggregates, value objects между контекстами.
-- **MUST:** данные между контекстами — **только** через:
-  - **DTO / Primitive types** (`user_id: UUID`, `amount_cents: int`) на границе UC/port;
-  - **Domain Events** (`UserRegistered`, `PaymentCaptured`) — async, one-way ([B03](#prime-b03--sre--observability--events));
-  - **Published port interfaces** — не concrete types соседнего модуля ([A06](#prime-a06--di--ports)).
-- **MUST NOT:** «удобный» shared `models/` с entity из всех модулей — каждый контекст = свой `domain/`.
-- **Enforced by:** `context-leak-gate` — AST/import graph: domain entity type из `module_a` в `module_b` → exit 1.
+- **When:** single-package app / trivial script → isolation gate **N/A**.
+- **When:** multi-module monorepo or microservices → **MUST** isolate.
+- **MUST:** каждый модуль владеет **своими** internal types.
+- **MUST NOT:** import/re-export **private** entity/aggregate/VO другого модуля.
+- **MUST:** cross-module data — **DTO / primitives / public contract types / events**:
+  - primitives (`user_id: UUID`, `amount_cents: int`);
+  - Domain Events (`UserRegistered`) — async ([B03](#prime-b03--sre--observability--events));
+  - published interfaces — не concrete internal types ([A06](#prime-a06--di--ports)).
+- **MAY:** **shared kernel** (общие types) — **только** с ADR + explicit `shared/` или `contracts/` package; gate allowlists ADR path.
+- **Enforced by:** `context-leak-gate` — import private type из `module_a` в `module_b` → exit 1 (unless ADR shared kernel).
 
 ```python
-# BAD:  from users.domain import User  # in payments/use_cases/charge.py
-# GOOD: def charge(user_id: UserId, amount: Money, uc: ChargePayment) -> Result[Receipt, PaymentErr]
-# GOOD: on UserRegistered event → payments infra subscriber creates wallet
+# BAD:  from users.domain import User  # private type in payments/
+# GOOD: charge(user_id: UserId, amount: Money)  # primitive/DTO at boundary
+# GOOD: shared kernel ADR → contracts/user_id.py — both modules import contracts only
 ```
 
 ---
 
 ## PRIME-A05 — Layer law
 
-**Min tier:** STANDARD+ **Enforced by (PRIME+):** `import-boundaries` · `immutability-gate` · `context-leak-gate`
+*Separation roles — not mandatory folder tree. Form = repo-native ([Pattern Catalog](#pattern-catalog--stack-native-equivalents)).*
 
-| Layer | MUST | MUST NOT |
-|-------|------|----------|
-| **Domain** | entities, VO, events, invariants, ports; **immutable** value objects (`frozen` / `Readonly`); one aggregate/policy per type; **scoped to one Bounded Context** | I/O, frameworks, DB, HTTP, time/uuid; god-classes; **in-place mutation**; **cross-context entity imports** |
-| **Application** | use-cases, `Result`, orchestration via ports; **pure** w.r.t. passed domain objects | direct DB/HTTP, env reads, transport exceptions; **mutating** domain args |
-| **Infrastructure** | port impls, persistence, clients, resilience | business policy |
-| **Presentation** | transport, validate input, inject UC, map Result | build UC manually; business logic; skip auth |
+**Min tier:** STANDARD+ **Applicability:** separation of business logic from I/O — **форма = repo-native**  
+**Enforced by (PRIME+):** `import-boundaries` · `immutability-gate` (When applicable) · `context-leak-gate` (When multi-module)
 
-- **MUST NOT:** business logic in React components, route handlers, CLI `main`, mobile Views.
-- **SHOULD:** CQRS when read/write complexity differs — not for simple CRUD ([B01](#prime-b01--cqrs)).
+| Role | MUST | MUST NOT |
+|------|------|----------|
+| **Core / Domain** | business rules, invariants, domain errors; abstractions for I/O | direct I/O, frameworks, DB, HTTP, time/uuid in core; god-classes |
+| **Application** | orchestration entry; explicit error handling per stack | direct DB/HTTP in orchestration when project separates adapters; transport exceptions in core |
+| **Infrastructure** | I/O impls, persistence, clients, resilience | business policy |
+| **Presentation** | validate input, invoke application entry, map response | business logic; manual wiring without project DI |
 
-**Handler pattern (adapt to stack):**
+- **MUST NOT:** business logic in UI components, fat route handlers, CLI `main`, mobile Views.
+- **MUST:** folder names and entry naming = **project convention** (UseCase, Handler, Service, Command, plain `fn` — см. Pattern Catalog).
+- **SHOULD NOT:** CQRS / extra layers for trivial CRUD ([B01](#prime-b01--cqrs), [B07](#prime-b07--yagni)).
+
+**Thin transport (stack-native examples):**
 
 ```python
+# FastAPI — DI injects application entry
 @router.post("/orders")
-async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrderDTO = ...):
-    return map_result(await uc.execute(body))
+async def create_order(svc: OrderService = Depends(get_svc), body: CreateOrderDTO = ...):
+    return map_outcome(await svc.place(body))
 ```
 
 ```typescript
-// Thin route → useCase.execute() → map response
+// Express/Nest — controller → service/handler
+router.post('/orders', (req, res) => mapOutcome(orderService.place(req.body), res));
 ```
 
-**MAY:** validation types in Domain (Pydantic, zod) as data-only — not framework coupling.
+```rust
+// Axum — handler → app::place_order()
+async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl IntoResponse { ... }
+```
 
-### Immutability (PRIME+)
+**MAY:** validation types as data-only (Pydantic, zod) — not framework coupling in core.
 
-- **MUST:** entity/VO/aggregate в Domain — **100% immutable** (Python `frozen=True` / Pydantic frozen; TS `Readonly<T>`; Go value + return new; Kotlin `copy()`).
-- **MUST:** изменение состояния = **новый экземпляр** — `.replace()` / `copy(deep=True)` / `withStatus()` — не `entity.field = x`.
-- **MUST NOT:** мутировать аргументы UC (`order.items.append`, `self.status =` в domain entity).
-- **Enforced by:** `immutability-gate` · FSM transitions ([B06](#prime-b06--fsm)).
+### Immutability (PRIME+) — When races / FSM / shared aggregate
+
+- **When:** single-threaded script, DB-only state, no shared in-memory aggregate → **N/A** (persist in repo layer OK).
+- **When:** concurrent access, FSM, in-memory shared state → **MUST** immutable transitions or equivalent (new instance, copy, persistent data structure).
+- **MUST NOT:** in-place mutation of shared aggregate passed between threads/tasks without synchronization + ADR.
+- **Enforced by:** `immutability-gate` · [B06](#prime-b06--fsm) (When status entity).
 
 ---
 
 ## PRIME-A06 — DI & ports
 
+*Injectable dependencies — framework DI, traits, params OK; manual ports not required.*
+
 **Min tier:** PRIME+ **Enforced by:** `di-purity` · `deterministic-runtime` (with [A15](#prime-a15--deterministic-time))
 
-- **MUST:** constructor injection: **time, IDs, random**, DB, HTTP, config — недетерминизм **только** через ports ([A15](#prime-a15--deterministic-time)).
-- **MUST:** one canonical impl per policy — in project docs, not duplicate helpers.
-- **MUST:** cross-module via published interfaces + DI only — **DTO / primitives / events**, не чужие domain entities ([A04](#prime-a04--integration--plugin-boundaries)).
-- **MUST NOT:** service locator, globals, hidden state in domain/use-cases.
-- **MUST NOT:** inject concrete entity type соседнего Bounded Context в UC constructor.
+- **MUST:** external deps (DB, HTTP, time, ID, random, config) — **injectable** per project style: constructor DI, params, framework container, `Clock` trait, test hooks ([A15](#prime-a15--deterministic-time)).
+- **MUST:** one canonical impl per policy — SSOT, not duplicate helpers ([A08](#prime-a08--anti-fork)).
+- **MUST:** cross-module via published API — DTO/primitives/events ([A04](#prime-a04--integration--plugin-boundaries)).
+- **MUST NOT:** `new ConcreteRepo()` / hardcoded clients inside testable core when project uses DI.
+- **MUST NOT:** service locator, globals, hidden mutable state in core.
 - **MUST:** tests substitute via Fake/Mock/InMemory — predictable behavior.
+- **MAY:** framework-native DI (Nest `@Injectable`, Spring `@Autowired`, FastAPI `Depends`) — не обязательно manual ports.
 
 ---
 
 ## PRIME-A07 — Design-first order
 
-**Min tier:** PRIME+
+**Min tier:** PRIME+ **Applicability:** logical order — names = repo-native
 
-0. Tier + boundaries.  
+0. Tier + triggers + existing patterns.  
 1. Contract/DTO + invariants; SemVer if breaking ([A21](#prime-a21--semver--contracts)).  
-2. Domain + ports.  
-3. Application UC + Result + DI.  
+2. Core rules + abstractions for I/O.  
+3. Application entry + explicit errors + injectable deps.  
 4. Versioned migration if schema ([A20](#prime-a20--migrations)).  
 5. Infrastructure adapters.  
 6. Presentation — transport only.  
@@ -987,6 +1048,8 @@ async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrd
 
 ## PRIME-A10 — Result & errors by tier
 
+*Explicit failure paths — stack-native; `Result` is one option, not the only ([Pattern Catalog](#pattern-catalog--stack-native-equivalents)).*
+
 **Min tier:** varies — see table **Enforced by (PRIME+):** `anti-null-gate` · `err-variant-gate` · `error-context-gate` · `no-transport-in-domain`
 
 ### Error handling by tier
@@ -995,53 +1058,48 @@ async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrd
 |------|----------|
 | **LITE** | Clear messages; fail-fast on bad input |
 | **STANDARD** | Typed errors / error codes; do not swallow exceptions |
-| **PRIME+** | Domain errors (`InsufficientPermissions`, `ResourceNotFound`); `Result<Ok,Err>` or stack-native typed errors |
+| **PRIME+** | Named domain errors; **explicit failure paths** — stack-native (см. Pattern Catalog) |
 | **Boundary** | User-friendly message; details in log only — not in UI |
 
-### Result contract (PRIME+)
+### Explicit errors (PRIME+) — outcome, not one monad
 
-- **MUST:** use-cases return `Result<Ok, Err>` or equivalent (Rust/Go/TS typed errors).
-- **MUST:** Presentation maps Result → response only.
-- **MUST NOT:** `HTTPException` / raw transport `throw` in domain/application.
-- **MUST:** every `Err` explicitly typed — not generic `Error`.
+**Outcome:** caller always knows success vs failure — no silent `null` as error, no swallowed exception in core.
 
-### Anti-Null (PRIME+) — часть Result contract
+| Stack | Acceptable forms |
+|-------|------------------|
+| Python/TS | `Result[Ok,Err]`, `Either`, discriminated union, typed exception hierarchy |
+| Rust | `Result<T,E>`, `thiserror` enums |
+| Go | `(T, error)` — **must** check `err != nil` |
+| Java/Kotlin | sealed Result, `Either`, typed exceptions (not generic in core) |
+| FP | `IO`/`Task` with typed failure channel |
 
-Агенты по умолчанию `return None` → `AttributeError` / NPE по всему стеку. **Запрещено** в Domain/Application.
+- **MUST:** application/core entry returns **typed failure** or throws **named** domain error — not generic `Error("failed")`.
+- **MUST:** presentation maps outcome → response only.
+- **MUST NOT:** transport exceptions (`HTTPException`, status codes) in core.
+- **MUST:** every error variant has **dedicated test** (`err-variant-gate` checks coverage, not regex name).
 
-- **MUST NOT:** `return None` / `return null` / nullable return в UC/domain как «ошибка» или «нет данных» (кроме infra glue с ADR).
-- **MUST:** ошибка или отсутствие → `Result[Ok, Err]` или `Option[Data]` (`Option`, `Maybe`, typed `Err`).
-- **MUST:** оба исхода явно — `match` / `if let` / `.map`/`.map_err` — не «надеемся что не None».
-- **MUST NOT:** `obj.field.subfield` без guard, если `obj` из UC мог быть nullable.
+### No silent null as failure (PRIME+) — `anti-null-gate`
+
+Агенты `return None` / `null` как «не найдено» → NPE downstream. **Запрещено в testable core.**
+
+- **MUST NOT:** nullable return в application/core как единственный сигнал ошибки/отсутствия.
+- **MUST:** explicit branch — `match` / `if err` / `.map_err` / checked exception.
+- **MAY:** `Option`/`Maybe` для **optional data** (не для error path) — с guard перед use.
+- **MAY:** nullable types in infra/ORM glue — с ADR boundary.
 
 ```python
 # BAD:  def get_order(id) -> Order | None: return None
-# GOOD: def get_order(id) -> Result[Order, OrderNotFound]: return Err(...) or Ok(...)
+# GOOD: Result / raise OrderNotFound / (Order, error) per stack
 ```
 
-**`anti-null-gate`:** `-> None` / `Optional` на UC; `return None`; nullable chains без guard.
+### Observable failures (PRIME+) — logging contract
 
-### Error Context Matrix (PRIME+) — Total Recovery
+**Outcome:** prod failure локализуется по trace за секунды. Поля могут жить в **log middleware** или **error type** — gate проверяет **наличие в log event**, не обязательно в struct.
 
-`logger.info("something happened")` в проде = ад. Каждая ветка `Err` обязана нести **структурированный слепок** для локализации за 1 секунду.
-
-- **MUST:** каждый кастомный `Err` / error enum variant содержит:
-  - **`rule_id`** — какое правило PRIME / бизнес-инвариант нарушен (`PRIME-A10`, `ORDER_NOT_FOUND`, …);
-  - **`state_snapshot`** — срез данных в момент падения (ids, status, input hash — **без PII/secrets**);
-  - **`correlation_id` / `trace_id`** — сквозной ID от клиента/фронта через все сервисы ([B03](#prime-b03--sre--observability--events)).
-- **MUST:** structured JSON logging при `Err` — не строка `"error"`; поля сериализуются в log sink.
-- **MUST:** Presentation пробрасывает `correlation_id` из входящего запроса в UC и в ответ (header/body meta).
-- **MUST NOT:** generic `Error("failed")` / `throw new Error()` без контекста в PRIME+ UC/domain.
-- **Enforced by:** `error-context-gate` — schema/lint: каждый `Err` type имеет обязательные поля + `test_err_*` assert snapshot/trace.
-
-```python
-@dataclass(frozen=True)
-class OrderNotFound(Err):
-    rule_id: str = "ORDER_NOT_FOUND"
-    order_id: OrderId
-    state_snapshot: dict  # {"status": "lookup", "source": "GetOrderUC"}
-    correlation_id: CorrelationId
-```
+- **MUST** at log site on failure: `invariant_id` (rule/business code) + safe `context` (ids, status — **no PII**) + `correlation_id`/`trace_id` ([B03](#prime-b03--sre--observability--events)).
+- **MUST:** structured JSON logging — не `console.log("error")`.
+- **MUST:** transport пробрасывает correlation id from client through core.
+- **Enforced by:** `error-context-gate` — lint/log fixture asserts fields on each error variant test.
 
 ---
 
@@ -1061,7 +1119,7 @@ class OrderNotFound(Err):
 
 **Min tier:** PRIME+ for 100% gate; STANDARD+ for pyramid
 
-**Doctrine:** в `runtime_scope` **не существует** непокрытой строки и ветки. Нет теста = нет merge. Clean Domain без I/O → тысячи unit-тестов за секунды. **Fakes** в unit; **real infra** в integration — не наоборот.
+**Doctrine:** в `runtime_scope` **не существует** непокрытой строки и ветки. Нет теста = нет merge. Core без I/O → быстрые unit-тесты. **Fakes** в unit; **real infra** в integration — не наоборот.
 
 ### Pyramid
 
@@ -1123,7 +1181,7 @@ class OrderNotFound(Err):
 **Min tier:** PRIME+
 
 - **MUST NOT:** duplicate policy/mapper/facade.
-- **MUST:** thin handler + DI UC + Result mapping.
+- **MUST:** thin transport + injected application entry + explicit error mapping.
 - **MUST:** update API docs / ADR if contracts changed.
 - **MUST:** tests per [A12](#prime-a12--tests--coverage); `prime_check` exit 0 + evidence block ([A22](#prime-a22--prime-check), [A26](#prime-a26--evidence-block)).
 - **MUST:** formatters green; migrations versioned ([A20](#prime-a20--migrations)).
@@ -1134,31 +1192,29 @@ class OrderNotFound(Err):
 
 ## PRIME-A14 — Idempotency
 
-**Min tier:** PRIME+ **Enforced by:** `idempotency-matrix-gate`
+**Min tier:** PRIME+ **When:** state-changing operation + retry/double-submit risk **Enforced by:** `idempotency-matrix-gate`
 
-Double-click / retry / network blink → дубль списания, два поста, сломанный UI state. **Полный запрет** на мутации без контроля уникальности на уровне бизнес-логики.
+**Outcome:** повторный вызов с тем же intent → **тот же результат**, без дубля side-effect.  
+**Не обязательна форма:** ledger class — достаточно unique index, dedup table, Stripe-style key store, saga idempotency token.
 
-### Idempotent-Ledger (PRIME+) — Atomic State Change
+### When REQUIRED
 
-- **MUST:** любой UC, **меняющий состояние** (DB, cache, ledger, UI store), принимает сквозной **`idempotency_key`** (или transaction token) от boundary.
-- **MUST:** на **самом низком уровне** domain/application — проверка ключа **до** бизнес-логики:
-  - ключ уже обработан → **атомарно** вернуть сохранённый `Ok` из ledger/cache — **не** повторять мутацию;
-  - ключ новый → выполнить UC → записать `(key → result)` в ledger (Command Sourcing / Write-Ahead Log).
-- **MUST:** ledger append-only / upsert с unique constraint на `idempotency_key` — race-safe под concurrency.
-- **MUST:** outbound POST/write — тот же key на всех retries ([A09](#prime-a09--policy-facades) facade).
-- **MUST NOT:** new random key per retry for same user action.
-- **MUST NOT:** «проверим потом в UI» — idempotency = domain/UC concern, не только HTTP middleware.
-- **MUST (CRITICAL):** все financial/state mutations idempotent.
-- **Enforced by:** `idempotency-matrix-gate` — для каждого state-changing UC обязателен `test_double_submit_*`: два вызова с одним key → один side-effect, второй = cached Ok.
+- payments, charges, posts, orders, webhooks, any mutation user can trigger twice (double-click, retry, at-least-once delivery)
+- **NOT required:** idempotent reads, pure deletes with no money, internal batch with exactly-once framework guarantee + ADR
 
-```python
-async def execute(self, cmd: PlaceOrder, key: IdempotencyKey) -> Result[OrderId, OrderErr]:
-    if cached := await self._ledger.get(key):
-        return cached  # replay — no second charge
-    result = await self._place(cmd)
-    await self._ledger.put(key, result)
-    return result
-```
+### Implementation options (pick one + test)
+
+| Approach | Where |
+|----------|-------|
+| `Idempotency-Key` header + server dedup store | HTTP APIs |
+| Unique DB constraint on `(idempotency_key)` | Persistence layer |
+| Ledger / WAL table `(key → outcome)` | Application layer |
+| Client-generated stable token per user action | Mobile/UI |
+
+- **MUST:** stable key per user action across retries — не random per retry.
+- **MUST:** dedup check **before** irreversible side-effect (or transactional outbox).
+- **MUST (CRITICAL):** all financial mutations idempotent.
+- **Enforced by:** `idempotency-matrix-gate` — double-submit test: два вызова, один key → один side-effect, второй = same outcome.
 
 ---
 
@@ -1167,14 +1223,14 @@ async def execute(self, cmd: PlaceOrder, key: IdempotencyKey) -> Result[OrderId,
 **Min tier:** PRIME+ **Enforced by:** `deterministic-runtime`  
 *Side-Effect Injection — сквозной инвариант вместе с [A06](#prime-a06--di--ports).*
 
-`now()` / `uuid4()` / `random()` внутри UC → flaky tests. Domain/Application = **чистая матрица** при frozen providers.
+`now()` / `uuid4()` / `random()` в testable core → flaky tests. **Outcome:** same inputs + fixed clock/ID/random in tests → same output.
 
-- **MUST NOT:** `Date.now()`, `datetime.now()`, `time()`, `uuid4()`, `random()`, `Math.random()` в Domain/Application.
-- **MUST:** `ITimeProvider`, `IIdGenerator`, `IRandom` (или stack ports) — **единственный** источник недетерминизма.
-- **MUST:** одинаковые входы + fixed clock/ID/random в тестах → одинаковый output.
-- **MUST NOT:** global singleton clock/random на domain path; `uuid4()` в UC «для удобства».
+- **MUST NOT:** direct `Date.now()`, `uuid4()`, `random()` in **testable core** (scope from config — not necessarily `domain/` path).
+- **MUST:** inject nondeterminism — ports, params, `Clock` trait, test doubles, `vi.setSystemTime`, frozen clock in Rust tests.
+- **MAY:** framework test utilities instead of custom `ITimeProvider` when project already has pattern.
+- **MUST NOT:** global singleton clock/random on core path without test override.
 
-**`deterministic-runtime`:** AST/regex ban `now`, `uuid4`, `random` в `domain/**`, `application/**`.
+**`deterministic-runtime`:** ban direct nondeterminism calls in configured `testable_core_scope` paths.
 
 ---
 
@@ -1218,13 +1274,13 @@ async def execute(self, cmd: PlaceOrder, key: IdempotencyKey) -> Result[OrderId,
 
 ### SOLID & GRASP — see [B02](#prime-b02--solid--grasp)
 
-- **MUST:** ~10–15 orchestration lines per use-case.
+- **MUST:** ~10–15 orchestration lines per application entry (use case / handler / service method).
 - **MUST:** DRY for **policy**; duplicate wiring OK ([A08](#prime-a08--anti-fork)).
 - **MUST:** project formatters before commit.
 - **MUST NOT:** god-class; feature envy.
 
-**Good:** `CreateOrderUseCase` + `Order` + `IOrderRepository`.  
-**Bad:** `OrderService` 400 lines — SQL, validation, HTTP mapping.
+**Good:** thin `OrderService.place()` + `Order` + injectable `OrderRepository`.  
+**Bad:** 400-line god-service — SQL, validation, HTTP mapping in one class.
 
 ---
 
@@ -1232,7 +1288,7 @@ async def execute(self, cmd: PlaceOrder, key: IdempotencyKey) -> Result[OrderId,
 
 **Min tier:** PRIME+ (validation STANDARD+)
 
-- **MUST:** all HTTP input untrusted until schema + auth + policy pass.
+- **MUST:** all external input untrusted until schema + auth + policy pass (HTTP, CLI args, WebSocket, file upload…).
 - **MUST:** schema at boundary (Pydantic, zod, Joi…).
 - **MUST:** parameterized SQL only.
 - **MUST:** encode HTML output; allowlist redirects; validate uploads.
@@ -1301,11 +1357,14 @@ async def execute(self, cmd: PlaceOrder, key: IdempotencyKey) -> Result[OrderId,
 
 ## PRIME-A22 — Prime Check (merge gate)
 
+*Quality gate contract — stack-native entrypoint; Python `prime_check` = reference impl.*
+
 **Min tier:** PRIME+ — **обязателен**. Spec: [AGENT-5](#agent-5--prime-check).
 
 ### Purpose
 
-**Единственный** способ сказать «готово»: `python -m scripts.prime_check` → **exit 0**. Иначе — код не существует. ИИ **пишет** checker если нет. ИИ **запускает** всегда сам.
+**Единственный** способ сказать «готово» на tier ≥ PRIME: **project quality gate** → **exit 0**.  
+Entrypoint = stack-native (`python -m scripts.prime_check`, `npm run prime:check`, `make prime-check`…). Python scaffold — **reference impl**, не единственный. ИИ **пишет** gate если нет. ИИ **запускает** всегда сам.
 
 ### MUST
 
@@ -1334,7 +1393,7 @@ async def execute(self, cmd: PlaceOrder, key: IdempotencyKey) -> Result[OrderId,
 
 ## PRIME-A23 — Infra & Docker security
 
-**Min tier:** PRIME+ **Enforced by:** `docker-security`, `compose-security`, `prod-config`
+**Min tier:** PRIME+ **When:** containerized deploy or Docker files in repo **Enforced by:** `docker-security`, `compose-security`, `prod-config`
 
 ### Docker MUST
 
@@ -1362,8 +1421,9 @@ async def execute(self, cmd: PlaceOrder, key: IdempotencyKey) -> Result[OrderId,
 
 **Min tier:** PRIME+ **Enforced by:** agent phase + `test-matrix-gate`
 
-- **MUST:** [AGENT-OMEGA](#agent-omega--execution-phases-before-any-code) PHASE 2 — failing test **before** production code.
-- **MUST:** test_matrix в DESIGN ARTIFACT покрывает все новые UC/Err/route.
+- **MUST (greenfield):** PHASE 2 — failing test **before** production code.
+- **MUST (legacy):** tests in **same PR**; test_matrix covers all new behaviors — order flexible.
+- **MUST:** test_matrix в DESIGN ARTIFACT покрывает все новые behaviors/errors/operations.
 - **MUST NOT:** «тесты потом» / «в следующем PR».
 
 ---
@@ -1541,14 +1601,16 @@ Assume external world **will** break.
 
 ## PRIME-B06 — FSM
 
-**Min tier:** PRIME+ **When:** entity has status **Enforced by:** `fsm-transition-gate` · `immutability-gate`
+**Min tier:** PRIME+ **When:** design artifact lists `fsm_transitions` OR entity has lifecycle status field **Enforced by:** `fsm-transition-gate` · `immutability-gate` (When applicable)
 
-- **MUST:** explicit graph (`Order`, `Job`, `Task`, `Subscription`, `Invoice`).
-- **MUST NOT:** `DRAFT → COMPLETED` bypassing `PROCESSING` — enforced in domain model, not `if` in service.
-- **MUST NOT:** status change from API/handler bypassing FSM.
-- **MUST:** transition возвращает **новый immutable aggregate** — не `self.status =` ([A05](#prime-a05--layer-law)).
+**When NOT:** simple enum + validation sufficient; no status field; workflow engine (Temporal) owns graph — document in ADR, gate N/A.
+
+- **MUST:** explicit transition graph when status/lifecycle matters (`Order`, `Job`, `Task`, `Subscription`, `Invoice`…).
+- **MUST NOT:** illegal jumps (`DRAFT → COMPLETED` bypassing `PROCESSING`) — enforced in core, not scattered `if`.
+- **MUST NOT:** status change from transport bypassing lifecycle rules.
+- **SHOULD:** transition returns new state instance when in-memory aggregate ([A05](#prime-a05--layer-law)); DB-only status OK with transactional update + ADR.
 - **MUST:** transitions atomic at persistence under concurrency.
-- **MUST:** tests for concurrent transitions — single winner; double-submit integration ([A12](#prime-a12--tests--coverage)).
+- **MUST:** tests for every edge + concurrent transitions where applicable ([A12](#prime-a12--tests--coverage)).
 
 ## PRIME-B07 — YAGNI
 
@@ -1613,9 +1675,9 @@ Assume external world **will** break.
 
 ## PRIME-B13 — Ops & runbook
 
-**Min tier:** PRIME+ **Enforced by:** `health-gate`, `prod-config`
+**Min tier:** PRIME+ **When:** long-running service / container / K8s deploy **Enforced by:** `health-gate`, `prod-config`
 
-- **MUST:** `/health` + `/ready` (or stack equivalent) with tests.
+- **MUST:** liveness + readiness probe per deploy model (`/health` + `/ready`, Lambda ping, k8s probes, desktop N/A with ADR).
 - **SHOULD:** graceful shutdown handler tested or documented in ADR.
 - **SHOULD:** rollback steps in ADR for deploy-touching changes.
 - **MUST:** 12-factor config — secrets env/vault only.
@@ -1627,6 +1689,27 @@ Assume external world **will** break.
 - **MUST:** evidence block ([A26](#prime-a26--evidence-block)) is the handoff artifact.
 - **SHOULD:** list `risks`, `rollback`, `tests_added` for human reviewer.
 - **MUST NOT:** hide failing steps or partial coverage in summary.
+
+---
+
+## Pattern Catalog — stack-native equivalents
+
+**Gates проверяют outcomes.** Таблица — как добиться того же **без** навязывания одной формы.
+
+| PRIME outcome | DDD / Clean (example) | Alternatives (equal if outcome met) |
+|---------------|----------------------|-------------------------------------|
+| Separation: core ↛ I/O | Domain / App / Infra / Presentation | MVC, Hexagonal, Onion, FP pure core + IO shell, Rails MVC, Nest modules |
+| Application entry | `*UseCase.execute()` | `*Handler`, `*Command`, `*Service.method`, MediatR, plain `fn`, Redux thunk, Effect |
+| Explicit errors | `Result<Ok,Err>` | Rust `Result`, Go `(T,error)`, sealed exceptions, `Either`, discriminated union |
+| Injectable I/O | `IOrderRepository` port | Spring `@Autowired`, Nest provider, trait bounds, constructor params, `Clock` |
+| Thin transport | FastAPI route → UC | Axum handler, Express router, gRPC servicer, GraphQL resolver, CLI subcommand |
+| Module isolation | Bounded Context | Package-private, crate visibility, Nx libs, `internal/` Go, ADR shared `contracts/` |
+| Idempotent mutation | Ledger table | Unique index, Redis SETNX, Stripe idempotency, outbox dedup |
+| Lifecycle rules | Domain FSM object | DB CHECK constraint, workflow engine, enum + validator + tests |
+| Observable failure | Err struct fields | OTel span attrs, log middleware, structured `logger.error({...})` |
+| Quality gate | `python -m scripts.prime_check` | `npm run prime:check`, `make prime-check`, `cargo xtask prime`, CI job contract |
+
+**Agent algorithm:** detect existing pattern in repo → extend it → map gates to configured scopes → ADR only when introducing **new** pattern.
 
 ---
 
@@ -1654,7 +1737,13 @@ Assume external world **will** break.
 | evidence block | PRIME-VERIFY-EVIDENCE transcript — mandatory before done |
 | adoption_mode | greenfield (full scope) \| legacy (diff + ratchet) |
 | stack adapter | per-language tool mapping in prime_check |
-| zta-matrix-gate | full auth scenario matrix per route |
+| zta-matrix-gate | full auth scenario matrix per protected operation |
+| Universal Doctrine | outcomes universal; patterns WHEN applicable; repo-first |
+| Pattern Catalog | stack-native equivalents — same outcome, different form |
+| Applicability | Always / STANDARD+ / PRIME+ / When trigger / Stack-native |
+| Separation law | core logic ↛ I/O — roles, not folder names ([A05](#prime-a05--layer-law)) |
+| Explicit errors | no silent null as failure; typed failure paths ([A10](#prime-a10--result)) |
+| Quality gate | merge gate contract — exit 0; orchestrator per stack ([A22](#prime-a22--prime-check)) |
 | TDD-LOCK | failing test before implementation (A24) |
 | merge-blocking | prime_check must pass before merge |
 | zero_tolerance | 99.99% = 0%; checker > agent words |
@@ -1663,12 +1752,12 @@ Assume external world **will** break.
 | FIX PLAN | ordered repair list in prime_check report — agent follows P1→P3 |
 | COVERAGE MAP | per-file line/branch % + exact uncovered lines from reporter |
 | MATRIX GAPS | missing test_err_*, route×status, zta scenario, fsm edge, double-submit, context leak, err context |
-| Anti-Null | no None/null in UC — Result/Option only ([A10](#prime-a10--result)) |
-| Immutability | domain entities frozen; FSM returns new state ([A05](#prime-a05--layer-law), [B06](#prime-b06--fsm)) |
-| Side-Effect Injection | time/ID/random via ports only ([A06](#prime-a06--di--ports), [A15](#prime-a15--deterministic-time)) |
-| Idempotent-Ledger | state-changing UC: idempotency key + ledger; replay = cached Ok ([A14](#prime-a14--idempotency)) |
-| Bounded-Context Lock | no cross-module domain entity imports — DTO/events only ([A04](#prime-a04--integration--plugin-boundaries)) |
-| Error Context Matrix | every Err: rule_id + state_snapshot + correlation_id ([A10](#prime-a10--result), [B03](#prime-b03--sre--observability--events)) |
+| Explicit errors (was Anti-Null) | no silent null as failure in core ([A10](#prime-a10--result)) |
+| Immutability | When races/FSM — no in-place shared mutation ([A05](#prime-a05--layer-law), [B06](#prime-b06--fsm)) |
+| Injectable nondeterminism | time/ID/random injectable in testable core ([A06](#prime-a06--di--ports), [A15](#prime-a15--deterministic-time)) |
+| Idempotent mutations | When retry risk — same key → same outcome ([A14](#prime-a14--idempotency)) |
+| Module isolation | When multi-module — no private type imports ([A04](#prime-a04--integration--plugin-boundaries)) |
+| Observable failures | trace + invariant_id + safe context in logs ([A10](#prime-a10--result), [B03](#prime-b03--sre--observability--events)) |
 
 ---
 

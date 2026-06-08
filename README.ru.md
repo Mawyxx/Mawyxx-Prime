@@ -4,7 +4,9 @@
 
 [English version → README.md](README.md)
 
-Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.2** именует каждое правило, добавляет workflow агента и требует `prime_check` для enforcement.
+Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.2** именует каждое правило, добавляет workflow агента и требует **quality gate** для enforcement **outcomes**.
+
+**Универсален по замыслу:** v5.2 гоняет **качество** (security, tests, observability, no silent failures) — **не** одну архитектуру. Конвенции репо = форма; PRIME = outcomes. Clean/DDD, UseCase, Result, FSM — **when applicable** + Pattern Catalog в v5.2.
 
 **v5.2 открыт в репо** — читай, форкай, учись, лично используй бесплатно. **Корпоративное / командное / клиентский прод** — разовая лицензия ($50/сотрудник) → [@ExcitedSkam](https://t.me/ExcitedSkam).
 
@@ -28,8 +30,8 @@
 
 | Паттерн | Что требует v3 |
 |---------|----------------|
-| **Clean / DDD · 4 слоя** | Domain · Application · Infrastructure · Presentation |
-| **DI & IoC** | Зависимости снаружи; нет `new Repo()` внутри UC |
+| **Separation of concerns** | Core ↛ I/O — часто 4 роли; **папки = конвенция проекта** |
+| **DI & IoC** | Зависимости снаружи; нет hardcoded clients в testable core |
 | **Coding to interfaces** | Порты для time, ID, DB, HTTP, random, notifications |
 | **Plugin boundary** | Новый провайдер через interface — Core не трогаем |
 | **CQRS** | Когда read/write разная сложность — не для trivial CRUD |
@@ -101,18 +103,18 @@
 
 ---
 
-## Сквозные инварианты (вшиты в правила — как слои / SSOT)
+## Сквозные outcomes (вшиты в правила — не навязанная архитектура)
 
-Не отдельный модуль. Тот же статус, что **layer law** или **SSOT** — вшиты в правила Part A/B.
+Не отдельный модуль. Gates = **outcomes**; **форма** = конвенции репо (Pattern Catalog в v5.2).
 
-| Инвариант | Дыра v3 | Где в v5.2 | Gate |
-|-----------|---------|------------|------|
-| **Anti-Null** | Агент `return None` → NPE / `AttributeError` ниже по стеку | **A10** Result — только `Result` / `Option`, явные ветки | `anti-null-gate` · `err-variant-gate` |
-| **Immutability** | UC мутирует `order.status` in-place → гонки | **A05** frozen entities · **B06** FSM (новый aggregate на transition) | `immutability-gate` |
-| **Side-Effect Injection** | `datetime.now()` / `uuid4()` в UC → flaky tests | **A06** DI ports · **A15** детерминированный time/ID/random | `deterministic-runtime` |
-| **Idempotent-Ledger** | Double-click / retry → двойное списание, два поста, сломанный UI | **A14** key + ledger · **A09** facades · **A12** double-submit тесты | `idempotency-matrix-gate` |
-| **Bounded-Context Lock** | Кросс-импорт entity → распределённый монолит | **A04** boundaries · **A05** · **A06** · **B05** inter-service | `context-leak-gate` |
-| **Error Context Matrix** | `logger.info("error")` — нет trace, state, rule_id | **A10** Err payload · **B03** structured JSON logs | `error-context-gate` |
+| Outcome | When | Где в v5.2 | Gate |
+|---------|------|------------|------|
+| **Explicit errors** | PRIME+ core | **A10** — Result / Go error / typed exception; нет silent null | `anti-null-gate` · `err-variant-gate` |
+| **Immutability** | гонки / FSM / shared aggregate | **A05** · **B06** | `immutability-gate` |
+| **Injectable nondeterminism** | PRIME+ testable core | **A06** · **A15** — ports, traits, test doubles | `deterministic-runtime` |
+| **Idempotent mutations** | мутация + retry risk | **A14** · **A09** · **A12** — key + dedup (ledger опционален) | `idempotency-matrix-gate` |
+| **Module isolation** | multi-module / services | **A04** · **B05** — DTO/events; shared kernel = ADR | `context-leak-gate` |
+| **Observable failures** | PRIME+ | **A10** · **B03** — trace + invariant_id в structured logs | `error-context-gate` |
 
 ---
 
@@ -122,8 +124,10 @@
 
 | v3.0 | Улучшение в v5.2 | Правила · gates |
 |------|------------------|-----------------|
-| «4 слоя» текстом | Таблица слоёв + import graph + **immutable domain** | **A05** · `import-boundaries` · `immutability-gate` · `handler-purity-gate` |
-| DI описан | Ports для time/ID/random; нет concrete в UC | **A06** · `di-purity` · **A15** · `deterministic-runtime` |
+| «4 слоя» текстом | **Separation roles** + import graph (пути = примеры) | **A05** · `import-boundaries` · `handler-purity-gate` |
+| DI описан | Injectable deps; framework DI OK; нет concrete в core | **A06** · `di-purity` · **A15** · `deterministic-runtime` |
+| Default tier | **STANDARD** для app; **PRIME** по триггерам (auth, PII, payments, FSM…) | **A01** |
+| Только Python verify | **Quality gate contract** — stack-native entrypoint | **A22** · **AGENT-5** Pattern Catalog |
 | Design-first намёком | Design artifact: routes, Err, test_matrix | **A07** · AGENT-OMEGA PHASE 1 |
 | Анти-дубли словами | Нет `*_v2` policy forks | **A08** · `anti-fork-gate` |
 | Один владелец политики | Policy facades — SSOT | **A09** |
@@ -198,7 +202,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
 
-Сквозные (вшиты в Part A/B): Anti-Null · Immutability · Side-Effect Injection · Idempotent-Ledger · Bounded-Context Lock · Error Context Matrix
+Outcomes (Part A/B + Pattern Catalog): Explicit errors · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Observable failures
 ```
 
 ---
@@ -235,7 +239,7 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 ```markdown
 # .cursor/rules/mawyxx-boot.mdc — короткий boot; @Mawyxx Prime V5.2.md по задаче
-Реальный app = PRIME+. Нет prime_check? AGENT-5. Чини до exit 0. --diff → full → --evidence.
+Repo-first. Tier по риску (STANDARD default; PRIME по триггерам). Нет quality gate? AGENT-5. Чини до exit 0.
 ```
 
 ```bash
