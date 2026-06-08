@@ -6,15 +6,17 @@
 
 Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.2** names every rule, adds agent workflow, and requires `prime_check` to enforce them.
 
+**v5.2 is open in this repo** — read, fork, study, use personally for free. **Corporate / team / client production** still requires a one-time license ($50/employee) → [@ExcitedSkam](https://t.me/ExcitedSkam).
+
 ---
 
 ## Files
 
-| File | Content |
-|------|---------|
-| `Mawyxx Prime V3.0.md` | 10 sections · ~220 lines · MIT · public |
-| `Mawyxx Prime V5.2.md` | AGENT-0…5 · **A01–A32** · **B01–B14** · ~1300 lines · commercial |
-| `scripts/prime_check/` | Agent builds per **AGENT-5** — not included in repo |
+| File | Content | Access |
+|------|---------|--------|
+| `Mawyxx Prime V3.0.md` | 10 sections · ~220 lines | **MIT · open** |
+| `Mawyxx Prime V5.2.md` | AGENT-0…5 · **A01–A32** · **B01–B14** · ~1300 lines | **Open in repo** · corp use = paid |
+| `scripts/prime_check/` | Agent builds per **AGENT-5** | Not shipped — agent creates in your project |
 
 ---
 
@@ -212,8 +214,11 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 | Use | v3.0 | v5.2 |
 |-----|------|------|
-| Personal / hobby | MIT · free | Free |
-| Company / prod | MIT (v3 only) | $50 / employee · one-time → [@ExcitedSkam](https://t.me/ExcitedSkam) |
+| **Read / fork / study** | MIT · open | **Open** — full spec in repo |
+| **Personal / hobby / pet** | MIT · free | **Free** |
+| **Company / team / client prod** | MIT (v3 only) | **$50 / employee · one-time** → [@ExcitedSkam](https://t.me/ExcitedSkam) |
+
+Open ≠ free for corporations. The spec is public; commercial deployment on company metal requires clearance.
 
 ---
 

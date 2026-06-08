@@ -6,15 +6,17 @@
 
 Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.2** именует каждое правило, добавляет workflow агента и требует `prime_check` для enforcement.
 
+**v5.2 открыт в репо** — читай, форкай, учись, лично используй бесплатно. **Корпоративное / командное / клиентский прод** — разовая лицензия ($50/сотрудник) → [@ExcitedSkam](https://t.me/ExcitedSkam).
+
 ---
 
 ## Файлы
 
-| Файл | Содержание |
-|------|------------|
-| `Mawyxx Prime V3.0.md` | 10 разделов · ~220 строк · MIT · публично |
-| `Mawyxx Prime V5.2.md` | AGENT-0…5 · **A01–A32** · **B01–B14** · ~1300 строк · коммерция |
-| `scripts/prime_check/` | Агент пишет по **AGENT-5** — в репо нет |
+| Файл | Содержание | Доступ |
+|------|------------|--------|
+| `Mawyxx Prime V3.0.md` | 10 разделов · ~220 строк | **MIT · открыт** |
+| `Mawyxx Prime V5.2.md` | AGENT-0…5 · **A01–A32** · **B01–B14** · ~1300 строк | **Открыт в репо** · корп = платно |
+| `scripts/prime_check/` | Агент пишет по **AGENT-5** | Не в репо — агент создаёт в проекте |
 
 ---
 
@@ -122,10 +124,7 @@
 | Typed errors | **Anti-Null:** только `Result`/`Option` — не `None` в UC/domain; Err в тестах | **A10** · `anti-null-gate` · `err-variant-gate` |
 | «Режь если трудно тестить» | Лимиты: >300 строк fail, complexity >10 | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
 | CQRS «когда надо» | Формальное правило CQRS | **B01** |
-| FSM «без прыжков» | Каждое ребро в тестах | **B06** · `fsm-transition-gate` |
-| Детерминизм намёком | Time/ID/random только через ports | **A15** · **B15** · `deterministic-runtime` |
-| Nullable returns | Anti-Null: только Result/Option в UC/domain | **A10** · **B15** · `anti-null-gate` |
-| Mutable entities | Deep immutability в domain/app | **B15** · `immutability-gate` |
+| FSM «без прыжков» | Каждое ребро в тестах; transition = **новый** immutable state | **B06** · `fsm-transition-gate` · `immutability-gate` |
 
 ### Безопасность
 
@@ -189,7 +188,8 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B03 SRE/observability  B08 Agent self-review   B13 Ops/runbook
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
-        B15 Super-Architect    Anti-Null · Immutability · Side-Effect Injection
+
+Сквозные (в A05·A06·A10·A15·B06): Anti-Null · Immutability · Side-Effect Injection
 ```
 
 ---
@@ -214,8 +214,11 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 | Использование | v3.0 | v5.2 |
 |---------------|------|------|
-| Лично / хобби | MIT · free | Бесплатно |
-| Компания / прод | MIT (только v3) | $50 / сотрудник · разово → [@ExcitedSkam](https://t.me/ExcitedSkam) |
+| **Читать / форкать / учить** | MIT · открыт | **Открыт** — полная спека в репо |
+| **Лично / хобби / pet** | MIT · free | **Бесплатно** |
+| **Компания / команда / клиентский прод** | MIT (только v3) | **$50 / сотрудник · разово** → [@ExcitedSkam](https://t.me/ExcitedSkam) |
+
+Открыт ≠ бесплатно для корпораций. Спека публична; коммерческий деплой на корп. железе — только с clearance.
 
 ---
 
