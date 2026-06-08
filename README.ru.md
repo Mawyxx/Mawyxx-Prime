@@ -92,6 +92,40 @@
 | **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP |
 | **Stack adapters** | AGENT-5 | python · node · rust · go · kotlin · swift |
 | **Forbidden phrases** | AGENT-0 | «~99%» · «запустите сами» = нарушение |
+| **Super-Architect** | **B15** | Anti-Null · Immutability · Side-Effect Injection |
+
+---
+
+## Super-Architect — 3 мега-улучшения (B15)
+
+*v3 намекает на typed errors и DI для time. v5.2 **B15** делает три инварианта законом + gates в `prime_check`.*
+
+### 1. Anti-Null Pattern
+
+| | |
+|--|--|
+| **Боль** | Агент возвращает `None` / `null` при сбое → `AttributeError` / NPE глубже по стеку |
+| **Закон** | Сырые `None` / `null` в Domain/Application как ошибка или «пусто» — **запрещены** |
+| **Код** | `Result[Data, Err]` или `Option[Data]` — обе ветки явно (pattern matching) |
+| **Gate** | `anti-null-gate` · **A10** · `err-variant-gate` |
+
+### 2. Deep Immutability & Pure Functions
+
+| | |
+|--|--|
+| **Боль** | UC мутирует `order.status` in-place → гонки при параллельных запросах |
+| **Закон** | Entity/VO в Domain/Application — **100% immutable** |
+| **Код** | Смена состояния = **новый экземпляр** — `frozen=True` / Pydantic frozen / `Readonly<T>` / `copy()` |
+| **Gate** | `immutability-gate` · **B06** FSM возвращает новый aggregate |
+
+### 3. Side-Effect Injection (детерминированный runtime)
+
+| | |
+|--|--|
+| **Боль** | `datetime.now()` / `uuid4()` внутри UC → flaky tests, невоспроизводимая логика |
+| **Закон** | Недетерминизм в Domain/Application — **только** через injected ports |
+| **Код** | `ITimeProvider` · `IIdGenerator` · `IRandom` — фиксированные fakes в unit-тестах |
+| **Gate** | `deterministic-runtime` · **A15** · **A06** DI |
 
 ---
 
@@ -110,7 +144,9 @@
 | «Режь если трудно тестить» | Лимиты: >300 строк fail, complexity >10 | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
 | CQRS «когда надо» | Формальное правило CQRS | **B01** |
 | FSM «без прыжков» | Каждое ребро в тестах | **B06** · `fsm-transition-gate` |
-| Детерминизм намёком | Ban `Date.now` / `uuid4` / random в domain | **A15** · `deterministic-runtime` |
+| Детерминизм намёком | Time/ID/random только через ports | **A15** · **B15** · `deterministic-runtime` |
+| Nullable returns | Anti-Null: только Result/Option в UC/domain | **A10** · **B15** · `anti-null-gate` |
+| Mutable entities | Deep immutability в domain/app | **B15** · `immutability-gate` |
 
 ### Безопасность
 
@@ -174,6 +210,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B03 SRE/observability  B08 Agent self-review   B13 Ops/runbook
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
+        B15 Super-Architect    Anti-Null · Immutability · Side-Effect Injection
 ```
 
 ---

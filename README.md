@@ -92,6 +92,40 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP on red |
 | **Stack adapters** | AGENT-5 | python · node · rust · go · kotlin · swift |
 | **Forbidden phrases** | AGENT-0 | «~99% coverage» · «run tests yourself» = violations |
+| **Super-Architect invariants** | **B15** | Anti-Null · Deep Immutability · Side-Effect Injection |
+
+---
+
+## Super-Architect — 3 mega-improvements (B15)
+
+*v3 hints at typed errors and DI for time. v5.2 **B15** makes three invariants law + `prime_check` gates.*
+
+### 1. Anti-Null Pattern
+
+| | |
+|--|--|
+| **Problem** | Agent returns `None` / `null` on failure → `AttributeError` / NPE deeper in the stack |
+| **Rule** | No raw `None` / `null` in Domain/Application as error or «empty» signal |
+| **Code** | `Result[Data, Err]` or `Option[Data]` — both branches handled explicitly (pattern matching) |
+| **Gate** | `anti-null-gate` · **A10** · `err-variant-gate` |
+
+### 2. Deep Immutability & Pure Functions
+
+| | |
+|--|--|
+| **Problem** | UC mutates `order.status` in-place → race conditions under parallel requests |
+| **Rule** | Domain/Application entities & VO are **100% immutable** |
+| **Code** | State change = **new instance** — `frozen=True` / Pydantic frozen / `Readonly<T>` / `copy()` |
+| **Gate** | `immutability-gate` · **B06** FSM transitions return new aggregate |
+
+### 3. Side-Effect Injection (Deterministic Runtime)
+
+| | |
+|--|--|
+| **Problem** | `datetime.now()` / `uuid4()` inside UC → flaky tests, non-reproducible logic |
+| **Rule** | No nondeterminism inside Domain/Application — inject via ports only |
+| **Code** | `ITimeProvider` · `IIdGenerator` · `IRandom` — fixed fakes in unit tests |
+| **Gate** | `deterministic-runtime` · **A15** · **A06** DI |
 
 ---
 
@@ -110,7 +144,9 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | File size «split if hard to test» | Hard limits: >300 fail, complexity >10 fail | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
 | CQRS «when needed» | Formal CQRS rule when read/write diverge | **B01** |
 | FSM «no illegal jumps» | Every edge in tests | **B06** · `fsm-transition-gate` |
-| Deterministic domain mentioned | Ban `Date.now` / `uuid4` / random in domain | **A15** · `deterministic-runtime` |
+| Deterministic domain mentioned | Time/ID/random via ports only; no hidden globals | **A15** · **B15** · `deterministic-runtime` |
+| Nullable returns implied | Anti-Null: Result/Option only in UC/domain | **A10** · **B15** · `anti-null-gate` |
+| Mutable entities implied | Deep immutability in domain/app | **B15** · `immutability-gate` |
 
 ### Security
 
@@ -174,6 +210,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B03 SRE/observability  B08 Agent self-review   B13 Ops/runbook
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
+        B15 Super-Architect    Anti-Null · Immutability · Side-Effect Injection
 ```
 
 ---
