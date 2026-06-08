@@ -9,6 +9,8 @@
 
 Merge-blocking architecture standard for autonomous AI agents — Cursor, DeepSeek, Copilot, Claude. Any stack. Any domain. **No prose excuses. Only evidence.**
 
+[Russian version → README.ru.md](README.ru.md)
+
 ---
 
 ## 🔱 THE ARCHITECTURE COMPLIANCE MATRIX
