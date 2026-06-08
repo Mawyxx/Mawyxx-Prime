@@ -6,7 +6,7 @@
 
 Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.2** именует каждое правило, добавляет workflow агента и требует **quality gate** для enforcement **outcomes**.
 
-**Универсален по замыслу:** v5.2 гоняет **качество** (security, tests, observability, no silent failures) — **не** одну архитектуру. Конвенции репо = форма; PRIME = outcomes. Clean/DDD, UseCase, Result, FSM — **when applicable** + Pattern Catalog в v5.2.
+**Project Skin · Empire Engine:** пиши **в стиле проекта** (стек, папки, фреймворк) — но **всегда с дисциплиной Empire** (тесты, security, явные ошибки, fix-until-green). Не «или проект, или enterprise» — **оба**: родная форма, имперское качество. Pattern Catalog = Skin; gates = Engine.
 
 **v5.2 открыт в репо** — читай, форкай, учись, лично используй бесплатно. **Корпоративное / командное / клиентский прод** — разовая лицензия ($50/сотрудник) → [@ExcitedSkam](https://t.me/ExcitedSkam).
 
@@ -103,9 +103,9 @@
 
 ---
 
-## Сквозные outcomes (вшиты в правила — не навязанная архитектура)
+## Empire Engine outcomes (всегда — по tier)
 
-Не отдельный модуль. Gates = **outcomes**; **форма** = конвенции репо (Pattern Catalog в v5.2).
+Не «где надо». **Skin** = как в репо; **Engine** = всегда для назначенного tier. Pattern Catalog в v5.2.
 
 | Outcome | When | Где в v5.2 | Gate |
 |---------|------|------------|------|
@@ -239,7 +239,7 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 ```markdown
 # .cursor/rules/mawyxx-boot.mdc — короткий boot; @Mawyxx Prime V5.2.md по задаче
-Repo-first. Tier по риску (STANDARD default; PRIME по триггерам). Нет quality gate? AGENT-5. Чини до exit 0.
+Project Skin + Empire Engine. Tier по риску. Нет quality gate? AGENT-5. Чини до exit 0 — всегда.
 ```
 
 ```bash

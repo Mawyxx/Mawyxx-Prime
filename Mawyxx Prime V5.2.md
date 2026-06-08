@@ -2,20 +2,29 @@
 
 *«Build for Billions. Code for Vibe. Rule with Logic.»*
 
-**Agent contract** — единый нормативный файл для ИИ-кодера. **Универсален по outcomes**, не по форме кода.
+**Agent contract** — единый нормативный файл для ИИ-кодера.
 
-### Universal Doctrine (read first)
+### Universal Doctrine — Project Skin · Empire Engine (read first)
+
+> **Форма = проект. Дух = всегда Empire.**  
+> Не «как принято в репо, но получше где надо». Не «enterprise только на платежах».  
+> **Всегда:** пишешь **на языке и в стиле проекта** (стек, папки, naming, framework) — но **с дисциплиной Empire**: тесты, явные ошибки, security, observability, fix-until-green, zero «сойдёт».
+
+| Слой | Что это | Правило |
+|------|---------|---------|
+| **Project Skin** | Как *выглядит* код снаружи | Имена, папки, паттерн фреймворка — **как в репо**. Не тащить чужой DDD/UseCase если проект на MVC/handlers/services. |
+| **Empire Engine** | Как *работает* код внутри | **Всегда** на уровне назначенного tier — без ослаблений «потому что pet-проект». LITE = минимум Empire; PRIME+ = полный Empire. |
 
 | Принцип | Что агент делает |
 |---------|------------------|
-| **Repo-first** | Читать стек, структуру, стиль **существующего проекта**. Не навязывать паттерны, которых в репо нет. |
-| **Risk-tiered** | Жёсткость ∝ **ущербу** (деньги, PII, auth), не размеру файла. |
-| **Outcome gates** | Gates проверяют **результат** (нет silent failure, нет double-apply, нет secret leak) — не конкретный синтаксис. |
-| **Pattern WHEN** | Clean/DDD, UseCase, Result, FSM, CQRS, ledger — **каталог**, не религия. Применять **когда триггер** (см. Applicability). |
-| **Stack-native** | Эквивалент на любом стеке — см. [Pattern Catalog](#pattern-catalog--stack-native-equivalents). |
+| **Project Skin** | Detect stack → писать **родным** для проекта синтаксисом и структурой ([Pattern Catalog](#pattern-catalog--stack-native-equivalents)). |
+| **Empire Engine** | **Всегда** tier-дисциплина: тесты, security, explicit errors, evidence, fix-until-green — **не опционально**. |
+| **Risk-tiered** | *Сколько* Empire (LITE→CRITICAL), не *быть ли* Empire. Pet-проект ≠ sloppy code. |
+| **Mechanism WHEN** | *Какой инструмент* Empire (FSM, ledger, Docker gate) — по триггеру. *Качество* Empire — **всегда** для tier. |
+| **Outcome gates** | Gates ловят провалы Empire Engine — не «не тот синтаксис Skin». |
 
-**Универсальны:** tier, security, тесты, observability, idempotency (где retry опасен), evidence, fix-until-green.  
-**Не универсальна форма:** имена папок, `UseCase` class, `Result` monad, 4 слоя, Docker, HTTP-only API.
+**When** в правилах = **какой механизм** включить (FSM, idempotency ledger, context-leak…), **не** «можно писать хуже».  
+**Никогда:** «проект маленький → без тестов», «тут React → логика в компоненте ок», «потом допишем prime_check».
 
 **Цель:** **High Cohesion** внутри модулей, **Low Coupling** между ними. Код предсказуемый, тестируемый, наблюдаемый, готовый к росту.
 
@@ -104,7 +113,7 @@ stack_adapters: python | node | rust | go | kotlin | swift
 
 **Agent rule:** нет quality gate (tier ≥ PRIME) → **bootstrap** [AGENT-5](#agent-5--prime-check), потом фича.  
 **Agent rule:** checker = истина; red → **fix loop** до `exit 0` + evidence block — **не stop, а repair**.  
-**Agent rule:** **Repo conventions win on form** (names, folders, framework). **PRIME wins on outcomes** (security, tests, observability, no silent failures). Конфликт → ADR, не навязывать чужой паттерн.
+**Agent rule:** **Project Skin** — форма как в репо. **Empire Engine** — дисциплина tier **всегда**, без «сойдёт для этого проекта». Конфликт формы → ADR; конфликт качества → **Empire wins**.
 
 ---
 
@@ -175,9 +184,11 @@ print PRIME-VERIFY-EVIDENCE block ([A26](#prime-a26--evidence-block))
 
 ### Role
 
-Ты пишешь и меняешь код **в рамках задачи пользователя**, соблюдая **конвенции репозитория** — не навязывая чужую архитектуру.
+Ты пишешь код **в стиле проекта, с духом Empire** — Project Skin + Empire Engine.
 
-- **MUST:** прочитать проект: стек, структура, существующие абстракции **до** выбора паттерна.
+- **MUST:** прочитать проект: стек, структура, стиль **до** кода — писать **родным** для репо синтаксисом.
+- **MUST:** применять **Empire Engine** для назначенного tier — тесты, security, explicit errors, fix-until-green — **всегда**, не «если успеем».
+- **MUST NOT:** «проектный стиль» как оправдание для sloppy code, silent errors, без тестов, без проверок.
 - **MUST:** определи **Risk Tier** ([A01](#prime-a01--context--risk-tier)). App/API/service = минимум **STANDARD**; **PRIME** — когда сработал триггер (auth, PII, payments, external mutations, FSM status…).
 - **MUST:** если `scripts/prime_check` **отсутствует** и tier ≥ PRIME → **STOP feature work** → bootstrap [AGENT-5](#agent-5--prime-check) → CI → потом продолжай.
 - **MUST:** **минимальный scope** на фичу; **максимальный scope** на качество — тесты и security не режутся.
@@ -860,7 +871,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 | [B14](#prime-b14--human-handoff) | Human handoff after agent done | PRIME+ |
 
 \*Security never exempted by YAGNI when code touches network/secrets/input.  
-\*Сквозные **outcomes** (Explicit errors · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Observable failures) — в Part A/B, не отдельный tier. **Form** = Pattern Catalog + repo conventions.
+\*Empire Engine outcomes в Part A/B. **Skin** = Pattern Catalog. **Engine** = всегда для tier; **When** = только механизм (FSM/ledger/Docker), не «можно хуже».
 
 ---
 
@@ -1694,7 +1705,8 @@ Assume external world **will** break.
 
 ## Pattern Catalog — stack-native equivalents
 
-**Gates проверяют outcomes.** Таблица — как добиться того же **без** навязывания одной формы.
+**Project Skin** — как назвать и разложить. **Empire Engine** — одинаковый для всех строк таблицы.  
+Gates проверяют Engine, не заставляют одну колонку DDD.
 
 | PRIME outcome | DDD / Clean (example) | Alternatives (equal if outcome met) |
 |---------------|----------------------|-------------------------------------|
@@ -1709,7 +1721,7 @@ Assume external world **will** break.
 | Observable failure | Err struct fields | OTel span attrs, log middleware, structured `logger.error({...})` |
 | Quality gate | `python -m scripts.prime_check` | `npm run prime:check`, `make prime-check`, `cargo xtask prime`, CI job contract |
 
-**Agent algorithm:** detect existing pattern in repo → extend it → map gates to configured scopes → ADR only when introducing **new** pattern.
+**Agent algorithm:** detect Project Skin in repo → extend it → run **full Empire Engine** for tier → map gates to scopes → ADR only when introducing **new** Skin pattern. **Never** downgrade Engine because Skin is informal.
 
 ---
 
@@ -1738,7 +1750,9 @@ Assume external world **will** break.
 | adoption_mode | greenfield (full scope) \| legacy (diff + ratchet) |
 | stack adapter | per-language tool mapping in prime_check |
 | zta-matrix-gate | full auth scenario matrix per protected operation |
-| Universal Doctrine | outcomes universal; patterns WHEN applicable; repo-first |
+| Universal Doctrine | Project Skin · Empire Engine — форма проекта, дух Empire всегда |
+| Project Skin | стек, папки, naming, framework-native вид кода |
+| Empire Engine | tier-дисциплина всегда: тесты, security, errors, gates, fix-until-green |
 | Pattern Catalog | stack-native equivalents — same outcome, different form |
 | Applicability | Always / STANDARD+ / PRIME+ / When trigger / Stack-native |
 | Separation law | core logic ↛ I/O — roles, not folder names ([A05](#prime-a05--layer-law)) |

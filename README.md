@@ -6,7 +6,7 @@
 
 Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.2** names every rule, adds agent workflow, and requires a **quality gate** to enforce **outcomes**.
 
-**Universal by design:** v5.2 enforces **quality outcomes** (security, tests, observability, no silent failures) — **not** a single architecture. Repo conventions win on form; PRIME wins on outcomes. Clean/DDD, UseCase, Result, FSM — **when applicable**, with stack-native equivalents in v5.2 Pattern Catalog.
+**Project Skin · Empire Engine:** write in **your project's style** (stack, folders, framework) — but **always with Empire discipline** (tests, security, explicit errors, fix-until-green). Not «project style OR enterprise» — **both**: native form, empire substance. Pattern Catalog maps Skin; gates enforce Engine.
 
 **v5.2 is open in this repo** — read, fork, study, use personally for free. **Corporate / team / client production** still requires a one-time license ($50/employee) → [@ExcitedSkam](https://t.me/ExcitedSkam).
 
@@ -103,9 +103,9 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 
 ---
 
-## Cross-cutting outcomes (woven into rules — not imposed architecture)
+## Empire Engine outcomes (always — tier-scaled)
 
-Not a separate module. Gates check **outcomes**; **form** = repo-native (Pattern Catalog in v5.2).
+Not optional «where needed». **Skin** = project-native; **Engine** = always on for assigned tier. Pattern Catalog in v5.2.
 
 | Outcome | When | Where in v5.2 | Gate |
 |---------|------|---------------|------|
@@ -239,7 +239,7 @@ Open ≠ free for corporations. The spec is public; commercial deployment on com
 
 ```markdown
 # .cursor/rules/mawyxx-boot.mdc — keep short; load @Mawyxx Prime V5.2.md on demand
-Repo-first. Tier by risk (STANDARD default; PRIME when triggers). No quality gate? AGENT-5 bootstrap. Fix until exit 0.
+Project Skin + Empire Engine. Tier by risk. No quality gate? AGENT-5 bootstrap. Fix until exit 0 — always.
 ```
 
 ```bash
