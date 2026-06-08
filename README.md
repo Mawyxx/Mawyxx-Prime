@@ -44,6 +44,74 @@ Cursor · DeepSeek · Copilot · Claude. Any stack. **No prose. No mercy. Only e
 
 ---
 
+## 📋 WHAT v5.2 ADDS OVER v3.0 (plain list)
+
+**v3.0** tells the agent *what good code looks like*.  
+**v5.2** makes the agent *prove it* — or stop.
+
+### For the agent (how it works)
+
+- **AGENT-OMEGA** — clear phases: plan → failing test → code → verify (no chaos)
+- **Task router** — table «what you're doing → which rules to read»
+- **Agent runs checks itself** — never «please run tests»
+- **Forbidden phrases** — can't say «99% coverage is fine» or «tests later»
+- **Evidence block** — before «done», must paste verify transcript (`exit 0`, coverage %)
+- **3-strike rule** — same check fails 3× → stop and redesign, not blind retries
+
+### prime_check (~50 automated gates)
+
+- **Agent writes `prime_check`** if missing — then writes features
+- **One command** for everything: `python -m scripts.prime_check`
+- **Works on any stack** — Python, Node, Rust, Go, Kotlin (auto-detect)
+- **CI = local** — same command in GitHub Actions and on your machine
+- **~50 steps**: lint, types, tests, security, architecture, Docker, contracts
+
+### Tests & coverage (main upgrade)
+
+- **100% line + 100% branch** — `99.99%` = fail, not «almost»
+- **TDD-LOCK** — failing test first, then code
+- **Legacy mode** — old repo: 100% on *changed files only*, not whole codebase at once
+- **Ratchet** — coverage can't drop vs `main`
+- **No cheat tests** — empty `assert True`, `# pragma: no cover` without ADR = blocked
+- **Matrices** — every error code, every HTTP status, every auth scenario = tested
+- **Flaky shield** — unstable test (×3 runs) = fix before merge
+- **Mutation testing** — on critical code (CRITICAL tier)
+
+### Security & infrastructure
+
+- **Zero Trust** — localhost and Docker are *not* trusted; auth tests mandatory
+- **Full auth matrix** per route: no token → 401, bad token → 403, valid → OK
+- **Secrets scan** — repo + git history, not just current files
+- **CVE gate** — no high/critical vulnerabilities in lockfile
+- **Docker rules** — non-root, no privileged, DB not exposed to internet
+- **Health checks** — `/health`, `/ready` with tests
+
+### Architecture & quality
+
+- **Stable rule IDs** — `PRIME-A01`…`A32` — cite exact rule in errors
+- **RFC 2119** — MUST / MUST NOT (not vague «should try»)
+- **Import graph** — domain can't import infrastructure
+- **File/function limits** — no 500-line monsters
+- **Monorepo** — different strictness per folder (`api/` = PRIME, `scripts/` = LITE)
+- **Design-first order** — contract → domain → tests → API (documented sequence)
+
+### Production
+
+- **SRE block** — SLI, SLO, error budget, self-healing
+- **Migration gates** — DB changes only in versioned migrations
+- **API drift check** — OpenAPI matches real code
+- **ADR template** — why architectural decisions were made
+
+### One-line summary
+
+| v3.0 | v5.2 |
+|------|------|
+| ~220 lines, philosophy | ~1300 lines, enforcement |
+| «Write clean code» | «Prove clean code or merge blocked» |
+| MIT, everyone | Personal free · company → TG |
+
+---
+
 ## ☠️ THE LIABILITY TRAP — WHY v3 IS FREE AND v6 COSTS MONEY
 
 ```text
