@@ -102,65 +102,116 @@ MAWYXX PRIME v6.0 — **не** пачка линтеров. Это **Self-Genera
 
 ## ⚡ PRIME UPGRADE SCAN — v3.0 vs v5.2 (через `prime_check`)
 
-*v3.0 говорит агенту, чего хотеть. v5.2 заставляет агента собрать судью, который говорит **нет**.*
+*v3.0 = «будь хорошим». v5.2 = агент собирает судью, который печатает **ровно** что сломано.*
 
 ```text
 $ python -m scripts.prime_check --upgrade-scan v3.0→v5.2
 
 ══════════════════════════════════════════════════════════════════════════════
- PRIME UPGRADE SCAN — v3.0 [МЯГКИЙ ПРОМПТ]  →  v5.2 [GOD MODE / v6 маркетинг]
- спека: ~220 строк философии                 спека: ~1300 строк machine law
+ PRIME UPGRADE SCAN — v3.0 [МЯГКИЙ]  →  v5.2 [GOD MODE]
+ ~220 строк «пиши чисто»              ~1300 строк · ~50 gates · exit 0 или чини
 ══════════════════════════════════════════════════════════════════════════════
 
-▸ EXEC SUMMARY — почему твой v3.0 в `.cursorrules` всё ещё сливает деньги
+▸ 🔒 БЕЗОПАСНОСТЬ — v3.0: «не лей секреты». v5.2 ловит это:
 ──────────────────────────────────────────────────────────────────────────────
-  P1  Агент написал «тесты green» — ничего не гонял           → evidence-block
-  P1  «~80% coverage норм»                                    → coverage-line-100 + branch-100
-  P1  `# pragma: no cover` / istanbul ignore                  → no-pragma-no-cover (AST)
-  P1  Новый route без тестов 401/403                          → zta-matrix-gate
-  P1  Err-коды есть, test_err_* нет                           → err-variant-gate
-  P2  Секрет в git полгода назад                              → gitleaks-history
-  P2  CVE в lockfile — «потом»                                → dependency-audit
-  P2  Docker root в проде                                     → docker-security
-  P2  Агент сдался на red: «не могу, в следующем PR»          → fix-until-green (no exit)
+  FAIL PRIME-A19 [gitleaks-history]
+    sk-live_51H… в коммите 2024-03-11 — до сих пор в git history
+    hint: ротация ключа · filter-repo · re-run --only gitleaks-history
 
-▸ v3.0 ГОВОРИЛ                         │ v5.2 ЗАСТАВЛЯЕТ (gate · реальный outcome)
-───────────────────────────────────────┼──────────────────────────────────────────
- «Сначала прочитай контекст»           │ AGENT-OMEGA фазы 0–4 — пропуск = нарушение
- «Self-review перед done»              │ ~50 gates · агент сам гоняет CLI · 0 или чини
- «Тесты на ключевое»                   │ 100.00% line + branch · diff-100 · ratchet vs main
- «Границы слоёв»                       │ import-graph-gate · no-transport-in-domain · di-purity
- «Типизированные ошибки»               │ каждый Err → test_err_* или merge blocked
- «Auth на защищённых route»            │ матрица anon/expired/forbidden/valid
- «FSM для статусов»                    │ каждый переход протестирован или exit 1
- «Без секретов в репо»                 │ working tree + вся git history
- «Детерминированный domain»            │ Date.now / uuid4 / random в domain → fail
- «TDD когда можно»                     │ TDD-LOCK — failing test ДО кода, тот же PR
- «Done = чисто + протестировано»       │ PRIME-VERIFY-EVIDENCE — «готово» без него = invalid
+  FAIL PRIME-A16 [no-debug-bypass]
+    api/auth.py:14  if os.getenv("SKIP_AUTH"): return admin_user()
+    hint: убрать bypass · test_zta_no_skip_auth_in_prod
 
-▸ ЧТО v5.2 СТРОИТ, ЧЕГО v3.0 НИКОГДА НЕ МОГ
+  FAIL PRIME-A16 [pii-log-scan]
+    logger.info(f"charge failed for {user.email}")  — email в логах
+    hint: structured log + только user_id · test_logs_no_pii
+
+  FAIL PRIME-A18 [ssrf-gate]
+    uc.fetch_report(url=request.body["callback_url"])  — нет allowlist
+    hint: IOutboundUrlPolicy · test_ssrf_blocks_internal_ips
+
+  FAIL PRIME-A19 [dependency-audit]
+    lodash@4.17.20 — CVE-2021-23337 HIGH · merge blocked
+    hint: обновить lockfile · test_dependency_audit_clean
+
+  FAIL PRIME-A23 [docker-security]
+    Dockerfile: нет USER — контейнер под root
+    hint: USER 10001 · test_dockerfile_non_root
+
+▸ 🏗 АРХИТЕКТУРА — v3.0: «слои». v5.2 ловит разъезд:
 ──────────────────────────────────────────────────────────────────────────────
-  scripts/prime_check/     агент пишет ~50 gates если нет — PHASE 0 LOCK
-  EXEC SUMMARY + FIX PLAN  на red — что чинить и в каком порядке
-  COVERAGE MAP             file:line каждой непокрытой ветки — без гадания
-  MATRIX GAPS              недостающие UC × Err × route × auth — списком
-  stack adapters           python · node · rust · go · kotlin · swift — один закон
-  legacy adoption          старый репо? diff-100 на diff + ratchet, не отмазка
-  monorepo scopes          tier по пути — API=PRIME, scripts=LITE
-  mutation-critical        CRITICAL: mutants must die ≥95%
+  FAIL PRIME-A05 [import-boundaries]
+    domain/order.py импортирует sqlalchemy — domain не трогает infra
 
-▸ ОДНА КОМАНДА — У v3.0 АНАЛОГА НЕТ
+  FAIL PRIME-A10 [no-transport-in-domain]
+    domain/payment.py:28  raise HTTPException(402, "declined")
+
+  FAIL PRIME-A06 [di-purity]
+    CreateOrderUseCase.__init__  self.repo = PostgresOrderRepo()  — concrete внутри
+
+  FAIL PRIME-A18 [no-string-sql]
+    repo.py:55  cursor.execute(f"SELECT * FROM users WHERE id={id}")
+
+  FAIL PRIME-A11 [cyclomatic-gate]
+    handlers/checkout.py::post_checkout — сложность 14 (>10)
+
+▸ 🧪 ТЕСТЫ & COVERAGE — v3.0: «тестируй важное». v5.2: ноль дыр:
 ──────────────────────────────────────────────────────────────────────────────
-  python -m scripts.prime_check --diff      # только изменённое — не прятаться
-  python -m scripts.prime_check               # full matrix — merge gate
-  python -m scripts.prime_check --evidence    # handoff block под суд/борд
+  FAIL PRIME-A25 [coverage-branch-100]
+    src/uc/refund.py:67  else не покрыт — 94.2% → нужно 100.00%
+    hint: test_refund_insufficient_balance_returns_err
 
-  v3.0 exit code: undefined.  v5.2 exit code: 0 = ship · 1 = агент чинит дальше.
+  FAIL PRIME-A25 [no-pragma-no-cover]
+    payment.py:102  # pragma: no cover  — нет ADR в config
 
-▸ TIER FOOTER
+  FAIL PRIME-A29 [zta-matrix-gate]
+    POST /api/v1/orders — нет: expired_token→401, wrong_scope→403
+
+  FAIL PRIME-A10 [err-variant-gate]
+    PaymentDeclined, InsufficientFunds — нет test_err_* в tests/
+
+  FAIL PRIME-B06 [fsm-transition-gate]
+    Order PAID→SHIPPED не протестирован — DRAFT→COMPLETED тоже
+
+  FAIL PRIME-A27 [flaky-detector]
+    test_webhook_retry упал 1/3 прогонов — flaky · чини до merge
+
+▸ 🤖 ДИСЦИПЛИНА АГЕНТА — v3.0 не останавливает ложь в чате:
 ──────────────────────────────────────────────────────────────────────────────
-  v3.0 MIT · хобби-приманка · философия, которую вставляют и молятся
-  v5.2/v6 · лично FREE · корп $50/место разово → @ExcitedSkam
+  v3.0 в чате:   «Все тесты green. Coverage ~95%. Мержим.»
+  v5.2 реально:  python -m scripts.prime_check → exit 1
+                 EXEC SUMMARY: 4 blocker'а · FIX PLAN P1→P3
+                 «готово» без PRIME-VERIFY-EVIDENCE → INVALID RESPONSE
+
+  v3.0: «prime_check потом»        v5.2: PHASE 0 LOCK — сначала gates
+  v3.0: «тесты в след. PR»         v5.2: TDD-LOCK — failing test до кода
+  v3.0: юзер гоняет pytest         v5.2: fix-until-green — агент до exit 0
+
+▸ 📦 DATA · КОНТРАКТЫ · OPS — v3.0 молчит, v5.2 орёт:
+──────────────────────────────────────────────────────────────────────────────
+  schema-drift          колонка `status` в БД ≠ миграция — blocked
+  api-contract-drift    OpenAPI: 201, код отдаёт 200 на POST /users
+  prod-config           DEBUG=true в prod — blocked
+  health-gate           нет /ready — k8s слепой деплой — blocked
+  mutation-critical     CRITICAL: mutant выжил в RefundUseCase — 91% < 95%
+
+▸ ЧТО v5.2 ДОБАВЛЯЕТ (у v3.0 аналога нет)
+──────────────────────────────────────────────────────────────────────────────
+  scripts/prime_check/   агент пишет CLI + ~50 gates · PHASE 0 LOCK
+  COVERAGE MAP           каждый непокрытый file:line — не «~95% норм»
+  MATRIX GAPS            недостающие UC × Err × route × auth — по именам
+  legacy adoption        старый репо: diff-100 + ratchet — не «мигрируем потом»
+  stack adapters         py · node · rust · go — один закон
+  monorepo scopes        services/api=PRIME · tools/script=LITE
+
+  python -m scripts.prime_check --diff
+  python -m scripts.prime_check
+  python -m scripts.prime_check --evidence
+
+  v3.0 exit code: undefined   v5.2: 0 = ship · 1 = агент чинит дальше
+
+▸ FOOTER
+  v3.0 MIT · вставил и молишься    v5.2/v6 лично FREE · корп $50/место → @ExcitedSkam
 ══════════════════════════════════════════════════════════════════════════════
 ```
 

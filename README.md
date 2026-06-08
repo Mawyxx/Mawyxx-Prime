@@ -102,65 +102,116 @@ Drop `Mawyxx Prime V5.2.md` into the project. The agent triggers a compilation l
 
 ## ⚡ PRIME UPGRADE SCAN — v3.0 vs v5.2 (through `prime_check`)
 
-*v3.0 tells the agent what to want. v5.2 makes the agent build a judge that says **no**.*
+*v3.0 = «please be good». v5.2 = the agent builds a judge that prints **exactly** what's wrong.*
 
 ```text
 $ python -m scripts.prime_check --upgrade-scan v3.0→v5.2
 
 ══════════════════════════════════════════════════════════════════════════════
- PRIME UPGRADE SCAN — v3.0 [SOFT PROMPT]  →  v5.2 [GOD MODE / v6 marketing]
- spec: ~220 lines philosophy              spec: ~1300 lines machine law
+ PRIME UPGRADE SCAN — v3.0 [SOFT]  →  v5.2 [GOD MODE]
+ ~220 lines «write clean code»      ~1300 lines · ~50 gates · exit 0 or fix
 ══════════════════════════════════════════════════════════════════════════════
 
-▸ EXEC SUMMARY — why your v3.0 `.cursorrules` still bleed money
+▸ 🔒 SECURITY — v3.0 says «don't leak secrets». v5.2 catches this:
 ──────────────────────────────────────────────────────────────────────────────
-  P1  Agent typed «tests green» — ran nothing              → evidence-block
-  P1  «~80% coverage is fine»                              → coverage-line-100 + branch-100
-  P1  `# pragma: no cover` / istanbul ignore               → no-pragma-no-cover (AST)
-  P1  Untested 401/403 on new routes                       → zta-matrix-gate
-  P1  Error codes exist, zero test_err_*                   → err-variant-gate
-  P2  Secrets committed 6 months ago                         → gitleaks-history
-  P2  CVE in lockfile, ship anyway                          → dependency-audit
-  P2  Docker runs as root in prod                           → docker-security
-  P2  Agent quit on red: «can't fix, merge later»          → fix-until-green (no exit)
+  FAIL PRIME-A19 [gitleaks-history]
+    sk-live_51H… found in commit 2024-03-11 — still in git history
+    hint: rotate key · filter-repo · re-run --only gitleaks-history
 
-▸ v3.0 SAID IT                    │ v5.2 ENFORCES IT (gate · real outcome)
-──────────────────────────────────┼──────────────────────────────────────────
- «Read context first»             │ AGENT-OMEGA Phase 0–4 — skip phase = violation
- «Self-review before done»        │ ~50 gates · agent runs CLI · exit 0 or keep fixing
- «Tests on key behavior»          │ 100.00% line + branch · diff-100 · ratchet vs main
- «Layer boundaries»               │ import-graph-gate · no-transport-in-domain · di-purity
- «Typed errors»                   │ every Err → test_err_* or merge blocked
- «Auth on protected routes»       │ route × anon/expired/forbidden/valid matrix
- «FSM for statuses»              │ every transition edge tested or exit 1
- «No secrets in repo»             │ working tree + full git history scan
- «Deterministic domain»           │ Date.now / uuid4 / random in domain → fail
- «TDD when possible»              │ TDD-LOCK — failing test BEFORE code, same PR
- «Done = clean + tested»          │ PRIME-VERIFY-EVIDENCE — chat «done» without it = invalid
+  FAIL PRIME-A16 [no-debug-bypass]
+    api/auth.py:14  if os.getenv("SKIP_AUTH"): return admin_user()
+    hint: delete bypass · test_zta_no_skip_auth_in_prod
 
-▸ WHAT v5.2 BUILDS THAT v3.0 NEVER COULD
+  FAIL PRIME-A16 [pii-log-scan]
+    logger.info(f"charge failed for {user.email}")  — card/email in logs
+    hint: structured log + user_id only · test_logs_no_pii
+
+  FAIL PRIME-A18 [ssrf-gate]
+    uc.fetch_report(url=request.body["callback_url"])  — no allowlist
+    hint: IOutboundUrlPolicy · test_ssrf_blocks_internal_ips
+
+  FAIL PRIME-A19 [dependency-audit]
+    lodash@4.17.20 — CVE-2021-23337 HIGH · merge blocked
+    hint: bump lockfile · test_dependency_audit_clean
+
+  FAIL PRIME-A23 [docker-security]
+    Dockerfile: no USER directive — container runs as root
+    hint: USER 10001 · test_dockerfile_non_root
+
+▸ 🏗 ARCHITECTURE — v3.0 says «layers». v5.2 catches drift:
 ──────────────────────────────────────────────────────────────────────────────
-  scripts/prime_check/     agent writes ~50 gates if missing — PHASE 0 LOCK
-  EXEC SUMMARY + FIX PLAN  red run tells agent exactly what to fix, in order
-  COVERAGE MAP             file:line of every untested branch — no guessing
-  MATRIX GAPS              missing UC × Err × route × auth scenario — listed
-  stack adapters           python · node · rust · go · kotlin · swift — same law
-  legacy adoption          old repo? diff-100 on touched files + ratchet, not excuse
-  monorepo scopes          per-path tier — API=PRIME, scripts=LITE
-  mutation-critical        CRITICAL tier: mutants must die ≥95%
+  FAIL PRIME-A05 [import-boundaries]
+    domain/order.py imports sqlalchemy — domain must not touch infra
 
-▸ ONE COMMAND — v3.0 HAS NO EQUIVALENT
+  FAIL PRIME-A10 [no-transport-in-domain]
+    domain/payment.py:28  raise HTTPException(402, "declined")
+
+  FAIL PRIME-A06 [di-purity]
+    CreateOrderUseCase.__init__  self.repo = PostgresOrderRepo()  — no new concrete
+
+  FAIL PRIME-A18 [no-string-sql]
+    repo.py:55  cursor.execute(f"SELECT * FROM users WHERE id={id}")
+
+  FAIL PRIME-A11 [cyclomatic-gate]
+    handlers/checkout.py::post_checkout — complexity 14 (>10)
+
+▸ 🧪 TESTS & COVERAGE — v3.0 says «test key paths». v5.2 allows zero gaps:
 ──────────────────────────────────────────────────────────────────────────────
-  python -m scripts.prime_check --diff    # changed files — no hiding behind «unchanged»
-  python -m scripts.prime_check           # full matrix — merge gate
-  python -m scripts.prime_check --evidence  # court-grade handoff block
+  FAIL PRIME-A25 [coverage-branch-100]
+    src/uc/refund.py:67  else branch untested — coverage 94.2% → need 100.00%
+    hint: test_refund_insufficient_balance_returns_err
 
-  v3.0 exit code: undefined.  v5.2 exit code: 0 = ship · 1 = agent keeps fixing.
+  FAIL PRIME-A25 [no-pragma-no-cover]
+    payment.py:102  # pragma: no cover  — no ADR entry in config
 
-▸ TIER FOOTER
+  FAIL PRIME-A29 [zta-matrix-gate]
+    POST /api/v1/orders — missing: expired_token→401, wrong_scope→403
+
+  FAIL PRIME-A10 [err-variant-gate]
+    PaymentDeclined, InsufficientFunds — no test_err_* in tests/
+
+  FAIL PRIME-B06 [fsm-transition-gate]
+    Order PAID→SHIPPED edge untested — illegal DRAFT→COMPLETED also unchecked
+
+  FAIL PRIME-A27 [flaky-detector]
+    test_webhook_retry failed 1/3 runs — unstable · fix before merge
+
+▸ 🤖 AGENT DISCIPLINE — v3.0 can't stop the chat lie:
 ──────────────────────────────────────────────────────────────────────────────
-  v3.0 MIT · hobby bait · philosophy you paste and pray
-  v5.2/v6 · personal FREE · corp $50/seat one-time → @ExcitedSkam
+  v3.0 agent in chat:  «All tests pass. Coverage ~95%. Ready to merge.»
+  v5.2 reality:        python -m scripts.prime_check → exit 1
+                       EXEC SUMMARY: 4 blockers · FIX PLAN P1→P3 printed
+                       «done» without PRIME-VERIFY-EVIDENCE → INVALID RESPONSE
+
+  v3.0: «add prime_check later»     v5.2: PHASE 0 LOCK — bootstrap gates first
+  v3.0: «tests next PR»             v5.2: TDD-LOCK — failing test before code
+  v3.0: user runs pytest            v5.2: fix-until-green — agent runs until exit 0
+
+▸ 📦 DATA · CONTRACTS · OPS — v3.0 silent, v5.2 loud:
+──────────────────────────────────────────────────────────────────────────────
+  schema-drift          DB column `status` ≠ last migration — blocked
+  api-contract-drift    OpenAPI says 201, code returns 200 on POST /users
+  prod-config           DEBUG=true in prod profile — blocked
+  health-gate           /ready missing · k8s blind deploy — blocked
+  mutation-critical     CRITICAL: mutant survived in RefundUseCase — 91% < 95%
+
+▸ WHAT v5.2 ADDS ON TOP (v3.0 has no equivalent)
+──────────────────────────────────────────────────────────────────────────────
+  scripts/prime_check/   agent writes CLI + ~50 gates · PHASE 0 LOCK
+  COVERAGE MAP           every untested file:line — no «~95% is fine»
+  MATRIX GAPS            missing UC × Err × route × auth — listed by name
+  legacy adoption        old repo: diff-100 + ratchet — not «we'll migrate later»
+  stack adapters         py · node · rust · go — same law, different linter
+  monorepo scopes        services/api=PRIME · tools/script=LITE per path
+
+  python -m scripts.prime_check --diff
+  python -m scripts.prime_check
+  python -m scripts.prime_check --evidence
+
+  v3.0 exit code: undefined   v5.2: 0 = ship · 1 = agent keeps fixing
+
+▸ FOOTER
+  v3.0 MIT · paste & pray          v5.2/v6 personal FREE · corp $50/seat → @ExcitedSkam
 ══════════════════════════════════════════════════════════════════════════════
 ```
 
