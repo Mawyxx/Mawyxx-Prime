@@ -47,7 +47,7 @@ Cursor · DeepSeek · Copilot · Claude. Any stack. **No prose. No mercy. Only e
 ## 📋 WHAT v5.2 ADDS OVER v3.0 (plain list)
 
 **v3.0** tells the agent *what good code looks like*.  
-**v5.2** makes the agent *prove it* — or stop.
+**v5.2** makes the agent *prove it* — **by fixing and re-running until `exit 0`**. No «done» on red. No giving up.
 
 ### For the agent (how it works)
 
@@ -56,7 +56,8 @@ Cursor · DeepSeek · Copilot · Claude. Any stack. **No prose. No mercy. Only e
 - **Agent runs checks itself** — never «please run tests»
 - **Forbidden phrases** — can't say «99% coverage is fine» or «tests later»
 - **Evidence block** — before «done», must paste verify transcript (`exit 0`, coverage %)
-- **3-strike rule** — same check fails 3× → stop and redesign, not blind retries
+- **Fix-until-green** — red gate → fix → re-run → repeat until `exit 0`; never abandon task to user
+- **3-strike rule** — same patch fails 3× → redesign approach, then **keep fixing** until green
 
 ### prime_check (~50 automated gates)
 
@@ -107,7 +108,7 @@ Cursor · DeepSeek · Copilot · Claude. Any stack. **No prose. No mercy. Only e
 | v3.0 | v5.2 |
 |------|------|
 | ~220 lines, philosophy | ~1300 lines, enforcement |
-| «Write clean code» | «Prove clean code or merge blocked» |
+| «Write clean code» | «Fix until tests pass — then prove with evidence» |
 | MIT, everyone | Personal free · company → TG |
 
 ---
@@ -143,7 +144,7 @@ Senior architects don't pay $50 for `bandit`. They pay to avoid being the person
 ```text
   ┌─ PILATE PROTOCOL ─────────────────────────────────────────────────────────┐
   │  Wash your hands? No. Force liability to surface BEFORE merge.            │
-  │  Agent cannot "looks good to me" — only exit 0 or stop-the-line.          │
+  │  Agent cannot "looks good" — red gate → fix loop → exit 0 only.          │
   │  Uncleared corp use = YOU inherit the spec's enforcement DNA in discovery │
   └───────────────────────────────────────────────────────────────────────────┘
 
