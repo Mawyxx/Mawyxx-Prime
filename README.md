@@ -100,16 +100,69 @@ Drop `Mawyxx Prime V5.2.md` into the project. The agent triggers a compilation l
 
 ---
 
-## 📋 WHAT v6 ADDS (plain list)
+## ⚡ PRIME UPGRADE SCAN — v3.0 vs v5.2 (through `prime_check`)
 
-| v3.0 | v6.0 [God Mode] |
-|------|-----------------|
-| ~220 lines · philosophy | ~1300 lines · enforcement |
-| «Write clean code» | «Fix until green — then prove with evidence» |
-| Soft prompt suggestions | **~50 machine gates** agent builds itself |
-| MIT · free for all | Personal free · **$50/seat corp** → TG |
+*v3.0 tells the agent what to want. v5.2 makes the agent build a judge that says **no**.*
 
-**Core upgrades:** AGENT-OMEGA phases · TDD-LOCK · fix-until-green (never abandon on red) · 100% line+branch · legacy diff-100 · zta-matrix · evidence block · stack adapters (py/node/rust/go) · monorepo scopes · mutation on CRITICAL.
+```text
+$ python -m scripts.prime_check --upgrade-scan v3.0→v5.2
+
+══════════════════════════════════════════════════════════════════════════════
+ PRIME UPGRADE SCAN — v3.0 [SOFT PROMPT]  →  v5.2 [GOD MODE / v6 marketing]
+ spec: ~220 lines philosophy              spec: ~1300 lines machine law
+══════════════════════════════════════════════════════════════════════════════
+
+▸ EXEC SUMMARY — why your v3.0 `.cursorrules` still bleed money
+──────────────────────────────────────────────────────────────────────────────
+  P1  Agent typed «tests green» — ran nothing              → evidence-block
+  P1  «~80% coverage is fine»                              → coverage-line-100 + branch-100
+  P1  `# pragma: no cover` / istanbul ignore               → no-pragma-no-cover (AST)
+  P1  Untested 401/403 on new routes                       → zta-matrix-gate
+  P1  Error codes exist, zero test_err_*                   → err-variant-gate
+  P2  Secrets committed 6 months ago                         → gitleaks-history
+  P2  CVE in lockfile, ship anyway                          → dependency-audit
+  P2  Docker runs as root in prod                           → docker-security
+  P2  Agent quit on red: «can't fix, merge later»          → fix-until-green (no exit)
+
+▸ v3.0 SAID IT                    │ v5.2 ENFORCES IT (gate · real outcome)
+──────────────────────────────────┼──────────────────────────────────────────
+ «Read context first»             │ AGENT-OMEGA Phase 0–4 — skip phase = violation
+ «Self-review before done»        │ ~50 gates · agent runs CLI · exit 0 or keep fixing
+ «Tests on key behavior»          │ 100.00% line + branch · diff-100 · ratchet vs main
+ «Layer boundaries»               │ import-graph-gate · no-transport-in-domain · di-purity
+ «Typed errors»                   │ every Err → test_err_* or merge blocked
+ «Auth on protected routes»       │ route × anon/expired/forbidden/valid matrix
+ «FSM for statuses»              │ every transition edge tested or exit 1
+ «No secrets in repo»             │ working tree + full git history scan
+ «Deterministic domain»           │ Date.now / uuid4 / random in domain → fail
+ «TDD when possible»              │ TDD-LOCK — failing test BEFORE code, same PR
+ «Done = clean + tested»          │ PRIME-VERIFY-EVIDENCE — chat «done» without it = invalid
+
+▸ WHAT v5.2 BUILDS THAT v3.0 NEVER COULD
+──────────────────────────────────────────────────────────────────────────────
+  scripts/prime_check/     agent writes ~50 gates if missing — PHASE 0 LOCK
+  EXEC SUMMARY + FIX PLAN  red run tells agent exactly what to fix, in order
+  COVERAGE MAP             file:line of every untested branch — no guessing
+  MATRIX GAPS              missing UC × Err × route × auth scenario — listed
+  stack adapters           python · node · rust · go · kotlin · swift — same law
+  legacy adoption          old repo? diff-100 on touched files + ratchet, not excuse
+  monorepo scopes          per-path tier — API=PRIME, scripts=LITE
+  mutation-critical        CRITICAL tier: mutants must die ≥95%
+
+▸ ONE COMMAND — v3.0 HAS NO EQUIVALENT
+──────────────────────────────────────────────────────────────────────────────
+  python -m scripts.prime_check --diff    # changed files — no hiding behind «unchanged»
+  python -m scripts.prime_check           # full matrix — merge gate
+  python -m scripts.prime_check --evidence  # court-grade handoff block
+
+  v3.0 exit code: undefined.  v5.2 exit code: 0 = ship · 1 = agent keeps fixing.
+
+▸ TIER FOOTER
+──────────────────────────────────────────────────────────────────────────────
+  v3.0 MIT · hobby bait · philosophy you paste and pray
+  v5.2/v6 · personal FREE · corp $50/seat one-time → @ExcitedSkam
+══════════════════════════════════════════════════════════════════════════════
+```
 
 ---
 

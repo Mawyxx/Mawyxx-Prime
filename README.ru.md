@@ -100,16 +100,69 @@ MAWYXX PRIME v6.0 — **не** пачка линтеров. Это **Self-Genera
 
 ---
 
-## 📋 ЧЕМ v6 ЛУЧШЕ (коротко)
+## ⚡ PRIME UPGRADE SCAN — v3.0 vs v5.2 (через `prime_check`)
 
-| v3.0 | v6.0 [God Mode] |
-|------|-----------------|
-| ~220 строк · философия | ~1300 строк · enforcement |
-| «Пиши чисто» | «Чини до green — потом evidence» |
-| Мягкие промпты | **~50 machine gates**, агент пишет сам |
-| MIT · всем | Лично free · **$50/место** → TG |
+*v3.0 говорит агенту, чего хотеть. v5.2 заставляет агента собрать судью, который говорит **нет**.*
 
-**Апгрейд:** AGENT-OMEGA · TDD-LOCK · fix-until-green · 100% line+branch · legacy diff-100 · zta-matrix · evidence · любой стек · monorepo · mutation на CRITICAL.
+```text
+$ python -m scripts.prime_check --upgrade-scan v3.0→v5.2
+
+══════════════════════════════════════════════════════════════════════════════
+ PRIME UPGRADE SCAN — v3.0 [МЯГКИЙ ПРОМПТ]  →  v5.2 [GOD MODE / v6 маркетинг]
+ спека: ~220 строк философии                 спека: ~1300 строк machine law
+══════════════════════════════════════════════════════════════════════════════
+
+▸ EXEC SUMMARY — почему твой v3.0 в `.cursorrules` всё ещё сливает деньги
+──────────────────────────────────────────────────────────────────────────────
+  P1  Агент написал «тесты green» — ничего не гонял           → evidence-block
+  P1  «~80% coverage норм»                                    → coverage-line-100 + branch-100
+  P1  `# pragma: no cover` / istanbul ignore                  → no-pragma-no-cover (AST)
+  P1  Новый route без тестов 401/403                          → zta-matrix-gate
+  P1  Err-коды есть, test_err_* нет                           → err-variant-gate
+  P2  Секрет в git полгода назад                              → gitleaks-history
+  P2  CVE в lockfile — «потом»                                → dependency-audit
+  P2  Docker root в проде                                     → docker-security
+  P2  Агент сдался на red: «не могу, в следующем PR»          → fix-until-green (no exit)
+
+▸ v3.0 ГОВОРИЛ                         │ v5.2 ЗАСТАВЛЯЕТ (gate · реальный outcome)
+───────────────────────────────────────┼──────────────────────────────────────────
+ «Сначала прочитай контекст»           │ AGENT-OMEGA фазы 0–4 — пропуск = нарушение
+ «Self-review перед done»              │ ~50 gates · агент сам гоняет CLI · 0 или чини
+ «Тесты на ключевое»                   │ 100.00% line + branch · diff-100 · ratchet vs main
+ «Границы слоёв»                       │ import-graph-gate · no-transport-in-domain · di-purity
+ «Типизированные ошибки»               │ каждый Err → test_err_* или merge blocked
+ «Auth на защищённых route»            │ матрица anon/expired/forbidden/valid
+ «FSM для статусов»                    │ каждый переход протестирован или exit 1
+ «Без секретов в репо»                 │ working tree + вся git history
+ «Детерминированный domain»            │ Date.now / uuid4 / random в domain → fail
+ «TDD когда можно»                     │ TDD-LOCK — failing test ДО кода, тот же PR
+ «Done = чисто + протестировано»       │ PRIME-VERIFY-EVIDENCE — «готово» без него = invalid
+
+▸ ЧТО v5.2 СТРОИТ, ЧЕГО v3.0 НИКОГДА НЕ МОГ
+──────────────────────────────────────────────────────────────────────────────
+  scripts/prime_check/     агент пишет ~50 gates если нет — PHASE 0 LOCK
+  EXEC SUMMARY + FIX PLAN  на red — что чинить и в каком порядке
+  COVERAGE MAP             file:line каждой непокрытой ветки — без гадания
+  MATRIX GAPS              недостающие UC × Err × route × auth — списком
+  stack adapters           python · node · rust · go · kotlin · swift — один закон
+  legacy adoption          старый репо? diff-100 на diff + ratchet, не отмазка
+  monorepo scopes          tier по пути — API=PRIME, scripts=LITE
+  mutation-critical        CRITICAL: mutants must die ≥95%
+
+▸ ОДНА КОМАНДА — У v3.0 АНАЛОГА НЕТ
+──────────────────────────────────────────────────────────────────────────────
+  python -m scripts.prime_check --diff      # только изменённое — не прятаться
+  python -m scripts.prime_check               # full matrix — merge gate
+  python -m scripts.prime_check --evidence    # handoff block под суд/борд
+
+  v3.0 exit code: undefined.  v5.2 exit code: 0 = ship · 1 = агент чинит дальше.
+
+▸ TIER FOOTER
+──────────────────────────────────────────────────────────────────────────────
+  v3.0 MIT · хобби-приманка · философия, которую вставляют и молятся
+  v5.2/v6 · лично FREE · корп $50/место разово → @ExcitedSkam
+══════════════════════════════════════════════════════════════════════════════
+```
 
 ---
 
