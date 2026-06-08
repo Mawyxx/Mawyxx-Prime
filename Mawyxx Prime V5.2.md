@@ -10,6 +10,9 @@
 - **Anti-Null** — [A10](#prime-a10--result): UC/domain возвращают `Result` / `Option`, не `None` / `null`
 - **Immutability** — [A05](#prime-a05--layer-law) · [B06](#prime-b06--fsm): domain entities frozen; transition = новый экземпляр
 - **Side-Effect Injection** — [A06](#prime-a06--di--ports) · [A15](#prime-a15--deterministic-time): time/ID/random только через ports
+- **Idempotent-Ledger** — [A14](#prime-a14--idempotency) · [A09](#prime-a09--policy-facades) · [A12](#prime-a12--tests--coverage): мутации через idempotency key + ledger; double-submit = cached Ok
+- **Bounded-Context Lock** — [A04](#prime-a04--integration--plugin-boundaries) · [A05](#prime-a05--layer-law) · [B05](#prime-b05--inter-service-contracts): модули изолированы; domain entities не шарятся — только DTO / primitives / events
+- **Error Context Matrix** — [A10](#prime-a10--result) · [B03](#prime-b03--sre--observability--events): каждый `Err` несёт rule_id + state snapshot + correlation/trace_id; structured JSON logs
 
 ### ZERO-TOLERANCE doctrine (tier ≥ PRIME)
 
@@ -28,6 +31,9 @@
 | `Date.now` / `uuid4` в domain/app | `deterministic-runtime` → exit 1 |
 | `return None` / `null` в UC/domain | `anti-null-gate` → exit 1 |
 | Мутация entity/VO в UC/domain | `immutability-gate` → exit 1 |
+| State-changing UC без idempotency key / ledger | `idempotency-matrix-gate` → exit 1 |
+| Кросс-модульный импорт domain entity | `context-leak-gate` → exit 1 |
+| `Err` без rule_id / snapshot / trace_id | `error-context-gate` → exit 1 |
 | Небезопасный Docker/compose | `docker-security` → exit 1 |
 | CVE в dependencies (high/critical) | `dependency-audit` → exit 1 |
 | «Готово» без evidence block | `evidence-block` → invalid response |
@@ -277,6 +283,9 @@ Domain **never** imports Infrastructure or Presentation.
 [ ] import-graph-gate + di-graph-gate + cyclomatic-gate GREEN
 [ ] docker-security + prod-config + health-gate if infra touched (A23, B13)
 [ ] FSM transitions tested + concurrency where applicable (B06, A14)
+[ ] State-changing UC: idempotency key + double-submit test (A14, idempotency-matrix-gate)
+[ ] No cross-module domain entity imports (A04, context-leak-gate)
+[ ] Every Err: rule_id + state_snapshot + correlation_id (A10, B03, error-context-gate)
 [ ] `prime_check --diff` → exit 0
 [ ] `python -m scripts.prime_check` → exit 0 (FULL matrix)
 [ ] PRIME-VERIFY-EVIDENCE block printed (A26)
@@ -476,9 +485,11 @@ FAIL PRIME-A25 [coverage-branch-100] P1
   src/domain/order.py              100    66.7    L31 if/else
   tests to add: test_place_order_invalid_returns_err, test_order_status_transition
 
-▸ MATRIX GAPS                     ← err / route / zta / fsm
+▸ MATRIX GAPS                     ← err / route / zta / fsm / idempotency / context
   ERR VARIANTS (missing test_err_*):
     OrderNotFound      → src/domain/errors.py:12
+    PaymentFailed      → src/domain/errors.py:28
+  ERR CONTEXT (missing rule_id / snapshot / trace_id):
     PaymentFailed      → src/domain/errors.py:28
   ROUTE MATRIX:
     GET /api/v1/orders/{id}  missing: 404, 403-forbidden-scope
@@ -486,6 +497,10 @@ FAIL PRIME-A25 [coverage-branch-100] P1
     POST /api/v1/orders  missing: no_credentials→401, expired_token→401
   FSM TRANSITIONS:
     Order: PAID→SHIPPED  untested edge
+  IDEMPOTENCY (missing test_double_submit_*):
+    PlaceOrderUC       → src/application/place_order.py:34
+  CONTEXT LEAK (cross-module domain entity import):
+    payments → users.domain.User  → src/payments/charge.py:3
 
 ▸ STEP TIMELINE                   ← что прошло / что упало
   ✓ lint                    1.2s
@@ -519,6 +534,9 @@ Run `python -m scripts.prime_check --evidence` for handoff block.
 | `route-matrix-gate` | MATRIX GAPS → ROUTE | route × method × status — missing cells |
 | `zta-matrix-gate` | MATRIX GAPS → ZTA | route × scenario (anon/expired/forbidden/valid) |
 | `fsm-transition-gate` | MATRIX GAPS → FSM | entity, from→to edge без теста |
+| `idempotency-matrix-gate` | MATRIX GAPS → IDEMPOTENCY | state-changing UC без `test_double_submit_*` |
+| `context-leak-gate` | MATRIX GAPS → CONTEXT LEAK | cross-bounded-context import domain entity |
+| `error-context-gate` | MATRIX GAPS → ERR CONTEXT | `Err` без rule_id / state_snapshot / correlation_id |
 | `test-matrix-gate` | MATRIX GAPS → DESIGN | UC из design artifact без теста в repo |
 | `import-boundaries` | FINDINGS | forbidden import chain: A → B → C |
 | `gitleaks` / `no-secrets` | FINDINGS | file:line + redacted match + rotate hint |
@@ -604,6 +622,9 @@ docker_files: [Dockerfile, docker-compose.yml, compose*.yml]
 | `deterministic-runtime` | no time/uuid/random in domain/app | A06, A15 |
 | `anti-null-gate` | no None/null return in UC/domain | A10 |
 | `immutability-gate` | domain/app entities immutable; no in-place mutation | A05, B06 |
+| `context-leak-gate` | no cross-bounded-context import of domain entities | A04, A05, B05 |
+| `idempotency-matrix-gate` | state-changing UC has key + ledger + double-submit test | A14, A09, A12 |
+| `error-context-gate` | every Err type: rule_id + state_snapshot + trace_id | A10, B03 |
 | `no-transport-in-domain` | no HTTPException/throw in domain | A10 |
 | `di-purity` | no `new ConcreteRepo()` in UC | A06 |
 | `di-graph-gate` | wiring only in composition root | A06 |
@@ -801,7 +822,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 | [B14](#prime-b14--human-handoff) | Human handoff after agent done | PRIME+ |
 
 \*Security never exempted by YAGNI when code touches network/secrets/input.  
-\*Anti-Null · Immutability · Side-Effect Injection — сквозные правила [A05](#prime-a05--layer-law) · [A06](#prime-a06--di--ports) · [A10](#prime-a10--result) · [A15](#prime-a15--deterministic-time) · [B06](#prime-b06--fsm), не отдельный tier.
+\*Anti-Null · Immutability · Side-Effect Injection · Idempotent-Ledger · Bounded-Context Lock · Error Context Matrix — сквозные правила в Part A/B, не отдельный tier.
 
 ---
 
@@ -850,7 +871,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 
 ## PRIME-A04 — Integration & plugin boundaries
 
-**Min tier:** PRIME+
+**Min tier:** PRIME+ **Enforced by (PRIME+):** `context-leak-gate`
 
 - **MUST:** extend via port interfaces + infrastructure adapters.
 - **MUST:** **plugin boundary** — new provider (payment, storage, notifications, auth) adds via interface; **no edits to existing Domain/Core** for wiring swap.
@@ -858,15 +879,34 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 - **MUST NOT:** duplicate policy across DI, API, infrastructure.
 - **MUST NOT:** nest I/O inside domain/application packages.
 
+### Bounded-Context Lock (PRIME+) — Sociopathic Isolation
+
+ИИ склеивает модули микро-импортами (`User` из users → в payments) → распределённый монолит. **Запрещено.**
+
+- **MUST:** каждый Bounded Context (модуль/пакет/сервис) владеет **своими** domain entities — изолированными типами.
+- **MUST NOT:** импортировать / re-export чужие domain entities, aggregates, value objects между контекстами.
+- **MUST:** данные между контекстами — **только** через:
+  - **DTO / Primitive types** (`user_id: UUID`, `amount_cents: int`) на границе UC/port;
+  - **Domain Events** (`UserRegistered`, `PaymentCaptured`) — async, one-way ([B03](#prime-b03--sre--observability--events));
+  - **Published port interfaces** — не concrete types соседнего модуля ([A06](#prime-a06--di--ports)).
+- **MUST NOT:** «удобный» shared `models/` с entity из всех модулей — каждый контекст = свой `domain/`.
+- **Enforced by:** `context-leak-gate` — AST/import graph: domain entity type из `module_a` в `module_b` → exit 1.
+
+```python
+# BAD:  from users.domain import User  # in payments/use_cases/charge.py
+# GOOD: def charge(user_id: UserId, amount: Money, uc: ChargePayment) -> Result[Receipt, PaymentErr]
+# GOOD: on UserRegistered event → payments infra subscriber creates wallet
+```
+
 ---
 
 ## PRIME-A05 — Layer law
 
-**Min tier:** STANDARD+ **Enforced by (PRIME+):** `import-boundaries` · `immutability-gate`
+**Min tier:** STANDARD+ **Enforced by (PRIME+):** `import-boundaries` · `immutability-gate` · `context-leak-gate`
 
 | Layer | MUST | MUST NOT |
 |-------|------|----------|
-| **Domain** | entities, VO, events, invariants, ports; **immutable** value objects (`frozen` / `Readonly`); one aggregate/policy per type | I/O, frameworks, DB, HTTP, time/uuid; god-classes; **in-place mutation** |
+| **Domain** | entities, VO, events, invariants, ports; **immutable** value objects (`frozen` / `Readonly`); one aggregate/policy per type; **scoped to one Bounded Context** | I/O, frameworks, DB, HTTP, time/uuid; god-classes; **in-place mutation**; **cross-context entity imports** |
 | **Application** | use-cases, `Result`, orchestration via ports; **pure** w.r.t. passed domain objects | direct DB/HTTP, env reads, transport exceptions; **mutating** domain args |
 | **Infrastructure** | port impls, persistence, clients, resilience | business policy |
 | **Presentation** | transport, validate input, inject UC, map Result | build UC manually; business logic; skip auth |
@@ -903,8 +943,9 @@ async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrd
 
 - **MUST:** constructor injection: **time, IDs, random**, DB, HTTP, config — недетерминизм **только** через ports ([A15](#prime-a15--deterministic-time)).
 - **MUST:** one canonical impl per policy — in project docs, not duplicate helpers.
-- **MUST:** cross-module via published interfaces + DI only.
+- **MUST:** cross-module via published interfaces + DI only — **DTO / primitives / events**, не чужие domain entities ([A04](#prime-a04--integration--plugin-boundaries)).
 - **MUST NOT:** service locator, globals, hidden state in domain/use-cases.
+- **MUST NOT:** inject concrete entity type соседнего Bounded Context в UC constructor.
 - **MUST:** tests substitute via Fake/Mock/InMemory — predictable behavior.
 
 ---
@@ -946,7 +987,7 @@ async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrd
 
 ## PRIME-A10 — Result & errors by tier
 
-**Min tier:** varies — see table **Enforced by (PRIME+):** `anti-null-gate` · `err-variant-gate` · `no-transport-in-domain`
+**Min tier:** varies — see table **Enforced by (PRIME+):** `anti-null-gate` · `err-variant-gate` · `error-context-gate` · `no-transport-in-domain`
 
 ### Error handling by tier
 
@@ -979,6 +1020,28 @@ async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrd
 ```
 
 **`anti-null-gate`:** `-> None` / `Optional` на UC; `return None`; nullable chains без guard.
+
+### Error Context Matrix (PRIME+) — Total Recovery
+
+`logger.info("something happened")` в проде = ад. Каждая ветка `Err` обязана нести **структурированный слепок** для локализации за 1 секунду.
+
+- **MUST:** каждый кастомный `Err` / error enum variant содержит:
+  - **`rule_id`** — какое правило PRIME / бизнес-инвариант нарушен (`PRIME-A10`, `ORDER_NOT_FOUND`, …);
+  - **`state_snapshot`** — срез данных в момент падения (ids, status, input hash — **без PII/secrets**);
+  - **`correlation_id` / `trace_id`** — сквозной ID от клиента/фронта через все сервисы ([B03](#prime-b03--sre--observability--events)).
+- **MUST:** structured JSON logging при `Err` — не строка `"error"`; поля сериализуются в log sink.
+- **MUST:** Presentation пробрасывает `correlation_id` из входящего запроса в UC и в ответ (header/body meta).
+- **MUST NOT:** generic `Error("failed")` / `throw new Error()` без контекста в PRIME+ UC/domain.
+- **Enforced by:** `error-context-gate` — schema/lint: каждый `Err` type имеет обязательные поля + `test_err_*` assert snapshot/trace.
+
+```python
+@dataclass(frozen=True)
+class OrderNotFound(Err):
+    rule_id: str = "ORDER_NOT_FOUND"
+    order_id: OrderId
+    state_snapshot: dict  # {"status": "lookup", "source": "GetOrderUC"}
+    correlation_id: CorrelationId
+```
 
 ---
 
@@ -1051,6 +1114,7 @@ async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrd
 ### Integration minimum (PRIME+)
 
 - Real infra where used; atomic transactions; concurrency tests (double-submit, FSM race).
+- **MUST (PRIME+):** каждый state-changing UC — `test_double_submit_*` / `test_idempotency_replay_*` ([A14](#prime-a14--idempotency), `idempotency-matrix-gate`).
 
 ---
 
@@ -1070,12 +1134,31 @@ async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrd
 
 ## PRIME-A14 — Idempotency
 
-**Min tier:** PRIME+
+**Min tier:** PRIME+ **Enforced by:** `idempotency-matrix-gate`
 
-- **MUST:** dangerous-on-retry mutations accept stable `idempotency_key`.
-- **MUST:** outbound POST/write — same key across retries.
-- **MUST NOT:** new random key per retry for same action.
-- **MUST (CRITICAL):** all financial/state mutations idempotent.
+Double-click / retry / network blink → дубль списания, два поста, сломанный UI state. **Полный запрет** на мутации без контроля уникальности на уровне бизнес-логики.
+
+### Idempotent-Ledger (PRIME+) — Atomic State Change
+
+- **MUST:** любой UC, **меняющий состояние** (DB, cache, ledger, UI store), принимает сквозной **`idempotency_key`** (или transaction token) от boundary.
+- **MUST:** на **самом низком уровне** domain/application — проверка ключа **до** бизнес-логики:
+  - ключ уже обработан → **атомарно** вернуть сохранённый `Ok` из ledger/cache — **не** повторять мутацию;
+  - ключ новый → выполнить UC → записать `(key → result)` в ledger (Command Sourcing / Write-Ahead Log).
+- **MUST:** ledger append-only / upsert с unique constraint на `idempotency_key` — race-safe под concurrency.
+- **MUST:** outbound POST/write — тот же key на всех retries ([A09](#prime-a09--policy-facades) facade).
+- **MUST NOT:** new random key per retry for same user action.
+- **MUST NOT:** «проверим потом в UI» — idempotency = domain/UC concern, не только HTTP middleware.
+- **MUST (CRITICAL):** все financial/state mutations idempotent.
+- **Enforced by:** `idempotency-matrix-gate` — для каждого state-changing UC обязателен `test_double_submit_*`: два вызова с одним key → один side-effect, второй = cached Ok.
+
+```python
+async def execute(self, cmd: PlaceOrder, key: IdempotencyKey) -> Result[OrderId, OrderErr]:
+    if cached := await self._ledger.get(key):
+        return cached  # replay — no second charge
+    result = await self._place(cmd)
+    await self._ledger.put(key, result)
+    return result
+```
 
 ---
 
@@ -1412,7 +1495,9 @@ async def create_order(uc: CreateOrderUseCase = Depends(get_uc), body: CreateOrd
 - **MUST (PRIME+):** critical operations carry `trace_id` / `correlation_id` — one ID links request, logs, events.
 - **MUST (PRIME+):** metrics on critical paths — latency, error rate, throughput.
 - **MUST:** structured logging (JSON/structured) — not raw `console.log("error")`.
-- **MUST NOT:** PII, secrets, tokens in logs.
+- **MUST (PRIME+):** при `Err` — log payload = `rule_id` + `state_snapshot` + `correlation_id` из error type ([A10](#prime-a10--result)); prod debug ≤ 1 click from trace.
+- **MUST NOT:** PII, secrets, tokens in logs — в т.ч. в `state_snapshot`.
+- **Enforced by:** `error-context-gate` (with [A10](#prime-a10--result)).
 
 ### Domain Events
 
@@ -1447,10 +1532,12 @@ Assume external world **will** break.
 
 ## PRIME-B05 — Inter-service contracts
 
-**Min tier:** optional (service split)
+**Min tier:** optional (service split) **Enforced by:** `context-leak-gate` (cross-service)
 
 - **SHOULD:** strict typed contracts; versioned (`v1`, `v2`).
 - **SHOULD:** gRPC/proto or OpenAPI per project; see [A21](#prime-a21--semver--contracts).
+- **MUST (service split):** сервисы общаются как **независимые государства** — DTO/proto messages / events, **не** shared domain entity libs ([A04](#prime-a04--integration--plugin-boundaries)).
+- **MUST NOT:** monorepo shared `domain/User.ts` импортируемый payments + users — каждый сервис = свой bounded context + contract types.
 
 ## PRIME-B06 — FSM
 
@@ -1476,7 +1563,7 @@ Assume external world **will** break.
 **Min tier:** all
 
 1. Risk Tier + [AGENT-1](#agent-1--task-router) sections applied.
-2. Grep diff: `HTTPException` in domain, `Date.now`, magic numbers, duplicate policy, secrets, f-string SQL, `ALTER TABLE`, `dangerouslySetInnerHTML`, copy-pasted validation.
+2. Grep diff: `HTTPException` in domain, `Date.now`, magic numbers, duplicate policy, secrets, f-string SQL, `ALTER TABLE`, `dangerouslySetInnerHTML`, copy-pasted validation, cross-module domain entity imports, state-changing UC without idempotency key, `Err` without `rule_id`/`correlation_id`.
 3. Verify failures understood and fixed.
 4. [AGENT-2](#agent-2--pre-commit-checklist).
 
@@ -1575,10 +1662,13 @@ Assume external world **will** break.
 | Finding | one actionable issue: rule ID, step, file:line, hint, rerun cmd |
 | FIX PLAN | ordered repair list in prime_check report — agent follows P1→P3 |
 | COVERAGE MAP | per-file line/branch % + exact uncovered lines from reporter |
-| MATRIX GAPS | missing test_err_*, route×status, zta scenario, fsm edge |
+| MATRIX GAPS | missing test_err_*, route×status, zta scenario, fsm edge, double-submit, context leak, err context |
 | Anti-Null | no None/null in UC — Result/Option only ([A10](#prime-a10--result)) |
 | Immutability | domain entities frozen; FSM returns new state ([A05](#prime-a05--layer-law), [B06](#prime-b06--fsm)) |
 | Side-Effect Injection | time/ID/random via ports only ([A06](#prime-a06--di--ports), [A15](#prime-a15--deterministic-time)) |
+| Idempotent-Ledger | state-changing UC: idempotency key + ledger; replay = cached Ok ([A14](#prime-a14--idempotency)) |
+| Bounded-Context Lock | no cross-module domain entity imports — DTO/events only ([A04](#prime-a04--integration--plugin-boundaries)) |
+| Error Context Matrix | every Err: rule_id + state_snapshot + correlation_id ([A10](#prime-a10--result), [B03](#prime-b03--sre--observability--events)) |
 
 ---
 

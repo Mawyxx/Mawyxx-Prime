@@ -35,7 +35,7 @@
 | **CQRS** | Когда read/write разная сложность — не для trivial CRUD |
 | **FSM** | Сущности со статусом — явный граф переходов |
 | **Domain events** | Core публикует факты; infra доставляет |
-| **Idempotency** | `idempotency_key` на опасных retry |
+| **Idempotency** | `idempotency_key` на опасных retry — v5.2 добавляет **Idempotent-Ledger** (ledger + double-submit gate) |
 | **SOLID** | SRP, OCP, LSP, ISP, DIP — в §5 |
 | **Fail-fast** | Валидация на границе системы |
 | **Typed errors** | Доменные ошибки, не magic exceptions в глубине |
@@ -95,18 +95,24 @@
 | **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP |
 | **Stack adapters** | AGENT-5 | python · node · rust · go · kotlin · swift |
 | **Forbidden phrases** | AGENT-0 | «~99%» · «запустите сами» = нарушение |
+| **Idempotent-Ledger gate** | A14 · A12 | `idempotency-matrix-gate` — double-submit тест на каждый state-changing UC |
+| **Bounded-Context gate** | A04 · B05 | `context-leak-gate` — AST блокирует кросс-импорт domain entity |
+| **Error Context gate** | A10 · B03 | `error-context-gate` — каждый `Err` = rule_id + snapshot + trace_id |
 
 ---
 
 ## Сквозные инварианты (вшиты в правила — как слои / SSOT)
 
-Не отдельный модуль. Тот же статус, что **layer law** или **SSOT** — живут в **A05 · A06 · A10 · A15 · B06**.
+Не отдельный модуль. Тот же статус, что **layer law** или **SSOT** — вшиты в правила Part A/B.
 
 | Инвариант | Дыра v3 | Где в v5.2 | Gate |
 |-----------|---------|------------|------|
 | **Anti-Null** | Агент `return None` → NPE / `AttributeError` ниже по стеку | **A10** Result — только `Result` / `Option`, явные ветки | `anti-null-gate` · `err-variant-gate` |
 | **Immutability** | UC мутирует `order.status` in-place → гонки | **A05** frozen entities · **B06** FSM (новый aggregate на transition) | `immutability-gate` |
 | **Side-Effect Injection** | `datetime.now()` / `uuid4()` в UC → flaky tests | **A06** DI ports · **A15** детерминированный time/ID/random | `deterministic-runtime` |
+| **Idempotent-Ledger** | Double-click / retry → двойное списание, два поста, сломанный UI | **A14** key + ledger · **A09** facades · **A12** double-submit тесты | `idempotency-matrix-gate` |
+| **Bounded-Context Lock** | Кросс-импорт entity → распределённый монолит | **A04** boundaries · **A05** · **A06** · **B05** inter-service | `context-leak-gate` |
+| **Error Context Matrix** | `logger.info("error")` — нет trace, state, rule_id | **A10** Err payload · **B03** structured JSON logs | `error-context-gate` |
 
 ---
 
@@ -125,6 +131,9 @@
 | «Режь если трудно тестить» | Лимиты: >300 строк fail, complexity >10 | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
 | CQRS «когда надо» | Формальное правило CQRS | **B01** |
 | FSM «без прыжков» | Каждое ребро в тестах; transition = **новый** immutable state | **B06** · `fsm-transition-gate` · `immutability-gate` |
+| Idempotency «ключ на retry» | **Idempotent-Ledger:** key + WAL/ledger; replay = cached Ok; `test_double_submit_*` | **A14** · **A09** · `idempotency-matrix-gate` |
+| Границы модулей словами | **Bounded-Context Lock:** нет shared domain entities — только DTO/primitives/events | **A04** · **A05** · **B05** · `context-leak-gate` |
+| Typed errors текстом | **Error Context Matrix:** каждый `Err` = rule_id + state_snapshot + correlation_id | **A10** · **B03** · `error-context-gate` |
 
 ### Безопасность
 
@@ -189,7 +198,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
 
-Сквозные (в A05·A06·A10·A15·B06): Anti-Null · Immutability · Side-Effect Injection
+Сквозные (вшиты в Part A/B): Anti-Null · Immutability · Side-Effect Injection · Idempotent-Ledger · Bounded-Context Lock · Error Context Matrix
 ```
 
 ---

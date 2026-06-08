@@ -35,7 +35,7 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | **CQRS** | When read/write complexity differs — not for trivial CRUD |
 | **FSM** | Status entities use explicit transition graph |
 | **Domain events** | Core publishes facts; infra handles delivery |
-| **Idempotency** | `idempotency_key` on dangerous retries |
+| **Idempotency** | `idempotency_key` on dangerous retries — v5.2 adds **Idempotent-Ledger** (ledger + double-submit gate) |
 | **SOLID** | SRP, OCP, LSP, ISP, DIP — named in §5 |
 | **Fail-fast** | Validate at system boundary |
 | **Typed errors** | Domain errors, not magic exceptions in depth |
@@ -95,18 +95,24 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP on red |
 | **Stack adapters** | AGENT-5 | python · node · rust · go · kotlin · swift |
 | **Forbidden phrases** | AGENT-0 | «~99% coverage» · «run tests yourself» = violations |
+| **Idempotent-Ledger gate** | A14 · A12 | `idempotency-matrix-gate` — double-submit test per state-changing UC |
+| **Bounded-Context gate** | A04 · B05 | `context-leak-gate` — AST blocks cross-module domain entity imports |
+| **Error Context gate** | A10 · B03 | `error-context-gate` — every `Err` = rule_id + snapshot + trace_id |
 
 ---
 
 ## Cross-cutting invariants (woven into rules — like layers / SSOT)
 
-Not a separate module. Same status as **layer law** or **SSOT** — live inside **A05 · A06 · A10 · A15 · B06**.
+Not a separate module. Same status as **layer law** or **SSOT** — woven into Part A/B rules.
 
 | Invariant | Problem v3 leaves open | Where in v5.2 | Gate |
 |-----------|------------------------|---------------|------|
 | **Anti-Null** | Agent `return None` → NPE / `AttributeError` downstream | **A10** Result contract — only `Result` / `Option`, explicit branches | `anti-null-gate` · `err-variant-gate` |
 | **Immutability** | UC mutates `order.status` in-place → races | **A05** layer law (frozen entities) · **B06** FSM (new aggregate per transition) | `immutability-gate` |
 | **Side-Effect Injection** | `datetime.now()` / `uuid4()` in UC → flaky tests | **A06** DI ports · **A15** deterministic time/ID/random | `deterministic-runtime` |
+| **Idempotent-Ledger** | Double-click / retry duplicates charge, post, UI state | **A14** idempotency key + ledger · **A09** facades · **A12** double-submit tests | `idempotency-matrix-gate` |
+| **Bounded-Context Lock** | Cross-module entity imports → distributed monolith | **A04** plugin boundaries · **A05** · **A06** · **B05** inter-service | `context-leak-gate` |
+| **Error Context Matrix** | `logger.info("error")` — no trace, no state, no rule | **A10** Err payload · **B03** structured JSON logs | `error-context-gate` |
 
 ---
 
@@ -125,6 +131,9 @@ Not a separate module. Same status as **layer law** or **SSOT** — live inside 
 | File size «split if hard to test» | Hard limits: >300 fail, complexity >10 fail | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
 | CQRS «when needed» | Formal CQRS rule when read/write diverge | **B01** |
 | FSM «no illegal jumps» | Every edge tested; transition returns **new** immutable state | **B06** · `fsm-transition-gate` · `immutability-gate` |
+| Idempotency «key on retry» | **Idempotent-Ledger:** key + WAL/ledger; replay = cached Ok; `test_double_submit_*` | **A14** · **A09** · `idempotency-matrix-gate` |
+| Module boundaries verbal | **Bounded-Context Lock:** no shared domain entities — DTO/primitives/events only | **A04** · **A05** · **B05** · `context-leak-gate` |
+| Typed errors prose | **Error Context Matrix:** every `Err` = rule_id + state_snapshot + correlation_id | **A10** · **B03** · `error-context-gate` |
 
 ### Security
 
@@ -189,7 +198,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
 
-Cross-cutting (in A05·A06·A10·A15·B06): Anti-Null · Immutability · Side-Effect Injection
+Cross-cutting (woven in Part A/B): Anti-Null · Immutability · Side-Effect Injection · Idempotent-Ledger · Bounded-Context Lock · Error Context Matrix
 ```
 
 ---
