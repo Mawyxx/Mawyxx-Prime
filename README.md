@@ -4,132 +4,193 @@
 
 [Russian version → README.ru.md](README.ru.md)
 
-Normative specs for AI agents writing production code. Two tiers: **v3.0** (principles, MIT) and **v5.2** (enforcement layer, marketed as v6 God Mode).
+Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.2** names every rule, adds agent workflow, and requires `prime_check` to enforce them.
 
 ---
 
-## What is in this repo
+## Files
 
-| File | What it is |
-|------|------------|
-| `Mawyxx Prime V3.0.md` | ~220 lines · 10 sections · philosophy & architecture · **MIT · public** |
-| `Mawyxx Prime V5.2.md` | ~1300 lines · AGENT-0…5 · rules A01–A32 · B01–B14 · **private / commercial** |
-| `scripts/prime_check/` | Not shipped — **agent builds it** per AGENT-5 when tier ≥ PRIME |
-
-**v3.0** — tells the agent *what good code looks like*.  
-**v5.2** — adds *how the agent must verify it*: phases, `prime_check`, coverage law, evidence block.
+| File | Content |
+|------|---------|
+| `Mawyxx Prime V3.0.md` | 10 sections · ~220 lines · MIT · public |
+| `Mawyxx Prime V5.2.md` | AGENT-0…5 · **A01–A32** · **B01–B14** · ~1300 lines · commercial |
+| `scripts/prime_check/` | Agent builds per **AGENT-5** — not included in repo |
 
 ---
 
-## v3.0 vs v5.2 at a glance
+## v3.0 — patterns the standard defines
+
+What v3 already teaches (prose, no rule IDs, no machine gate):
+
+### Architecture & design patterns
+
+| Pattern | What v3 requires |
+|---------|------------------|
+| **Clean / DDD layers** | Domain · Application · Infrastructure · Presentation |
+| **DI & IoC** | Dependencies injected; no `new Repo()` inside UC |
+| **Coding to interfaces** | Ports for time, ID, DB, HTTP, random, notifications |
+| **Plugin boundary** | New provider via interface — no Core edits for swap |
+| **CQRS** | When read/write complexity differs — not for trivial CRUD |
+| **FSM** | Status entities use explicit transition graph |
+| **Domain events** | Core publishes facts; infra handles delivery |
+| **Idempotency** | `idempotency_key` on dangerous retries |
+| **SOLID** | SRP, OCP, LSP, ISP, DIP — named in §5 |
+| **Fail-fast** | Validate at system boundary |
+| **Typed errors** | Domain errors, not magic exceptions in depth |
+
+### Production patterns
+
+| Pattern | What v3 requires |
+|---------|------------------|
+| **Observability** | trace_id, structured logs, metrics on critical paths |
+| **Resilience** | Circuit breaker, bulkheads, graceful degradation |
+| **SRE** | SLI, SLO, error budget, self-healing jobs |
+| **ADR** | Context · options · decision · consequences in `docs/adr/` |
+| **API contracts** | OpenAPI / schema; versioned breaking changes |
+| **Security hygiene** | No secrets in code; input validation; least privilege; no PII in logs |
+
+### Testing patterns
+
+| Pattern | What v3 requires |
+|---------|------------------|
+| **Pyramid** | Unit (fakes) → integration → contract |
+| **DI in tests** | InMemory / Fake — predictable behavior |
+| **Bug → test** | Every fix gets a regression test |
+| **Coverage** | 100% on CRITICAL paths; meaningful tests elsewhere — **agent decides** |
+
+### Agent protocol (v3 only)
+
+- Read project context before edit
+- Pick Risk Tier (LITE / STANDARD / PRIME / CRITICAL)
+- Minimal scope on feature
+- **Self-review checklist** (§10) before «done» — honor system, no `exit 0`
+
+---
+
+## v5.2 — what is NEW (not in v3 at all)
+
+| Addition | Rule / module | What it does |
+|----------|---------------|--------------|
+| **Agent phases** | AGENT-OMEGA 0→4 | LOCK → design → TDD → implement → verify — mandatory order |
+| **Task router** | AGENT-1 | Maps task type → which rules apply |
+| **Merge gate spec** | A22 · AGENT-5 | `prime_check` — only way to declare «done» at PRIME+ |
+| **Agent builds checker** | AGENT-5 | If no `scripts/prime_check/` → PHASE 0 bootstrap ~50 steps |
+| **Fix until green** | FIX-UNTIL-GREEN · A30 | Red gate → fix → re-run — agent never abandons |
+| **TDD lock** | A24 | Failing test **before** production code, same PR |
+| **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` — chat «done» without it = invalid |
+| **100% coverage law** | A25 | 100.00% line **and** branch; 99.99% = fail; ratchet vs `main` |
+| **ZTA matrix** | A02 · A29 | Every protected route × anon / expired / forbidden / valid |
+| **Err matrix** | A10 · A12 | Every `Err` variant → mandatory `test_err_*` |
+| **Route matrix** | A03 · A12 | method × path × HTTP status in contract tests |
+| **FSM matrix** | B06 | Every transition edge + illegal jumps tested |
+| **Test quality gates** | A27 | No empty tests · no `assert True` · flaky = run ×3 |
+| **Mutation testing** | A28 | CRITICAL: ≥95% kill rate on `critical_scope` |
+| **Legacy adoption** | A31 | Old repo: 100% on **changed files** + ratchet — not exempt |
+| **Monorepo tiers** | A32 | PRIME / LITE per path in one repo |
+| **Anti-slack** | A30 | No «tests next PR» · no code on red base |
+| **RFC 2119** | all rules | MUST / MUST NOT — not «should» |
+| **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP on red |
+| **Stack adapters** | AGENT-5 | python · node · rust · go · kotlin · swift |
+| **Forbidden phrases** | AGENT-0 | «~99% coverage» · «run tests yourself» = violations |
+
+---
+
+## v5.2 — what is IMPROVED (v3 had it → v5.2 stricter + gated)
+
+### Architecture & patterns
+
+| v3.0 | v5.2 improvement | Rules · gates |
+|------|------------------|---------------|
+| «4 layers» in prose | Layer table + import graph enforcement | **A05** · `import-boundaries` · `import-graph-gate` · `no-transport-in-domain` · `handler-purity-gate` |
+| DI described | No concrete in UC; wiring only in composition root | **A06** · `di-purity` · `di-graph-gate` |
+| Design-first implied | Design artifact before code: routes, Err, test_matrix | **A07** · AGENT-OMEGA PHASE 1 |
+| Anti-duplication verbal | No `*_v2` policy forks | **A08** · `anti-fork-gate` |
+| Single policy owner | Policy facades — one SSOT | **A09** |
+| Result / typed errors | Result in UC; transport maps at edge; every Err tested | **A10** · `err-variant-gate` |
+| File size «split if hard to test» | Hard limits: >300 fail, complexity >10 fail | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
+| CQRS «when needed» | Formal CQRS rule when read/write diverge | **B01** |
+| FSM «no illegal jumps» | Every edge in tests | **B06** · `fsm-transition-gate` |
+| Deterministic domain mentioned | Ban `Date.now` / `uuid4` / random in domain | **A15** · `deterministic-runtime` |
+
+### Security
+
+| v3.0 | v5.2 improvement | Rules · gates |
+|------|------------------|---------------|
+| 5 security bullets | Full secure-by-design + OWASP pack | **A16** · **A18** |
+| «No secrets in repo» | Working tree + **full git history** scan | **A19** · `gitleaks-history` · `no-secrets` |
+| «Update dependencies» | Zero high/critical CVE; SBOM | **A19** · `dependency-audit` · `sbom` |
+| Input validation at boundary | + injection fuzz · SSRF allowlist | **A18** · `injection-fuzz` · `ssrf-gate` |
+| No debug in prod (implied) | Explicit ban `SKIP_AUTH`, `if True:` bypass | **A16** · `no-debug-bypass` |
+| No PII in logs (bullet) | Regex scan log strings | **A16** · `pii-log-scan` |
+| Auth on endpoints (general) | Zero Trust: localhost = internet; deny-by-default | **A02** · `zta-matrix-gate` |
+| Docker mentioned lightly | non-root · no public DB · TLS ≥1.2 · prod env | **A23** · `docker-security` · `compose-security` · `prod-config` · `tls-min-version` |
+
+### Tests & quality
+
+| v3.0 | v5.2 improvement | Rules · gates |
+|------|------------------|---------------|
+| Pyramid described | Enforced: unit → integration → contract → property | **A12** · `pytest-*` / stack equiv |
+| «Key behavior» tests | Design `test_matrix` must match tests in repo | **A12** · `test-matrix-gate` |
+| E2E allowed | E2E without unit base = fail | **A12** · `e2e-only-anti-pattern` |
+| Coverage agent picks | 100.00% line+branch on `runtime_scope` or diff | **A25** · `coverage-*` · `no-pragma-no-cover` |
+| Bug → test (norm) | Named `test_regression_*` required | **A12** · `regression-lock` |
+| Property/fuzz optional | hypothesis / proptest on boundaries | **B12** · `pytest-property` |
+| — | Mutation on financial/critical code | **A28** · `mutation-critical` |
+
+### Data · contracts · ops
+
+| v3.0 | v5.2 improvement | Rules · gates |
+|------|------------------|---------------|
+| Migrations implied | DDL only in `migrations/`; schema ≡ DB | **A20** · `migration-path-only` · `schema-drift` |
+| OpenAPI «use schema» | OpenAPI/proto ≡ runtime; golden snapshots | **A21** · `api-contract-drift` · `snapshot-contract` |
+| SemVer mentioned | Breaking change rules + contract tests | **A21** |
+| SRE / events prose | Domain events in infra; error budget | **B03** · **B04** |
+| Health «should» | `/health` + `/ready` tested | **B13** · `health-gate` |
+| Client UI principles | lint + types + unit gate for frontend | **B11** · `frontend-quality` |
+| Self-review checklist | B08 grep + **machine** pre-commit AGENT-2 | **B08** · **AGENT-2** |
+| Definition of done vague | A13: thin handler · DI · Result · docs · threat model | **A13** |
+| Human handoff none | B14: evidence = handoff artifact | **B14** |
+
+---
+
+## v5.2 rule map (full index)
 
 ```text
-================================================================================
-   v3.0 [PRINCIPLES]                      │   v5.2 [ENFORCEMENT]
-================================================================================
- Risk tiers LITE → CRITICAL               │   Same tiers · default PRIME for real apps
- Read context · minimal scope             │   AGENT-OMEGA phases 0 → 4 (mandatory order)
- Self-review checklist (§10)             │   AGENT-2 checklist + machine gates
- 4 layers · DI · FSM · idempotency        │   Same + import-graph · di-purity gates
- Security · tests · SRE in prose         │   ~50 prime_check steps per stack adapter
- «Tests on key behavior»                 │   100.00% line + branch (tier ≥ PRIME)
- «100% on CRITICAL paths»                │   diff-100 · ratchet vs main · legacy mode
- No merge gate                            │   exit 0 = only valid «done»
-================================================================================
+PART A — A01 Context/tier      A11 Decomposition       A21 SemVer/contracts
+        A02 Zero Trust         A12 Tests/pyramid       A22 prime_check
+        A03 API contract       A13 Definition of done  A23 Docker/infra
+        A04 Plugin boundaries  A14 Idempotency         A24 TDD-LOCK
+        A05 Layer law          A15 Deterministic time  A25 Coverage 100%
+        A06 DI & ports         A16 Secure-by-design    A26 Evidence block
+        A07 Design-first       A17 Clean code          A27 Test quality
+        A08 Anti-fork          A18 OWASP/hygiene       A28 Mutation
+        A09 Policy facades     A19 Supply chain        A29 ZTA matrix
+        A10 Result/errors      A20 Migrations          A30 Anti-slack
+                                                      A31 Legacy adoption
+                                                      A32 Monorepo scope
+
+PART B — B01 CQRS              B06 FSM                 B11 Client apps
+        B02 SOLID/GRASP        B07 YAGNI               B12 Fuzz/property
+        B03 SRE/observability  B08 Agent self-review   B13 Ops/runbook
+        B04 Resilience         B09 ADR                 B14 Human handoff
+        B05 Inter-service      B10 Performance
 ```
 
-*v6 / God Mode in marketing = `Mawyxx Prime V5.2.md` + agent-built `prime_check`*
-
 ---
 
-## v3.0 — the standard (summary)
+## How v5.2 verifies (prime_check)
 
-Universal quality standard for AI coders. Proportional rigor by **Risk Tier**:
-
-| Tier | Scope |
-|------|--------|
-| **LITE** | Scripts, one-off tools — readability, no secrets |
-| **STANDARD** | Regular features — modules, key tests, clear errors |
-| **PRIME** | Auth, payments, PII, APIs — layers, DI, FSM, observability |
-| **CRITICAL** | Finance, compliance — PRIME + ADR, resilience, max test depth |
-
-**Covers:** 4-layer boundaries · DI & interfaces · SOLID · typed errors · FSM · domain events · SRE/ADR · security hygiene · test pyramid · self-review checklist.
-
-**Does not cover:** automated merge gate · mandatory coverage % · agent-run verify loop · `prime_check` spec.
-
----
-
-## v5.2 — what the standard adds
-
-Same architecture philosophy as v3. **Plus** agent contract and machine verification.
-
-### Agent workflow (AGENT-OMEGA)
+Agent runs: `python -m scripts.prime_check` → **exit 0** + **PRIME-VERIFY-EVIDENCE**
 
 ```text
-PHASE 0  tier ≥ PRIME? → prime_check missing? → bootstrap AGENT-5 only (no feature code)
-PHASE 1  design artifact: files · routes · Err variants · test_matrix
-PHASE 2  TDD-LOCK: failing test before implementation
-PHASE 3  implement (minimal feature scope · max quality scope)
-PHASE 4  prime_check --only → --diff → full → exit 0 → PRIME-VERIFY-EVIDENCE
-         RED → fix-until-green (agent does not stop · does not ask user to run tests)
+PHASE 0  bootstrap prime_check if missing
+PHASE 1  design artifact (test_matrix, routes, Err list)
+PHASE 2  failing tests first (TDD-LOCK)
+PHASE 3  implement
+PHASE 4  --only → --diff → full → evidence · fix-until-green
 ```
 
-### prime_check (AGENT-5)
-
-Single CLI the agent creates and maintains: `python -m scripts.prime_check`
-
-| Group | Examples of steps |
-|-------|-------------------|
-| Static | lint · typecheck · format · dead-code · file-size · complexity |
-| Architecture | import boundaries · DI purity · no SQL strings · no transport in domain |
-| Security | gitleaks history · CVE audit · bandit · PII in logs · SSRF · ZTA matrix |
-| Tests | unit · integration · contract · property · flaky ×3 · empty/trivial test ban |
-| Matrices | err-variant · route × status · FSM transitions · design test_matrix |
-| Coverage | line 100% · branch 100% · diff-100 · ratchet · no pragma without ADR |
-| Data/Ops | schema drift · API contract drift · docker security · health probes |
-| Output | structured report · evidence block |
-
-Stack adapters: **python · node · rust · go · kotlin · swift** — same rules, local linters.
-
-### Done definition (tier ≥ PRIME)
-
-- `python -m scripts.prime_check` → **exit 0**
-- **PRIME-VERIFY-EVIDENCE** block printed in agent response
-- Without both — response is **invalid** per A26
-
----
-
-## PRIME UPGRADE SCAN — standard delta
-
-```text
-══════════════════════════════════════════════════════════════════════════════
- STANDARD DELTA                          v3.0 [MIT]  →  v5.2
-══════════════════════════════════════════════════════════════════════════════
-  Volume        10 sections · ~220 lines          A01–A32 · B01–B14 · AGENT-0…5
-  Voice         recommendations                 RFC 2119 MUST / MUST NOT
-  Agent model   read → code → self-review         AGENT-OMEGA 0 → 4
-  «Done»        agent declares                    exit 0 + evidence block
-  Merge gate    none                              prime_check (~50 steps)
-──────────────────────────────────────────────────────────────────────────────
-
-▸ ONLY IN v5.2
-  prime_check · FIX-UNTIL-GREEN · TDD-LOCK (A24) · evidence block (A26)
-  ~50 gates · 100% line+branch · ZTA/Err/Route/FSM matrices
-  legacy diff-100 + ratchet (A31) · monorepo tiers (A32) · mutation (A28)
-  stack adapters · structured report · forbidden phrases · anti-slack (A30)
-
-▸ IN v3.0 — MADE ENFORCEABLE IN v5.2
-  tiers · layers · DI · FSM · security §7 · tests §8 · SRE · ADR · docker
-  → import-graph · err-variant · fsm-transition · gitleaks · schema-drift gates
-
-▸ COVERAGE LINE
-  v3.0   agent chooses «key paths» · 100% mentioned for CRITICAL only
-  v5.2   99.99% = fail · pragma needs ADR · coverage cannot drop vs main
-
-▸ VERIFY COMMAND (defined only in v5.2)
-  python -m scripts.prime_check --diff → full → --evidence → exit 0
-══════════════════════════════════════════════════════════════════════════════
-```
+~50 steps: static · architecture · security · pyramid · matrices · coverage · data/ops · evidence.
 
 ---
 
@@ -137,50 +198,24 @@ Stack adapters: **python · node · rust · go · kotlin · swift** — same rul
 
 | Use | v3.0 | v5.2 |
 |-----|------|------|
-| Personal / hobby / pet project | MIT · free | **Free** |
-| Company / team / client prod | MIT for v3 only | **$50 / employee · one-time** → Telegram |
-
-Corporate use of v5.2 without clearance: contact before deploying on company runners or client code.
-
-💬 [**@ExcitedSkam**](https://t.me/ExcitedSkam)
+| Personal / hobby | MIT · free | Free |
+| Company / prod | MIT (v3 only) | $50 / employee · one-time → [@ExcitedSkam](https://t.me/ExcitedSkam) |
 
 ---
 
-## Quick reference
-
-```text
-  Hobby / learning     →  Mawyxx Prime V3.0.md (MIT)
-  Real app + AI agent  →  Mawyxx Prime V5.2.md + bootstrap prime_check
-
-  python -m scripts.prime_check --diff
-  python -m scripts.prime_check --evidence
-  python -m scripts.prime_check
-```
-
----
-
-## Using v5.2 in Cursor
-
-Do not paste all ~1300 lines into always-on Rules — context window drops enforcement weight.
-
-```text
-  ✗ Full V5.2 in alwaysApply every message
-  ✓ Small boot rule (~20 lines) + @Mawyxx Prime V5.2.md when the task needs it
-  ✓ prime_check in repo = verification lives outside the chat window
-```
-
-`.cursor/rules/mawyxx-boot.mdc`:
+## Cursor
 
 ```markdown
----
-description: MAWYXX boot — load spec on demand
-alwaysApply: true
----
-Real app = PRIME+. Spec: @Mawyxx Prime V5.2.md (AGENT-1 sections as needed).
-No prime_check? Bootstrap AGENT-5 first. You run prime_check. Fix until exit 0.
-Before done: --diff → full → --evidence.
+# .cursor/rules/mawyxx-boot.mdc — keep short; load @Mawyxx Prime V5.2.md on demand
+Real app = PRIME+. No prime_check? AGENT-5 first. Fix until exit 0. --diff → full → --evidence.
+```
+
+```bash
+python -m scripts.prime_check --diff
+python -m scripts.prime_check --evidence
+python -m scripts.prime_check
 ```
 
 ---
 
-*MAWYXX PRIME — v3 principles · v5.2 enforcement · [@ExcitedSkam](https://t.me/ExcitedSkam)*
+*MAWYXX PRIME · [@ExcitedSkam](https://t.me/ExcitedSkam)*
