@@ -238,7 +238,9 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 **AST Prosecutor ≠ CI-обёртка.** Checker сам парсит AST и import graph — слова агента не считаются, только `exit 0`.
 
-**При RED:** отчёт = EXEC SUMMARY → FIX PLAN (P1→P3) → на каждый FAIL: `file:line` + сниппет + **hint** + команда **rerun**. Агент чинит по плану — не по сырому логу pytest.
+**FULL-COLLECTION:** default прогон гоняет **все** steps, собирает **все** FAIL — один отчёт, не игра в молоток.
+
+**При RED:** EXEC SUMMARY → FIX PLAN (P1→P3) → карточки Finding. Агент **чинит весь P1 batch за раз** → один rerun — не цикл «один фикс → полный прогон».
 
 ---
 

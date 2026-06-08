@@ -403,10 +403,10 @@ Core **must not** import Infrastructure or Presentation.
    python -m scripts.prime_check --evidence
    → paste PRIME-VERIFY-EVIDENCE block in response
 
-5. If fail (FIX UNTIL GREEN):
-   read EXEC SUMMARY → FIX PLAN (P1 first) → fix per Finding hint → re-run finding.rerun cmd
-   still RED? → next finding in plan — not random edits
-   loop until --diff + FULL exit 0
+5. If fail (FIX UNTIL GREEN · FULL-COLLECTION):
+   FULL run collects ALL failures → read EXEC SUMMARY → FIX PLAN
+   batch-fix ALL P1 findings → rerun P1 group → batch P2 → batch P3
+   loop until --diff + FULL exit 0 (default collect, not --fail-fast)
    NEVER declare done. NEVER ask user to run it. NEVER abandon task on red.
 ```
 
@@ -587,6 +587,31 @@ FAIL PRIME-A06 [di-purity-gate] P1
 
 **Цель:** агент читает отчёт и **сразу знает** — что сломано, где, какой rule, какой тест добавить. Без гадания по логам pytest/ruff.
 
+#### FULL-COLLECTION + FIX PLAN (default — не fail-fast)
+
+**По умолчанию** FULL run **не останавливается** на первом FAIL. Orchestrator **гоняет все применимые steps**, собирает **все** findings, потом один отчёт:
+
+```text
+FULL run (default):
+  step₁ FAIL → continue
+  step₂ PASS → continue
+  step₃ FAIL → continue
+  … все ~50 steps …
+  → reporter: EXEC SUMMARY + FIX PLAN (P1→P2→P3) + ALL findings
+
+--fail-fast (optional dev only):
+  stop after first P1 — НЕ default перед «done»
+```
+
+**Зачем (GOD MODE fix loop):**
+- **Тотальная картина** — агент за один прогон видит **все** косяки, не 1-of-N whack-a-mole.
+- **Batch fix** — читает FIX PLAN → чинит **весь P1 batch** (все карточки P1) **за один заход** → один `rerun` на группу → потом P2 → P3.
+- **Экономия контекста** — не 5 прогонов терминала с одним и тем же логом; один structured report → один edit wave.
+
+**MUST (orchestrator):** default = **collect all** step failures; `exit 1` в конце если был любой FAIL.  
+**MUST (agent on RED):** fix **все** findings текущего приоритета (P1 batch) **до** rerun — не «один fix → rerun → один fix».  
+**MUST NOT:** declare done после partial P1 fix при оставшихся P1 в том же batch.
+
 **Каждый step** возвращает `StepResult { status, duration_ms, findings[] }`. `reporter.py` собирает единый отчёт.
 
 #### Finding format (одна строка проблемы)
@@ -738,14 +763,17 @@ Run `python -m scripts.prime_check --evidence` for handoff block.
 | `--quiet` | только EXEC SUMMARY + exit code (для CI log) |
 | `--fail-fast` | stop after first P1 blocker (dev loop) |
 
-#### Agent discipline on RED
+#### Agent discipline on RED (batch fix loop)
 
 ```text
-1. Read EXEC SUMMARY + FIX PLAN — не листай сырой лог
-2. Fix P1 group → rerun hint command from finding
-3. Still RED? → next finding in same step, not random edits
-4. Step green → next FIX PLAN item
-5. --diff green → full run → --evidence
+1. FULL run (no --fail-fast) → read EXEC SUMMARY + FIX PLAN — не сырой лог
+2. Collect all P1 Finding cards → fix ALL in one edit wave (3–5 files OK)
+3. Rerun P1 group cmd from FIX PLAN (e.g. --only coverage-branch-100) OR --diff if mixed
+4. P1 green? → batch-fix ALL P2 → rerun → batch-fix ALL P3 → rerun
+5. --diff green → FULL collect again → exit 0 → --evidence
+
+Anti-pattern: fix 1 finding → full rerun → fix 1 → full rerun (wastes context)
+Correct:       fix ALL P1 → rerun once → fix ALL remaining P1 → …
 ```
 
 **MUST:** `orchestrator.py` вызывает `reporter.render()` **всегда** — даже при crash step.  
@@ -1914,7 +1942,8 @@ Gates проверяют Engine, не заставляют одну колонк
 | agent_bootstraps_prime_check | if missing — agent writes FULL checker (steps, config, CI) |
 | agent_owns_checker | agent creates, configures, runs, fixes checker — user never |
 | Finding | one actionable issue: rule ID, step, file:line, hint, rerun cmd |
-| FIX PLAN | ordered repair list in prime_check report — agent follows P1→P3 |
+| FIX PLAN | ordered repair list — agent batch-fixes P1→P2→P3 groups before rerun |
+| FULL-COLLECTION | default FULL run executes all steps, collects all findings, one report |
 | COVERAGE MAP | per-file line/branch % + exact uncovered lines from reporter |
 | MATRIX GAPS | missing test_err_*, route×status, zta scenario, fsm edge, double-submit, context leak, err context |
 | Explicit errors (was Anti-Null) | no silent null as failure in core ([A10](#prime-a10--result)) |
