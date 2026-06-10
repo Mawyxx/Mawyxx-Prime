@@ -101,6 +101,25 @@ What v3 already teaches (prose, no rule IDs, no machine gate):
 | **Idempotent-Ledger gate** | A14 · A12 | `idempotency-matrix-gate` — double-submit test per state-changing UC |
 | **Bounded-Context gate** | A04 · B05 | `context-leak-gate` — AST blocks cross-module domain entity imports |
 | **Error Context gate** | A10 · B03 | `error-context-gate` — every `Err` = rule_id + snapshot + trace_id |
+| **Quality Constellation** | Quality Constellation · A16 · A18 | ISO 25010 · ISO 5055 CISQ · OWASP Top 10/ASVS · CERT/MISRA When safety-critical |
+
+---
+
+## Quality Constellation — international standards (not decoration)
+
+PRIME is not an isolated checklist. v5.2 **operationalizes** global quality and secure-coding standards into rules + machine gates:
+
+| Standard | Role | PRIME implementation |
+|----------|------|----------------------|
+| **ISO/IEC 25010** | 9 measurable quality characteristics (reliability, security, maintainability…) | Each characteristic → Part A/B rules + gates (full table in spec) |
+| **ISO/IEC 5055** (CISQ) | Automated structural defect detection in source | **AST Prosecutor** + static steps — 4 CISQ pillars tagged per step |
+| **OWASP Top 10 · ASVS** | Web app security risks + verification depth | **A02** · **A16** · **A18** · `zta-matrix-gate` · `injection-fuzz` · ASVS scales with tier |
+| **SEI CERT** | Safe systems coding (C/C++/Java) | Forbidden constructs · concurrency · memory safety **When** native/unsafe stack |
+| **MISRA C/C++** | Safety-critical predictability | **CRITICAL** / embedded profile — `safety_profile` in config · `clang-tidy`/`cppcheck`/`clippy` |
+
+**100% line+branch coverage** = ISO 25010 **Reliability** (fault tolerance) + **Maintainability** (testability), not vanity metrics.  
+**AST Prosecutor** = local **ISO 5055-class** analysis — agent-written, not external SaaS.  
+**ZTA matrix** = closes OWASP **A01** + **A07** on every protected operation.
 
 ---
 
@@ -140,11 +159,14 @@ Not optional «where needed». **Skin** = project-native; **Engine** = always on
 | Module boundaries verbal | **Bounded-Context Lock:** no shared domain entities — DTO/primitives/events only | **A04** · **A05** · **B05** · `context-leak-gate` |
 | Typed errors prose | **Error Context Matrix:** every `Err` = rule_id + state_snapshot + correlation_id | **A10** · **B03** · `error-context-gate` |
 
-### Security
+### Security & international standards
 
 | v3.0 | v5.2 improvement | Rules · gates |
 |------|------------------|---------------|
-| 5 security bullets | Full secure-by-design + OWASP pack | **A16** · **A18** |
+| 5 security bullets | Full secure-by-design + **OWASP Top 10 table** + ASVS by tier | **A16** · **A18** · Quality Constellation |
+| No ISO mapping | **ISO 25010** 9 characteristics → rules/gates | Quality Constellation |
+| No structural defect standard | **ISO 5055 CISQ** → AST Prosecutor pillars | AGENT-5 · 7 AST gates |
+| No safety-critical profile | **CERT/MISRA** When C/C++/embedded/CRITICAL | `safety_profile` · `cert-forbidden-gate` |
 | «No secrets in repo» | Working tree + **full git history** scan | **A19** · `gitleaks-history` · `no-secrets` |
 | «Update dependencies» | Zero high/critical CVE; SBOM | **A19** · `dependency-audit` · `sbom` |
 | Input validation at boundary | + injection fuzz · SSRF allowlist | **A18** · `injection-fuzz` · `ssrf-gate` |
@@ -256,18 +278,62 @@ Open ≠ free for corporations. The spec is public; commercial deployment on com
 
 ---
 
-## Cursor
+## Cursor — how to adopt (don't pollute global rules)
+
+**Do not** paste the full v5.2 spec into `.cursor/rules` or User Rules. ~1300 lines in always-on context burns tokens, fights project rules, and the agent still won't internalize everything — it needs the file when the task needs it.
+
+**Do** keep the spec **locally in the workspace** and load it **on demand**.
+
+### 1. Put the file in your project
+
+Pick one:
+
+| Method | When |
+|--------|------|
+| **Copy** `Mawyxx Prime V5.2.md` into the repo (e.g. `docs/standards/`) | Simplest — one file, version pinned by you |
+| **Submodule** this repo into `standards/mawyxx-prime/` | Pin a commit; `git submodule update` when you upgrade |
+| **Clone** beside the project and add both folders to one Cursor workspace | Spec lives outside app repo — fine for personal use |
+
+The agent must be able to **read the path** — `@` mention or `Read` tool. No cloud-only link required.
+
+### 2. Short boot rule only
+
+One small rule in `.cursor/rules/mawyxx-boot.mdc` (or project `AGENTS.md` one-liner). **Boot, not textbook:**
 
 ```markdown
-# .cursor/rules/mawyxx-boot.mdc — keep short; load @Mawyxx Prime V5.2.md on demand
-Project Skin + Empire Engine. Tier by risk. No checker? Agent builds FULL (steps, config, CI) — runs & fixes alone. Never ask user to run tests.
+---
+description: MAWYXX PRIME boot — short; full spec on demand
+alwaysApply: true
+---
+
+Project Skin + Empire Engine. Tier by risk (see spec §Tier).
+Full rules: read `docs/standards/Mawyxx Prime V5.2.md` when starting work, changing architecture, or before merge — do not guess.
+No checker? Agent builds FULL per AGENT-5 (steps, config, CI) — runs & fixes alone. Never ask user to run tests.
+On RED: FULL-COLLECTION report → batch-fix P1 → rerun.
 ```
+
+Adjust the path to where you copied the file.
+
+### 3. Load on demand — you or the agent
+
+| Who | How |
+|-----|-----|
+| **You** | `@Mawyxx Prime V5.2.md` (or your path) at task start: «implement X per PRIME», «bootstrap checker», «fix RED» |
+| **Agent** | Boot rule says read spec → agent opens file itself; for narrow tasks, read only **AGENT-*** / **A*** / **B*** sections cited in the task |
+| **Neither** | v3.0-only vibe coding with no tier — boot rule optional |
+
+**Good:** boot rule + local file + `@` when stakes are high.  
+**Bad:** entire v5.2 in User Rules; duplicating A01–A32 into ten `.mdc` files; expecting the agent to remember last week's chat instead of re-reading AGENT-5.
+
+### 4. Checker commands (after agent bootstraps `scripts/prime_check/`)
 
 ```bash
 python -m scripts.prime_check --diff
 python -m scripts.prime_check --evidence
 python -m scripts.prime_check
 ```
+
+User does not run these — agent does. Listed here so you know what «green» means.
 
 ---
 

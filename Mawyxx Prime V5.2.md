@@ -42,7 +42,7 @@
 
 **Нет checker в репо → STOP фичу → [AGENT-5](#agent-5--prime-check) bootstrap FULL → green → только потом задача пользователя.**
 
-**Цель:** **High Cohesion** внутри модулей, **Low Coupling** между ними. Код предсказуемый, тестируемый, наблюдаемый, готовый к росту.
+**Цель:** **High Cohesion** внутри модулей, **Low Coupling** между ними. Код предсказуемый, тестируемый, наблюдаемый, готовый к росту — в терминах **ISO/IEC 25010** (Reliability · Security · Maintainability) и измерим через **ISO/IEC 5055**-class static analysis (**AST Prosecutor**).
 
 **Applicability keywords (RFC 2119 + WHEN):**
 
@@ -65,6 +65,87 @@
 | **Idempotent mutations** | Повтор = тот же эффект, не дубль | [A14](#prime-a14--idempotency) | When state-changing + retry risk | `idempotency-matrix-gate` |
 | **Module isolation** | Нет импорта чужих **private** domain types | [A04](#prime-a04--integration--plugin-boundaries) | When multi-module / service split | `context-leak-gate` |
 | **Observable failures** | trace + invariant_id + safe context в логах | [A10](#prime-a10--result) · [B03](#prime-b03--sre--observability--events) | PRIME+ | `error-context-gate` |
+
+### Quality Constellation — ISO · CISQ · OWASP · CERT (constitutional layer)
+
+**Empire Engine** — не «наш внутренний чеклист». Это **операционализация** международных стандартов качества и безопасного кодинга: измеримые outcomes + machine gates, не PDF на полке.
+
+| Standard | Role in PRIME | How enforced |
+|----------|---------------|--------------|
+| **ISO/IEC 25010** | Модель качества ПО — 9 характеристик | Каждая → правила Part A/B + gates (таблица ниже) |
+| **ISO/IEC 5055** (CISQ) | Автоизмерение **структурных** дефектов в исходниках | **AST Prosecutor** + static steps — 4 столпа CISQ |
+| **OWASP Top 10 · ASVS** | Веб-безопасность и verification levels | [A18](#prime-a18--owasp-input-hygiene) · [A02](#prime-a02--zero-trust) · security steps |
+| **SEI CERT** | Безопасный системный код (C/C++/Java…) | Forbidden constructs · concurrency · memory safety **When** native/unsafe stack |
+| **MISRA C/C++** | Safety-critical предсказуемость | **CRITICAL** / embedded profile — запрет UB-конструкций, динамики без ADR |
+
+**Agent rule:** не цитируй стандарт «для галочки». Каждый MUST в PRIME = **конкретный** gate или test matrix. Нет gate → агент пишет step при bootstrap ([AGENT-5](#agent-5--prime-check)).
+
+#### ISO/IEC 25010 → PRIME mapping (9 characteristics)
+
+| ISO 25010 | Sub-characteristic (examples) | PRIME rules | Gates / evidence |
+|-----------|------------------------------|-------------|------------------|
+| **Functional suitability** | completeness, correctness | [A07](#prime-a07--design-first) · [A12](#prime-a12--tests--coverage) · [A24](#prime-a24--tdd-lock) | `test-matrix-gate` · `route-matrix-gate` · `err-variant-gate` |
+| **Performance efficiency** | time behaviour, resource use | [B10](#prime-b10--performance) | perf budget ADR · load smoke When SLA |
+| **Compatibility** | coexistence, interoperability | [A21](#prime-a21--semver--contracts) · [B05](#prime-b05--inter-service-contracts) | `api-contract-drift` · `snapshot-contract` |
+| **Usability** | learnability, operability (UI) | [B11](#prime-b11--client-apps) | `frontend-quality` · a11y When UI |
+| **Reliability** | maturity, availability, fault tolerance, recoverability | [A12](#prime-a12--tests--coverage) · [A25](#prime-a25--coverage-absolute) · [B04](#prime-b04--resilience) · [A14](#prime-a14--idempotency) | 100% coverage · `idempotency-matrix-gate` · circuit breakers |
+| **Security** | confidentiality, integrity, non-repudiation, accountability | [A02](#prime-a02--zero-trust) · [A16](#prime-a16--secure-by-design) · [A18](#prime-a18--owasp-input-hygiene) · [A19](#prime-a19--supply-chain) · [A29](#prime-a29--zta-matrix) | `zta-matrix-gate` · `gitleaks-history` · `dependency-audit` · `injection-fuzz` |
+| **Maintainability** | modularity, reusability, analysability, modifiability, testability | [A05](#prime-a05--layer-law) · [A11](#prime-a11--decomposition) · [A17](#prime-a17--clean-code) · [B09](#prime-b09--adr) | **7 AST gates** · `cyclomatic-gate` · `anti-fork-gate` · ADR |
+| **Portability** | adaptability, installability | stack adapters · [A32](#prime-a32--monorepo-scope) | `stack-detect` · per-path tier |
+| **Operational** (25010 ops view) | deploy, monitor, restore | [B13](#prime-b13--ops--runbook) · [B03](#prime-b03--sre--observability--events) | `health-gate` · `prod-config` · trace_id |
+
+**100% line+branch coverage + deterministic-runtime** = прямая реализация **Reliability** (fault tolerance, recoverability) и **Maintainability** (testability) из ISO 25010 — не «перестраховка», а измеримая характеристика качества.
+
+#### ISO/IEC 5055 (CISQ) — 4 pillars → AST Prosecutor + static steps
+
+CISQ измеряет **структурные** дефекты автоматически. **AST Prosecutor** — локальный CISQ-аналог, который агент **пишет сам** (не внешний SaaS, не «доверь линтеру»).
+
+| CISQ pillar | Structural defects (examples) | PRIME enforcement |
+|-------------|------------------------------|-------------------|
+| **Reliability** | unhandled paths, complexity hotspots, nondeterminism in core | `anti-null-gate` · `deterministic-runtime` · `err-variant-gate` · `cyclomatic-gate` |
+| **Security** | injection sinks, hardcoded secrets, weak crypto patterns | `no-string-sql` · `gitleaks-history` · `bandit` · `no-debug-bypass` |
+| **Performance efficiency** | algorithmic hotspots, resource leaks in hot path | `cyclomatic-gate` · `dead-code-gate` · [B10](#prime-b10--performance) budgets |
+| **Maintainability** | coupling, god files, duplicate policy, layer violations | **7 AST gates** · `import-graph-gate` · `anti-fork-gate` · `file-size-guard` |
+
+**MUST:** architecture steps в `prime_check` документируют в step header: `cisq_pillar: Reliability|Security|…` — для traceability в отчёте.
+
+#### OWASP Top 10 · ASVS → tier-scaled verification
+
+| OWASP Top 10 (2021) | PRIME closure | Rule · gate |
+|---------------------|---------------|-------------|
+| A01 Broken Access Control | authz на **каждую** protected operation | [A02](#prime-a02--zero-trust) · `zta-matrix-gate` |
+| A02 Cryptographic Failures | no roll-your-own crypto; TLS min | [A16](#prime-a16--secure-by-design) · `tls-min-version` |
+| A03 Injection | parameterized SQL; fuzz boundaries | [A18](#prime-a18--owasp-input-hygiene) · `no-string-sql` · `injection-fuzz` |
+| A04 Insecure Design | Threat Model mini; design artifact | [A16](#prime-a16--secure-by-design) · [A07](#prime-a07--design-first) |
+| A05 Security Misconfiguration | no debug prod; hardened containers | [A23](#prime-a23--infra--docker-security) · `docker-security` · `prod-config` |
+| A06 Vulnerable Components | zero high/critical CVE | [A19](#prime-a19--supply-chain) · `dependency-audit` · `sbom` |
+| A07 Identification & Auth Failures | full auth scenario matrix | [A29](#prime-a29--zta-matrix) · `zta-matrix-gate` |
+| A08 Software & Data Integrity | lockfile, SBOM, no unsigned deps w/o ADR | [A19](#prime-a19--supply-chain) |
+| A09 Security Logging Failures | structured logs; no PII; err context | [B03](#prime-b03--sre--observability--events) · `pii-log-scan` · `error-context-gate` |
+| A10 SSRF | outbound URL allowlist | [A18](#prime-a18--owasp-input-hygiene) · `ssrf-gate` |
+
+**OWASP ASVS** verification depth by tier:
+
+| Tier | ASVS target | Agent MUST |
+|------|-------------|------------|
+| **LITE** | hygiene only — no secrets, validate input | [A16](#prime-a16--secure-by-design) basics |
+| **STANDARD** | V1 Architecture + V2 Authentication partial | boundary validation · no secrets |
+| **PRIME+** | V1–V4 for exposed web/API surface | Threat Model mini · full ZTA matrix · injection fuzz |
+| **CRITICAL** | all applicable ASVS chapters for surface | Threat Model full · `mutation-critical` · `injection-fuzz` mandatory |
+
+#### SEI CERT · MISRA — safety-critical profile (When native / embedded / CRITICAL)
+
+**When** stack = C · C++ · Rust `unsafe` · embedded · avionics/automotive/medical profile · tier **CRITICAL**:
+
+| Family | CERT / MISRA intent | PRIME rule |
+|--------|---------------------|------------|
+| **Memory safety** | no unchecked buffer arithmetic; no use-after-free patterns | ban raw pointer arithmetic without ADR; Rust: `unsafe` only with ADR + tests |
+| **Concurrency** | no data races; defined locking order | [A05](#prime-a05--layer-law) immutability · `immutability-gate` · FSM atomic transitions [B06](#prime-b06--fsm) |
+| **Predictability** | no undefined behaviour; bounded execution | `deterministic-runtime` · no `eval`/`exec` · no unbounded recursion without ADR |
+| **Forbidden language subset** | MISRA banned constructs | extend `forbidden_patterns` in config: `goto`, `setjmp`, unchecked casts, VLAs (C) |
+| **Dynamic allocation** | minimize heap in hot/safety path | **SHOULD:** arena/pool patterns; heap in ISR/real-time loop → ADR + review |
+
+**AST Prosecutor** для C/C++/Go/Rust = идея **CERT/MISRA static analysis**: не слова агента, а **структурный** разбор AST/import graph. Агент **MUST** wire `clang-tidy` / `cppcheck` / `clippy` / `MISRA` ruleset **When** safety profile active.
 
 ### ZERO-TOLERANCE doctrine (tier ≥ PRIME)
 
@@ -127,6 +208,7 @@ coverage_legacy: 100_percent_on_changed_files_only
 adr_dir: docs/adr/
 prime_check_config: scripts/prime_check.config.yaml
 stack_adapters: python | node | rust | go | kotlin | swift
+quality_constellation: ISO_25010 | ISO_5055_CISQ | OWASP_Top10 | OWASP_ASVS | SEI_CERT | MISRA_When_safety_critical
 ```
 
 **Agent rule:** нет quality gate (tier ≥ PRIME) → агент **сам** пишет FULL checker ([AGENT-5](#agent-5--prime-check)), config, CI — потом фича. Пользователь **не участвует**.  
@@ -208,7 +290,7 @@ print PRIME-VERIFY-EVIDENCE block ([A26](#prime-a26--evidence-block))
 Ты пишешь код **в стиле проекта, с духом Empire** — Project Skin + Empire Engine.
 
 - **MUST:** прочитать проект: стек, структура, стиль **до** кода — писать **родным** для репо синтаксисом.
-- **MUST:** применять **Empire Engine** для назначенного tier — тесты, security, explicit errors, fix-until-green — **всегда**, не «если успеем».
+- **MUST:** применять **Empire Engine** для назначенного tier — тесты, security, explicit errors, fix-until-green — **всегда**, не «если успеем». Outcomes traceable к **ISO 25010** ([Quality Constellation](#quality-constellation--iso--cisq--owasp--cert-constitutional-layer)).
 - **MUST NOT:** «проектный стиль» как оправдание для sloppy code, silent errors, без тестов, без проверок.
 - **MUST:** определи **Risk Tier** ([A01](#prime-a01--context--risk-tier)). App/API/service = минимум **STANDARD**; **PRIME** — когда сработал триггер (auth, PII, payments, external mutations, FSM status…).
 - **MUST:** если checker **отсутствует / неполный / нет CI / config пустой** и tier ≥ PRIME → **STOP feature work** → агент **сам** bootstrap FULL [AGENT-5](#agent-5--prime-check) (scaffold, steps, yaml, CI, deps) → green → потом продолжай.
@@ -305,6 +387,9 @@ Core **must not** import Infrastructure or Presentation.
 | Secrets, env | `.env.example` / secrets docs |
 | Why decision | `docs/adr/<relevant>.md` |
 | Versioning | Changelog / API versioning policy |
+| Quality model mapping | [Quality Constellation](#quality-constellation--iso--cisq--owasp--cert-constitutional-layer) in this spec |
+| OWASP closure | [A18](#prime-a18--owasp-input-hygiene) Top 10 table + ASVS tier depth |
+| Safety-critical C/C++ | CERT/MISRA profile in config · `steps/safety/` |
 
 ---
 
@@ -326,6 +411,8 @@ Core **must not** import Infrastructure or Presentation.
 | Stateful entity (status) — When in design artifact | ≥PRIME | B06, A14 | `fsm-transition-gate` + concurrency |
 | Client UI | ≥PRIME | B11, A18 | `frontend-quality` + full |
 | Financial / compliance | CRITICAL | All + B09 | full + `mutation-critical` + `injection-fuzz` |
+| Security / OWASP surface | ≥PRIME | A16, A18, A02, A29 | `zta-matrix-gate` + `injection-fuzz` + `ssrf-gate` |
+| Safety-critical (C/C++/embedded) | CRITICAL | A16, A15, B06 + CERT/MISRA profile | `clang-tidy`/`cppcheck`/`clippy` + immutability + forbidden_patterns |
 | Ops / deploy / health | ≥PRIME | B13, A23 | `health-gate` + `prod-config` |
 | Script only (no network) | LITE | B07 | smoke only — no prime_check required |
 
@@ -359,7 +446,10 @@ Core **must not** import Infrastructure or Presentation.
 [ ] `python -m scripts.prime_check` → exit 0 (FULL matrix)
 [ ] PRIME-VERIFY-EVIDENCE block printed (A26)
 [ ] CI workflow = identical command
-[ ] Threat Model mini if CRITICAL + security touch
+[ ] Threat Model mini if CRITICAL + security touch (OWASP A04 · ASVS)
+[ ] OWASP Top 10 surface mapped: access control · injection · misconfig · deps · logging (A18)
+[ ] CISQ pillars green: Reliability · Security · Maintainability static steps (AST Prosecutor)
+[ ] Safety-critical profile: CERT/MISRA forbidden_patterns + concurrency When C/C++/embedded
 ```
 
 **Coverage — ZERO tolerance (tier ≥ PRIME):**
@@ -489,7 +579,9 @@ exit 0 → print EVIDENCE → ONLY NOW say «done»
 
 **Проблема:** checker только с `pytest` + coverage = хорошая CI-обёртка. Агент говорит «готово» словами — checker не может возразить.
 
-**Решение:** **AST Prosecutor** — Python/Node/Go **исходники** в `scripts/prime_check/`, которые **агент сам пишет** по [AGENT-5](#agent-5--prime-check). **Не в репо MAWYXX Prime** — нет готового checker'а, .exe или pip-пакета. Скрипт парсит AST + import graph → structured Finding. **Слова агента ≠ доказательство. Exit 0 = единственная правда.**
+**Решение:** **AST Prosecutor** — Python/Node/Go/C/C++ **исходники** в `scripts/prime_check/`, которые **агент сам пишет** по [AGENT-5](#agent-5--prime-check). **Не в репо MAWYXX Prime** — нет готового checker'а, .exe или pip-пакета. Скрипт парсит AST + import graph → structured Finding. **Слова агента ≠ доказательство. Exit 0 = единственная правда.**
+
+**Стандарты:** AST Prosecutor = локальная реализация **ISO/IEC 5055** (CISQ) — автоматический поиск **структурных** дефектов по 4 столпам (Reliability · Security · Performance · Maintainability). Идея **SEI CERT / MISRA** static rules: запрет опасных конструкций на уровне AST, не на уровне «мы вроде аккуратные». См. [Quality Constellation](#quality-constellation--iso--cisq--owasp--cert-constitutional-layer).
 
 **Skin & Engine:** нам похер имена папок (`Skin`). Engine = prosecutor читает `architecture.*` scopes из config и проверяет **outcomes** по графу импортов и AST — не по слову «Domain» в пути.
 
@@ -550,6 +642,8 @@ architecture:
 | **Swift** | SourceKit | SwiftSyntax | swiftlint |
 
 **Agent MUST:** при bootstrap создать `steps/architecture/` с реализацией **всех 7 AST gates** для detected stack — не откладывать «на потом».
+**Agent MUST (safety-critical When):** добавить `steps/safety/` — `clang-tidy`/`cppcheck`/`clippy` denylist, `forbidden_patterns` из CERT/MISRA profile, concurrency scan — tier CRITICAL или `safety_profile: true` в config.
+**Agent SHOULD:** в header каждого architecture step указать `iso_25010:` и `cisq_pillar:` для traceability в FIX PLAN.
 
 #### Example FAIL (agent-readable — не спорить, чинить)
 
@@ -820,6 +914,12 @@ architecture:                      # AST Prosecutor — agent maps Skin → scop
   cyclomatic_max: 10
   file_max_lines: 300
   banned_imports_in_core: {python: [sqlalchemy, fastapi], node: [express, pg]}
+safety_profile: false                 # true When C/C++/embedded/CRITICAL → CERT/MISRA steps
+forbidden_patterns:                  # extend per safety_profile
+  - "goto"
+  - "setjmp"
+  - "eval("
+  - "exec("
 ```
 
 ### FULL step map — ~50 steps (mandatory at PRIME+)
@@ -897,6 +997,10 @@ architecture:                      # AST Prosecutor — agent maps Skin → scop
 | `prod-config` | required env; no debug prod | A23 |
 | `health-gate` | /health /ready probes exist + tested | B13 |
 | `tls-min-version` | prod TLS < 1.2 fail | A23 |
+| **SAFETY — When C/C++/embedded / CRITICAL** | | |
+| `cert-forbidden-gate` | AST/denylist: goto, unchecked cast, eval, VLAs (config) | A16 · CERT/MISRA profile |
+| `concurrency-race-gate` | shared mutable + missing sync in safety scope | A05 · B06 · CERT |
+| `clang-tidy` / `cppcheck` / `clippy-deny` | stack-native safety linter zero violations | A16 · ISO 5055 Security/Reliability |
 | **CLIENT** | | |
 | `frontend-quality` | lint + types + unit | B11 |
 | **CRITICAL** | | |
@@ -1014,7 +1118,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 | [A15](#prime-a15--deterministic-time) | Time/ID/random | PRIME+ |
 | [A16](#prime-a16--secure-by-design) | Secure-by-design | all* |
 | [A17](#prime-a17--clean-code) | Clean code & patterns | STANDARD+ |
-| [A18](#prime-a18--owasp-input-hygiene) | OWASP / input hygiene | PRIME+ |
+| [A18](#prime-a18--owasp-input-hygiene) | OWASP Top 10 · ASVS · input hygiene | PRIME+ |
 | [A19](#prime-a19--supply-chain--secrets) | Supply chain & secrets | all |
 | [A20](#prime-a20--migrations) | Data & migrations | PRIME+ |
 | [A21](#prime-a21--semver--contracts) | SemVer & contracts | PRIME+ |
@@ -1065,15 +1169,17 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 - **MUST:** elevate to **CRITICAL** for finance, compliance, irreversible data loss.
 - **MUST:** if tier ≥ PRIME and no quality gate → bootstrap first ([AGENT-5](#agent-5--prime-check)).
 - **MUST:** set `adoption_mode`: greenfield (full scope) or legacy (diff-100 + ratchet) ([A31](#prime-a31--legacy-adoption)).
-- **MUST:** PRIME defines **quality outcomes**, not folder tree or framework choice.
+- **MUST:** PRIME defines **quality outcomes**, not folder tree or framework choice — outcomes align with **ISO/IEC 25010** characteristics for assigned tier ([Quality Constellation](#quality-constellation--iso--cisq--owasp--cert-constitutional-layer)).
 - **MUST NOT:** downgrade tier to avoid tests or gate bootstrap.
 - **MUST NOT:** impose Clean/DDD/UseCase/Result if project uses other proven pattern — map to [Pattern Catalog](#pattern-catalog--stack-native-equivalents).
+- **SHOULD:** document tier triggers in design artifact with ISO 25010 lens (e.g. «PRIME because auth → Security + Reliability»).
 
 ---
 
 ## PRIME-A02 — Zero Trust (ZTA)
 
-**Min tier:** PRIME+ **When:** exposed operation requires auth **Enforced by:** `zta-matrix-gate`, contract tests
+**Min tier:** PRIME+ **When:** exposed operation requires auth **Enforced by:** `zta-matrix-gate`, contract tests  
+**Aligns:** OWASP Top 10 **A01 Broken Access Control** · **A07 Identification & Auth Failures** · ASVS V2/V4 · ISO 25010 **Security**
 
 - **MUST:** authn + authz on **every** protected **operation** (HTTP route, RPC method, GraphQL field, CLI with credentials) **before** application logic.
 - **MUST:** localhost, docker network, `127.0.0.1`, sidecar, `/internal`, `/debug` — **те же правила** что и public internet в prod/staging.
@@ -1137,6 +1243,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 *Separation roles — not mandatory folder tree. Form = repo-native ([Pattern Catalog](#pattern-catalog--stack-native-equivalents)).*
 
 **Min tier:** STANDARD+ **Applicability:** separation of business logic from I/O — **форма = repo-native**  
+**Aligns:** ISO 25010 **Maintainability** (modularity, analysability) · CISQ **Maintainability** · ISO 5055 coupling defects  
 **Enforced by (PRIME+):** `import-boundaries` · `immutability-gate` (When applicable) · `context-leak-gate` (When multi-module)
 
 | Role | MUST | MUST NOT |
@@ -1290,7 +1397,8 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 
 ## PRIME-A11 — Decomposition
 
-**Min tier:** STANDARD+
+**Min tier:** STANDARD+  
+**Aligns:** ISO 25010 **Maintainability** (analysability, modifiability) · CISQ **Maintainability** · ISO 5055 complexity defects
 
 - **SHOULD:** ≤120 lines per file.
 - **MUST:** file >200 → decompose or document exception; >300 → block.
@@ -1302,9 +1410,10 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 
 ## PRIME-A12 — Tests & coverage (ZERO untested code)
 
-**Min tier:** PRIME+ for 100% gate; STANDARD+ for pyramid
+**Min tier:** PRIME+ for 100% gate; STANDARD+ for pyramid  
+**Aligns:** ISO 25010 **Reliability** (fault tolerance, recoverability) · **Maintainability** (testability) · CISQ **Reliability** pillar
 
-**Doctrine:** в `runtime_scope` **не существует** непокрытой строки и ветки. Нет теста = нет merge. Core без I/O → быстрые unit-тесты. **Fakes** в unit; **real infra** в integration — не наоборот.
+**Doctrine:** в `runtime_scope` **не существует** непокрытой строки и ветки. 100% coverage = измеримая **Reliability** по ISO 25010 — каждая ветка отказа протестирована, не vanity metric. Нет теста = нет merge. Core без I/O → быстрые unit-тесты. **Fakes** в unit; **real infra** в integration — не наоборот.
 
 ### Pyramid
 
@@ -1406,7 +1515,8 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 ## PRIME-A15 — Deterministic time
 
 **Min tier:** PRIME+ **Enforced by:** `deterministic-runtime`  
-*Side-Effect Injection — сквозной инвариант вместе с [A06](#prime-a06--di--ports).*
+*Side-Effect Injection — сквозной инвариант вместе с [A06](#prime-a06--di--ports).*  
+**Aligns:** ISO 25010 **Reliability** · CISQ **Reliability** · MISRA/CERT **predictability** (no hidden nondeterminism in testable core)
 
 `now()` / `uuid4()` / `random()` в testable core → flaky tests. **Outcome:** same inputs + fixed clock/ID/random in tests → same output.
 
@@ -1421,12 +1531,15 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 
 ## PRIME-A16 — Secure-by-design
 
-**Min tier:** all* — full at PRIME+
+**Min tier:** all* — full at PRIME+  
+**Aligns:** ISO 25010 **Security** · OWASP Top 10 **A04 Insecure Design** · ASVS V1 Architecture
 
 ### Threat Model mini (CRITICAL / security touch)
 
 - **MUST:** assets, untrusted boundaries, verify points, top-5 threats, failure scenarios.
-- **SHOULD:** map to OWASP / ASVS ([A18](#prime-a18--owasp-input-hygiene)).
+- **MUST:** map each threat → OWASP Top 10 category + PRIME rule ID + gate that closes it ([A18](#prime-a18--owasp-input-hygiene)).
+- **MUST (CRITICAL):** ASVS-relevant chapters listed in design artifact (auth, session, access control, data protection).
+- **SHOULD:** STRIDE or equivalent lightweight frame — outcome = traceable threats, not slide deck.
 
 ### Security rules (all tiers)
 
@@ -1471,23 +1584,32 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 
 ## PRIME-A18 — OWASP input hygiene
 
-**Min tier:** PRIME+ (validation STANDARD+)
+**Min tier:** PRIME+ (validation STANDARD+)  
+**Aligns:** OWASP Top 10 (2021) · OWASP ASVS V5 · ISO 25010 **Security** · CISQ **Security** pillar
 
-- **MUST:** all external input untrusted until schema + auth + policy pass (HTTP, CLI args, WebSocket, file upload…).
-- **MUST:** schema at boundary (Pydantic, zod, Joi…).
-- **MUST:** parameterized SQL only.
-- **MUST:** encode HTML output; allowlist redirects; validate uploads.
+- **MUST:** all external input untrusted until schema + auth + policy pass (HTTP, CLI args, WebSocket, file upload, webhooks, GraphQL variables…).
+- **MUST:** schema at boundary (Pydantic, zod, Joi, protobuf validate…).
+- **MUST:** parameterized SQL / prepared statements only — **no** string-built queries ([`no-string-sql`](#full-step-map--50-steps-mandatory-at-prime)).
+- **MUST:** encode HTML output; CSP When web UI; allowlist redirects; validate uploads (type, size, path).
+- **MUST:** close **every applicable** OWASP Top 10 item for the surface — table below is normative, not checklist decoration.
 
-| Risk | Rule |
-|------|------|
-| Injection | Parameterized SQL; no shell with user input |
-| Broken auth | [A02](#prime-a02--zero-trust), deny tests |
-| XSS | Encode output; CSP |
-| SSRF | URL allowlists |
-| Misconfiguration | env validation; no debug in prod |
-| Vulnerable deps | [A19](#prime-a19--supply-chain) |
+| OWASP Top 10 | PRIME closure | Gate / test |
+|--------------|---------------|-------------|
+| **A01** Broken Access Control | [A02](#prime-a02--zero-trust) deny-by-default; authz in app layer | `zta-matrix-gate` |
+| **A02** Cryptographic Failures | no custom crypto; TLS ≥1.2 prod; secrets not in code | `tls-min-version` · [A19](#prime-a19--supply-chain) |
+| **A03** Injection | parameterized SQL; no shell with user input; fuzz | `no-string-sql` · `injection-fuzz` |
+| **A04** Insecure Design | Threat Model · design artifact | [A16](#prime-a16--secure-by-design) · [A07](#prime-a07--design-first) |
+| **A05** Security Misconfiguration | hardened docker; no debug prod; env validation | [A23](#prime-a23--infra--docker-security) · `prod-config` |
+| **A06** Vulnerable Components | lockfile; zero high/critical CVE | `dependency-audit` · `sbom` |
+| **A07** Auth Failures | full scenario matrix per protected op | [A29](#prime-a29--zta-matrix) · `zta-matrix-gate` |
+| **A08** Integrity Failures | signed deps policy; immutable deploy artifacts | [A19](#prime-a19--supply-chain) |
+| **A09** Logging Failures | structured logs; no PII/secrets; err context | [B03](#prime-b03--sre--observability--events) · `pii-log-scan` · `error-context-gate` |
+| **A10** SSRF | outbound URL allowlist; block metadata IPs | `ssrf-gate` |
 
-- **MUST:** contract tests for malformed/hostile input.
+**ASVS depth by tier** — см. [Quality Constellation](#quality-constellation--iso--cisq--owasp--cert-constitutional-layer). PRIME+ web/API **MUST** satisfy applicable ASVS L1–L3 verification items via gates above — not manual pen-test excuses.
+
+- **MUST:** contract tests for malformed/hostile input on **every** boundary declared in design artifact.
+- **MUST NOT:** «мы используем framework → OWASP закрыт» без `zta-matrix-gate` / `injection-fuzz` green.
 
 ---
 
@@ -1559,7 +1681,8 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 - **MUST:** CI = local (identical command).
 - **MUST:** ALL applicable steps from AGENT-5 (~50).
 - **MUST:** `coverage-line-100` + `coverage-branch-100` + `coverage-diff-100` + `coverage-ratchet`.
-- **MUST:** `zta-matrix-gate` + `gitleaks-history` + `dependency-audit` + architecture gates.
+- **MUST:** `zta-matrix-gate` + `gitleaks-history` + `dependency-audit` + architecture gates + OWASP Top 10 closure ([A18](#prime-a18--owasp-input-hygiene)).
+- **MUST (safety_profile):** CERT/MISRA steps green before «done» on CRITICAL native/embedded.
 - **MUST:** `--diff` before full; `--evidence` before «done».
 - **MUST:** fail → structured Finding + EXEC SUMMARY + FIX PLAN ([Report output](#report-output--agent-readable-diagnostics)).
 - **MUST:** bug fix = regression test in same PR.
@@ -1617,9 +1740,10 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 
 ## PRIME-A25 — Coverage absolute
 
-**Min tier:** PRIME+ **Enforced by:** `coverage-*` steps
+**Min tier:** PRIME+ **Enforced by:** `coverage-*` steps  
+**Aligns:** ISO 25010 **Reliability** + **Maintainability** · CISQ **Reliability** — fault paths must be exercised
 
-- **MUST:** 100.00% line + 100.00% branch — `99.99%` = fail.
+- **MUST:** 100.00% line + 100.00% branch — `99.99%` = fail. Это **Reliability** characteristic, не KPI ради KPI.
 - **MUST:** `coverage-diff-100` на каждый PR (legacy + greenfield).
 - **MUST:** `coverage-ratchet` — coverage never drops vs `main`.
 - **MUST NOT:** `# pragma: no cover` / `istanbul ignore` без ADR + config entry + sunset.
@@ -1761,7 +1885,8 @@ async fn create_order(State(svc): State<AppSvc>, Json(body): Json<Dto>) -> impl 
 
 ## PRIME-B04 — Resilience
 
-**Min tier:** PRIME+
+**Min tier:** PRIME+  
+**Aligns:** ISO 25010 **Reliability** (availability, fault tolerance, recoverability) · CISQ **Reliability**
 
 Assume external world **will** break.
 
@@ -1896,6 +2021,9 @@ Gates проверяют Engine, не заставляют одну колонк
 | Lifecycle rules | Domain FSM object | DB CHECK constraint, workflow engine, enum + validator + tests |
 | Observable failure | Err struct fields | OTel span attrs, log middleware, structured `logger.error({...})` |
 | Quality gate | `python -m scripts.prime_check` | `npm run prime:check`, `make prime-check`, `cargo xtask prime`, CI job contract |
+| Safety-critical predictability | MISRA subset / CERT rules | `clang-tidy` profile · Rust deny `unsafe` w/o ADR · Go race detector in CI |
+| Structural defect scan | CISQ / ISO 5055 automated measure | AST Prosecutor 7 gates + `cyclomatic-gate` + security static steps |
+| OWASP verification | ASVS checklist per tier | `zta-matrix-gate` · `injection-fuzz` · Threat Model in design artifact |
 
 **Agent algorithm:** detect Project Skin in repo → extend it → run **full Empire Engine** for tier → map gates to scopes → ADR only when introducing **new** Skin pattern. **Never** downgrade Engine because Skin is informal.
 
@@ -1952,6 +2080,14 @@ Gates проверяют Engine, не заставляют одну колонк
 | Idempotent mutations | When retry risk — same key → same outcome ([A14](#prime-a14--idempotency)) |
 | Module isolation | When multi-module — no private type imports ([A04](#prime-a04--integration--plugin-boundaries)) |
 | Observable failures | trace + invariant_id + safe context in logs ([A10](#prime-a10--result), [B03](#prime-b03--sre--observability--events)) |
+| Quality Constellation | ISO 25010 · ISO 5055 CISQ · OWASP · CERT · MISRA alignment layer |
+| ISO 25010 | 9 software quality characteristics — mapped to PRIME rules/gates |
+| ISO 5055 / CISQ | Automated structural defect measurement — implemented by AST Prosecutor |
+| OWASP Top 10 | 10 critical web app risks — closed by A02/A16/A18/A19 + gates |
+| OWASP ASVS | Application Security Verification Standard — depth scales with tier |
+| SEI CERT | Safe coding rules (C/C++/Java) — concurrency, memory, forbidden constructs When native |
+| MISRA | Safety-critical C/C++ predictability — forbidden constructs, minimal dynamic heap |
+| CISQ pillar | Reliability \| Security \| Performance \| Maintainability — tag on static steps |
 
 ---
 

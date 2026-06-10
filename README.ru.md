@@ -101,6 +101,25 @@
 | **Idempotent-Ledger gate** | A14 · A12 | `idempotency-matrix-gate` — double-submit тест на каждый state-changing UC |
 | **Bounded-Context gate** | A04 · B05 | `context-leak-gate` — AST блокирует кросс-импорт domain entity |
 | **Error Context gate** | A10 · B03 | `error-context-gate` — каждый `Err` = rule_id + snapshot + trace_id |
+| **Quality Constellation** | Quality Constellation · A16 · A18 | ISO 25010 · ISO 5055 CISQ · OWASP Top 10/ASVS · CERT/MISRA When safety-critical |
+
+---
+
+## Quality Constellation — международные стандарты (не для галочки)
+
+PRIME — не изолированный чеклист. v5.2 **операционализирует** глобальные стандарты качества и безопасного кодинга в правила + machine gates:
+
+| Стандарт | Роль | Реализация в PRIME |
+|----------|------|-------------------|
+| **ISO/IEC 25010** | 9 измеряемых характеристик качества (надёжность, security, сопровождаемость…) | Каждая → правила Part A/B + gates (полная таблица в спеке) |
+| **ISO/IEC 5055** (CISQ) | Автопоиск **структурных** дефектов в исходниках | **AST Prosecutor** + static steps — 4 столпа CISQ с тегами на steps |
+| **OWASP Top 10 · ASVS** | Риски веб-приложений + глубина верификации | **A02** · **A16** · **A18** · `zta-matrix-gate` · `injection-fuzz` · ASVS по tier |
+| **SEI CERT** | Безопасный системный код (C/C++/Java) | Запрещённые конструкции · concurrency · memory safety **When** native/unsafe |
+| **MISRA C/C++** | Safety-critical предсказуемость | **CRITICAL** / embedded — `safety_profile` в config · `clang-tidy`/`cppcheck`/`clippy` |
+
+**100% line+branch** = ISO 25010 **Reliability** (отказоустойчивость) + **Maintainability** (тестируемость), не vanity metric.  
+**AST Prosecutor** = локальный анализ класса **ISO 5055** — пишет агент, не внешний SaaS.  
+**ZTA matrix** = закрывает OWASP **A01** + **A07** на каждую protected operation.
 
 ---
 
@@ -140,11 +159,14 @@
 | Границы модулей словами | **Bounded-Context Lock:** нет shared domain entities — только DTO/primitives/events | **A04** · **A05** · **B05** · `context-leak-gate` |
 | Typed errors текстом | **Error Context Matrix:** каждый `Err` = rule_id + state_snapshot + correlation_id | **A10** · **B03** · `error-context-gate` |
 
-### Безопасность
+### Безопасность и международные стандарты
 
 | v3.0 | Улучшение в v5.2 | Правила · gates |
 |------|------------------|-----------------|
-| 5 пунктов §7 | Secure-by-design + OWASP pack | **A16** · **A18** |
+| 5 пунктов §7 | Secure-by-design + **таблица OWASP Top 10** + ASVS по tier | **A16** · **A18** · Quality Constellation |
+| Нет ISO mapping | **ISO 25010** — 9 характеристик → rules/gates | Quality Constellation |
+| Нет стандарта структурных дефектов | **ISO 5055 CISQ** → столпы AST Prosecutor | AGENT-5 · 7 AST gates |
+| Нет safety-critical профиля | **CERT/MISRA** When C/C++/embedded/CRITICAL | `safety_profile` · `cert-forbidden-gate` |
 | «Без секретов» | Working tree + **вся git history** | **A19** · `gitleaks-history` · `no-secrets` |
 | «Обновляй deps» | Zero high/critical CVE; SBOM | **A19** · `dependency-audit` · `sbom` |
 | Валидация на границе | + injection fuzz · SSRF allowlist | **A18** · `injection-fuzz` · `ssrf-gate` |
@@ -256,18 +278,62 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 ---
 
-## Cursor
+## Cursor — как подключать (не засорять глобальные rules)
+
+**Не надо** пихать всю v5.2 в `.cursor/rules` или User Rules. ~1300 строк в always-on контексте жрут токены, конфликтуют с правилами проекта, и агент всё равно не «запомнит» спеку — ему нужен файл **когда задача этого требует**.
+
+**Надо** положить спеку **локально в workspace** и **подгружать по запросу**.
+
+### 1. Положи файл в проект
+
+На выбор:
+
+| Способ | Когда |
+|--------|-------|
+| **Скопировать** `Mawyxx Prime V5.2.md` в репо (напр. `docs/standards/`) | Проще всего — один файл, версию фиксируешь ты |
+| **Submodule** этого репо в `standards/mawyxx-prime/` | Пин на коммит; обновление через `git submodule update` |
+| **Клон** рядом с проектом + оба каталога в одном workspace Cursor | Спека вне app-репо — ок для личного use |
+
+Агент должен **читать путь** — `@`-упоминание или `Read`. Облачная ссылка без файла в workspace не считается.
+
+### 2. Короткий boot rule — и только он
+
+Один маленький rule в `.cursor/rules/mawyxx-boot.mdc` (или одна строка в `AGENTS.md`). **Boot, не учебник:**
 
 ```markdown
-# .cursor/rules/mawyxx-boot.mdc — короткий boot; @Mawyxx Prime V5.2.md по задаче
-Project Skin + Empire Engine. Tier по риску. Нет checker? Агент FULL (steps, config, CI) — сам гоняет и чинит. Не проси пользователя запускать тесты.
+---
+description: MAWYXX PRIME boot — короткий; полная спека по задаче
+alwaysApply: true
+---
+
+Project Skin + Empire Engine. Tier по риску (см. спеку §Tier).
+Полные правила: читай `docs/standards/Mawyxx Prime V5.2.md` при старте работы, смене архитектуры или перед merge — не угадывай.
+Нет checker? Агент FULL по AGENT-5 (steps, config, CI) — сам гоняет и чинит. Не проси пользователя запускать тесты.
+При RED: отчёт FULL-COLLECTION → batch-fix P1 → rerun.
 ```
+
+Путь поправь под то, куда положил файл.
+
+### 3. Подгрузка по задаче — ты или агент
+
+| Кто | Как |
+|-----|-----|
+| **Ты** | `@Mawyxx Prime V5.2.md` (или твой путь) в начале задачи: «сделай X по PRIME», «bootstrap checker», «почини RED» |
+| **Агент** | Boot rule велит читать спеку → открывает сам; для узкой задачи — только нужные **AGENT-*** / **A*** / **B*** секции |
+| **Никто** | Кодинг по v3.0 без tier — boot rule не обязателен |
+
+**Норм:** boot rule + локальный файл + `@` когда ставки высокие.  
+**Плохо:** вся v5.2 в User Rules; дублировать A01–A32 в десять `.mdc`; надеяться, что агент помнит прошлый чат вместо перечитывания AGENT-5.
+
+### 4. Команды checker (после того как агент поднимет `scripts/prime_check/`)
 
 ```bash
 python -m scripts.prime_check --diff
 python -m scripts.prime_check --evidence
 python -m scripts.prime_check
 ```
+
+Пользователь их не запускает — агент. Здесь для понимания, что значит «green».
 
 ---
 
