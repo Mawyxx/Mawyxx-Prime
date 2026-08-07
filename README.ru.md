@@ -4,11 +4,11 @@
 
 [English version → README.md](README.md)
 
-Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.2** именует каждое правило, добавляет workflow агента и требует **quality gate** для enforcement **outcomes**.
+Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.7** именует каждое правило, добавляет workflow агента и требует **quality gate** для enforcement **outcomes** — включая честные N/A, taxonomy тестов, intent lock, минимальный blast radius и **Contract Surface** (порты · интерфейсы · DTO/ACL · composition root). Компактный SSOT (~2190 строк).
 
-**Project Skin · Empire Engine:** пиши **в стиле проекта** (стек, папки, фреймворк) — но **всегда с дисциплиной Empire** (тесты, security, явные ошибки, fix-until-green). Не «или проект, или enterprise» — **оба**: родная форма, имперское качество. Pattern Catalog = Skin; gates = Engine.
+**Project Skin · Empire Engine:** пиши **в стиле проекта** (стек, папки, фреймворк, capability-пакеты, формы портов) — но **всегда с дисциплиной Empire** (в core только контракты, taxonomy тестов, anti-N/A, acceptance ↔ tests, security, fix-until-green). Не «или проект, или enterprise» — **оба**. Pattern Catalog = Skin; gates = Engine. Coverage % сам по себе **не** done. Concrete I/O в core **не** done.
 
-**v5.2 открыт в репо** — читай, форкай, учись, лично используй бесплатно. **Корпоративное / командное / клиентский прод** — разовая лицензия ($50/сотрудник) → [@ExcitedSkam](https://t.me/ExcitedSkam).
+**v5.7 открыт в репо** — читай, форкай, учись, лично используй бесплатно. **Корпоративное / командное / клиентский прод** — разовая лицензия ($50/сотрудник) → [@ExcitedSkam](https://t.me/ExcitedSkam).
 
 ---
 
@@ -17,8 +17,8 @@
 | Файл | Содержание | Доступ |
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | 10 разделов · ~220 строк | **MIT · открыт** |
-| `Mawyxx Prime V5.2.md` | AGENT-0…5 · **A01–A32** · **B01–B14** · ~1300 строк | **Открыт в репо** · корп = платно |
-| `scripts/prime_check/` | **Агент создаёт FULL** по **AGENT-5** (~50 steps, config, CI) | **Не в репо** — агент bootstrap, config, run, fix — **пользователь не трогает** |
+| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A35** (+ A05a, A12a) · **B01–B14** · ~2190 строк | **Открыт в репо** · корп = платно |
+| `scripts/prime_check/` | **Агент создаёт FULL** по **AGENT-5** (~50+ steps, config, CI) | **Не в репо** — агент bootstrap, config, run, fix — **пользователь не трогает** |
 
 ---
 
@@ -37,7 +37,7 @@
 | **CQRS** | Когда read/write разная сложность — не для trivial CRUD |
 | **FSM** | Сущности со статусом — явный граф переходов |
 | **Domain events** | Core публикует факты; infra доставляет |
-| **Idempotency** | `idempotency_key` на опасных retry — v5.2 добавляет **Idempotent-Ledger** (ledger + double-submit gate) |
+| **Idempotency** | `idempotency_key` на опасных retry — v5.7 добавляет **Idempotent-Ledger** (ledger + double-submit gate) |
 | **SOLID** | SRP, OCP, LSP, ISP, DIP — в §5 |
 | **Fail-fast** | Валидация на границе системы |
 | **Typed errors** | Доменные ошибки, не magic exceptions в глубине |
@@ -49,56 +49,83 @@
 |---------|----------------|
 | **Observability** | trace_id, structured logs, метрики на критичных путях |
 | **Resilience** | Circuit breaker, bulkheads, graceful degradation |
-| **SRE** | SLI, SLO, error budget, self-healing |
-| **ADR** | Контекст · варианты · решение · последствия в `docs/adr/` |
-| **API contracts** | OpenAPI / schema; версионирование breaking changes |
-| **Security hygiene** | Без секретов в коде; валидация ввода; least privilege; без PII в логах |
+| **SRE** | SLI, SLO, error budget, self-healing jobs |
+| **ADR** | Context · options · decision · consequences в `docs/adr/` |
+| **API contracts** | OpenAPI / schema; versioned breaking changes |
+| **Security hygiene** | Нет секретов в коде; валидация ввода; least privilege; нет PII в логах |
 
 ### Тестирование
 
 | Паттерн | Что требует v3 |
 |---------|----------------|
-| **Пирамида** | Unit (fakes) → integration → contract |
-| **DI в тестах** | InMemory / Fake — предсказуемость |
-| **Баг → тест** | Каждый фикс = regression test |
-| **Coverage** | 100% на CRITICAL; осмысленные тесты elsewhere — **агент решает** |
+| **Pyramid** | Unit (fakes) → integration → contract |
+| **DI in tests** | InMemory / Fake — предсказуемое поведение |
+| **Bug → test** | Каждый фикс — regression test |
+| **Coverage** | 100% на CRITICAL paths; meaningful tests elsewhere — **решает агент** |
 
-### Протокол агента (только v3)
+### Agent protocol (только v3)
 
-- Контекст проекта до правки
-- Risk Tier (LITE / STANDARD / PRIME / CRITICAL)
+- Читать контекст проекта до edit
+- Выбрать Risk Tier (LITE / STANDARD / PRIME / CRITICAL)
 - Минимальный scope на фичу
-- **Self-review чеклист** (§10) перед «готово» — на честности, без `exit 0`
+- **Self-review checklist** (§10) перед «готово» — honor system, без `exit 0`
 
 ---
 
-## v5.2 — что НОВОЕ (в v3 этого нет)
+## v5.7 — Enforcement honesty + Contract Surface (ядро актуального стандарта)
 
-| Добавление | Правило / модуль | Зачем |
-|------------|------------------|-------|
-| **Фазы агента** | AGENT-OMEGA 0→4 | LOCK → design → TDD → code → verify — строгий порядок |
-| **Task router** | AGENT-1 | Тип задачи → какие правила применять |
-| **Merge gate** | A22 · AGENT-5 | `prime_check` — единственное «готово» на PRIME+ |
-| **Checker = 100% агент** | AGENT-5 · A22 | Нет checker? Агент FULL: scaffold, ~50 steps, yaml, CI, deps, run, fix до green — **не просит пользователя** |
-| **AST Prosecutor** | AGENT-5 | Агент пишет скрипты checker'а; 7 AST gates (import graph, DI purity, nondeterminism, anti-null, thin handlers, complexity, anti-fork) — **не в репо, не только CI** |
-| **Fix until green** | FIX-UNTIL-GREEN · A30 | Red → чини → re-run — агент не бросает |
-| **TDD lock** | A24 | Failing test **до** prod-кода, тот же PR |
-| **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` — без него ответ невалиден |
-| **Закон coverage** | A25 | 100.00% line **и** branch; 99.99% = fail; ratchet vs `main` |
-| **ZTA matrix** | A02 · A29 | Каждый route × anon / expired / forbidden / valid |
+Чем текущий контракт тяжело фейкается:
+
+| Столп | Правило / gate | Что убивает |
+|-------|----------------|-------------|
+| **Package cohesion** | **A05a** · `package-cohesion-gate` | Flat layer-dump при зелёном import-graph |
+| **Test taxonomy** | **A12a** · `test-taxonomy-gate` | Только happy-path · vanity coverage без families |
+| **Anti-N/A** | **A12a** · **A35** | `N/A(потом)` / `N/A(одна реализация)` при сработавшем триггере |
+| **Intent lock** | **A34** · `intent-lock-gate` | «Acceptance понял» без named tests |
+| **Blast radius** | **A33** · soft `blast-radius-gate` | Потрогал half монорепо ради одной кнопки |
+| **Contract Surface** | **A35** · `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` | Concrete в UC · «framework DI = без порта» · mock concrete вместо Fake |
+| **Law→Gate** | **AGENT-5** | MUST без реального step checker'а |
+| **Agent failure modes** | шапка Doctrine | Типичный самообман ИИ → какой rule FAIL |
+| **Evidence honesty** | **A26** | Evidence: taxonomy · **contract_surface** · AC · blast |
+
+**Deprecated reading (не применять):** «flat dump OK if layers green» · «coverage alone = done» · «одна impl → без порта при I/O».
+
+---
+
+## v5.7 — что НОВОЕ (в v3 этого нет)
+
+| Добавление | Правило / модуль | Что делает |
+|------------|------------------|------------|
+| **Agent phases** | AGENT-OMEGA 0→4 | LOCK → design → TDD → implement → verify — обязательный порядок |
+| **Design artifact** | OMEGA PHASE 1 | `capability_slices` · `acceptance_criteria` · `blast_radius` · `test_taxonomy_map` · `contract_surface_map` до кода |
+| **Task router** | AGENT-1 | Тип задачи → какие правила |
+| **Merge gate spec** | A22 · AGENT-5 | `prime_check` — единственный способ сказать «готово» на PRIME+ |
+| **Agent owns checker 100%** | AGENT-5 · A22 | Нет checker? Агент FULL: scaffold, steps, yaml, CI, deps, run, fix until green — **не просит пользователя** |
+| **Law→Gate** | AGENT-5 | Каждый `Enforced by:` MUST → реальный step в той же сессии |
+| **AST Prosecutor** | AGENT-5 | Агент пишет скрипты checker; 7 AST gates + cohesion — **не shipped, не CI-only** |
+| **Package cohesion** | **A05a** | Capability slices / feature packages; mirrored или vertical Skin |
+| **Test taxonomy** | **A12a** | Нормативные families: unit · integration · contract/E2E · regression · mutation · property · injection · access control · scenario · acceptance · boundary · FSM · negative · observability |
+| **Blast radius** | **A33** | Объявить + держать минимум файлов/capabilities на фичу |
+| **Intent lock** | **A34** | Каждый acceptance criterion ↔ ≥1 named test (GWT / Skin-native) |
+| **Contract Surface** | **A35** | Outbound/inbound ports · DTO/ACL · SPI · API/event · Fake vs port · composition root — taxonomy + Anti-N/A + gates |
+| **Fix until green** | FIX-UNTIL-GREEN · A30 | Red gate → fix → re-run — агент не бросает |
+| **TDD lock** | A24 | Failing test **до** production code по family + AC |
+| **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` с taxonomy/AC/blast — «готово» без него = invalid |
+| **100% coverage law** | A25 | 100.00% line **и** branch; 99.99% = fail; **не заменяет** taxonomy |
+| **ZTA matrix** | A02 · A29 | Каждый protected route × anon / expired / forbidden / valid |
 | **Err matrix** | A10 · A12 | Каждый `Err` → обязательный `test_err_*` |
-| **Route matrix** | A03 · A12 | method × path × HTTP status в contract-тестах |
-| **FSM matrix** | B06 | Каждое ребро перехода + illegal jumps |
-| **Качество тестов** | A27 | Нет пустых · нет `assert True` · flaky = ×3 прогона |
-| **Mutation** | A28 | CRITICAL: ≥95% kill rate на `critical_scope` |
-| **Legacy adoption** | A31 | Старый репо: 100% на **diff** + ratchet |
-| **Monorepo tiers** | A32 | PRIME / LITE по пути в одном репо |
-| **Anti-slack** | A30 | Нет «тесты в след. PR» · нет кода на red base |
+| **Route matrix** | A03 · A12 | method × path × HTTP status в contract tests |
+| **FSM matrix** | B06 | Каждое ребро + illegal jumps |
+| **Test quality gates** | A27 | Нет empty tests · нет `assert True` · flaky = ×3 |
+| **Mutation testing** | A28 | CRITICAL: ≥95% kill rate на `critical_scope` |
+| **Legacy adoption** | A31 | Старый репо: 100% на **changed files** + ratchet |
+| **Monorepo tiers** | A32 | PRIME / LITE per path |
+| **Anti-slack** | A30 | Нет «тесты в следующем PR» · нет кода на red base |
 | **RFC 2119** | все правила | MUST / MUST NOT — не «should» |
-| **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP |
+| **Structured report** | AGENT-5 reporter | EXEC SUMMARY · FIX PLAN · COVERAGE MAP на red |
 | **Stack adapters** | AGENT-5 | python · node · rust · go · kotlin · swift |
 | **Forbidden phrases** | AGENT-0 | «~99%» · «запустите сами» = нарушение |
-| **Idempotent-Ledger gate** | A14 · A12 | `idempotency-matrix-gate` — double-submit тест на каждый state-changing UC |
+| **Idempotent-Ledger gate** | A14 · A12 | `idempotency-matrix-gate` — double-submit на state-changing UC |
 | **Bounded-Context gate** | A04 · B05 | `context-leak-gate` — AST блокирует кросс-импорт domain entity |
 | **Error Context gate** | A10 · B03 | `error-context-gate` — каждый `Err` = rule_id + snapshot + trace_id |
 | **Quality Constellation** | Quality Constellation · A16 · A18 | ISO 25010 · ISO 5055 CISQ · OWASP Top 10/ASVS · CERT/MISRA When safety-critical |
@@ -107,7 +134,7 @@
 
 ## Quality Constellation — международные стандарты (не для галочки)
 
-PRIME — не изолированный чеклист. v5.2 **операционализирует** глобальные стандарты качества и безопасного кодинга в правила + machine gates:
+PRIME — не изолированный чеклист. v5.7 **операционализирует** глобальные стандарты качества и безопасного кодинга в правила + machine gates:
 
 | Стандарт | Роль | Реализация в PRIME |
 |----------|------|-------------------|
@@ -117,7 +144,7 @@ PRIME — не изолированный чеклист. v5.2 **операци�
 | **SEI CERT** | Безопасный системный код (C/C++/Java) | Запрещённые конструкции · concurrency · memory safety **When** native/unsafe |
 | **MISRA C/C++** | Safety-critical предсказуемость | **CRITICAL** / embedded — `safety_profile` в config · `clang-tidy`/`cppcheck`/`clippy` |
 
-**100% line+branch** = ISO 25010 **Reliability** (отказоустойчивость) + **Maintainability** (тестируемость), не vanity metric.  
+**100% line+branch** = ISO 25010 **Reliability** + **Maintainability** — но v5.7 ещё требует **taxonomy families** для Functional suitability / Security.  
 **AST Prosecutor** = локальный анализ класса **ISO 5055** — пишет агент, не внешний SaaS.  
 **ZTA matrix** = закрывает OWASP **A01** + **A07** на каждую protected operation.
 
@@ -125,99 +152,110 @@ PRIME — не изолированный чеклист. v5.2 **операци�
 
 ## Empire Engine outcomes (всегда — по tier)
 
-Не «где надо». **Skin** = как в репо; **Engine** = всегда для назначенного tier. Pattern Catalog в v5.2.
+Не «где надо». **Skin** = как в репо; **Engine** = всегда для назначенного tier. Pattern Catalog в v5.7.
 
-| Outcome | When | Где в v5.2 | Gate |
+| Outcome | When | Где в v5.7 | Gate |
 |---------|------|------------|------|
 | **Explicit errors** | PRIME+ core | **A10** — Result / Go error / typed exception; нет silent null | `anti-null-gate` · `err-variant-gate` |
 | **Immutability** | гонки / FSM / shared aggregate | **A05** · **B06** | `immutability-gate` |
 | **Injectable nondeterminism** | PRIME+ testable core | **A06** · **A15** — ports, traits, test doubles | `deterministic-runtime` |
 | **Idempotent mutations** | мутация + retry risk | **A14** · **A09** · **A12** — key + dedup (ledger опционален) | `idempotency-matrix-gate` |
 | **Module isolation** | multi-module / services | **A04** · **B05** — DTO/events; shared kernel = ADR | `context-leak-gate` |
-| **Observable failures** | PRIME+ | **A10** · **B03** — trace + invariant_id в structured logs | `error-context-gate` |
+| **Package cohesion** | ≥2 capabilities / растущий domain | **A05a** — mirrored slices или feature packages | `package-cohesion-gate` |
+| **Test taxonomy** | STANDARD+; full matrix PRIME+ | **A12a** — applicable families или валидный N/A | `test-taxonomy-gate` · matrix gates |
+| **Intent lock** | PRIME+ features | **A34** — AC ↔ named tests | `intent-lock-gate` |
+| **Blast radius** | STANDARD+ | **A33** — минимум capabilities/files | soft `blast-radius-gate` + DoD |
+| **Contract surface** | PRIME+ · When I/O / boundary | **A35** — порты · DTO · API/event · composition root | `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` |
+| **Observable failures** | PRIME+ | **A10** · **B03** · family observability в **A12a** | `error-context-gate` |
 
 ---
 
-## v5.2 — что УЛУЧШЕНО (было в v3 → стало жёстче + gates)
+## v5.7 — что УЛУЧШЕНО (было в v3 → стало жёстче + gates)
 
 ### Архитектура и паттерны
 
-| v3.0 | Улучшение в v5.2 | Правила · gates |
+| v3.0 | Улучшение в v5.7 | Правила · gates |
 |------|------------------|-----------------|
-| «4 слоя» текстом | **Separation roles** + import graph (пути = примеры) | **A05** · `import-boundaries` · `handler-purity-gate` |
-| DI описан | Injectable deps; framework DI OK; нет concrete в core | **A06** · `di-purity` · **A15** · `deterministic-runtime` |
-| Default tier | **STANDARD** для app; **PRIME** по триггерам (auth, PII, payments, FSM…) | **A01** |
-| Только Python verify | **Quality gate contract** — stack-native entrypoint | **A22** · **AGENT-5** Pattern Catalog |
-| Design-first намёком | Design artifact: routes, Err, test_matrix | **A07** · AGENT-OMEGA PHASE 1 |
+| «4 слоя» текстом | **Separation roles** + import graph + **capability packaging** | **A05** · **A05a** · `import-graph-gate` · `package-cohesion-gate` |
+| DI описан | **Явные Ports** даже при 1 impl; framework DI вяжет Port→Adapter; Fake vs port | **A06** · **A35** · `port-surface-gate` · `di-purity` · `composition-root-gate` |
+| Coding to interfaces (v3) | Полная taxonomy **Contract Surface** | **A35** · Pattern Catalog |
+| Default tier | **STANDARD** для app; **PRIME** по триггерам | **A01** |
+| Только Python verify | **Quality gate contract** + Law→Gate | **A22** · **AGENT-5** |
+| Design-first намёком | Design artifact + **contract_surface_map** | **A07** · AGENT-OMEGA PHASE 1 |
 | Анти-дубли словами | Нет `*_v2` policy forks | **A08** · `anti-fork-gate` |
 | Один владелец политики | Policy facades — SSOT | **A09** |
-| Typed errors | **Anti-Null:** только `Result`/`Option` — не `None` в UC/domain; Err в тестах | **A10** · `anti-null-gate` · `err-variant-gate` |
-| «Режь если трудно тестить» | Лимиты: >300 строк fail, complexity >10 | **A11** · `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` |
+| Typed errors | Explicit failure paths; каждый Err в тестах + error context | **A10** · `anti-null-gate` · `err-variant-gate` · `error-context-gate` |
+| «Режь если трудно тестить» | Лимиты >300 / complexity >10; пакеты, не только мелкие файлы | **A11** · **A05a** · `file-size-guard` · `cyclomatic-gate` |
 | CQRS «когда надо» | Формальное правило CQRS | **B01** |
 | FSM «без прыжков» | Каждое ребро в тестах; transition = **новый** immutable state | **B06** · `fsm-transition-gate` · `immutability-gate` |
-| Idempotency «ключ на retry» | **Idempotent-Ledger:** key + WAL/ledger; replay = cached Ok; `test_double_submit_*` | **A14** · **A09** · `idempotency-matrix-gate` |
+| Idempotency «ключ на retry» | **Idempotent-Ledger:** key + WAL/ledger; `test_double_submit_*` | **A14** · **A09** · `idempotency-matrix-gate` |
 | Границы модулей словами | **Bounded-Context Lock:** нет shared domain entities — только DTO/primitives/events | **A04** · **A05** · **B05** · `context-leak-gate` |
-| Typed errors текстом | **Error Context Matrix:** каждый `Err` = rule_id + state_snapshot + correlation_id | **A10** · **B03** · `error-context-gate` |
+| Minimal scope словами | **Blast radius** объявлен и soft-gated | **A33** · `blast-radius-gate` |
+| «Interface только если 2+ impl» | **I/O → порт всегда** на PRIME+; YAGNI только для pure functions | **A35** · **A04** · **A06** |
 
 ### Безопасность и международные стандарты
 
-| v3.0 | Улучшение в v5.2 | Правила · gates |
+| v3.0 | Улучшение в v5.7 | Правила · gates |
 |------|------------------|-----------------|
 | 5 пунктов §7 | Secure-by-design + **таблица OWASP Top 10** + ASVS по tier | **A16** · **A18** · Quality Constellation |
 | Нет ISO mapping | **ISO 25010** — 9 характеристик → rules/gates | Quality Constellation |
-| Нет стандарта структурных дефектов | **ISO 5055 CISQ** → столпы AST Prosecutor | AGENT-5 · 7 AST gates |
+| Нет стандарта структурных дефектов | **ISO 5055 CISQ** → столпы AST Prosecutor | AGENT-5 · 7 AST gates · `package-cohesion-gate` |
 | Нет safety-critical профиля | **CERT/MISRA** When C/C++/embedded/CRITICAL | `safety_profile` · `cert-forbidden-gate` |
 | «Без секретов» | Working tree + **вся git history** | **A19** · `gitleaks-history` · `no-secrets` |
 | «Обновляй deps» | Zero high/critical CVE; SBOM | **A19** · `dependency-audit` · `sbom` |
 | Валидация на границе | + injection fuzz · SSRF allowlist | **A18** · `injection-fuzz` · `ssrf-gate` |
-| Debug в проде (намёк) | Ban `SKIP_AUTH`, `if True:` | **A16** · `no-debug-bypass` |
-| PII в логах (пункт) | Regex scan строк логов | **A16** · `pii-log-scan` |
-| Auth общими словами | Zero Trust: localhost = internet | **A02** · `zta-matrix-gate` |
-| Docker вскользь | non-root · no public DB · TLS ≥1.2 | **A23** · `docker-security` · `compose-security` · `prod-config` |
+| Debug в prod (намёк) | Явный бан `SKIP_AUTH`, `if True:` bypass | **A16** · `no-debug-bypass` |
+| Нет PII в логах | Regex scan log strings | **A16** · `pii-log-scan` |
+| Auth на эндпоинтах | Zero Trust: localhost = internet; deny-by-default | **A02** · `zta-matrix-gate` |
+| Docker легко | non-root · no public DB · TLS ≥1.2 · prod env | **A23** · `docker-security` · `compose-security` · `prod-config` · `tls-min-version` |
 
 ### Тесты и качество
 
-| v3.0 | Улучшение в v5.2 | Правила · gates |
+| v3.0 | Улучшение в v5.7 | Правила · gates |
 |------|------------------|-----------------|
-| Пирамида описана | unit → integration → contract → property | **A12** · `pytest-*` |
-| «Ключевое поведение» | `test_matrix` в design = тесты в репо | **A12** · `test-matrix-gate` |
-| E2E допустим | E2E без unit base = fail | **A12** · `e2e-only-anti-pattern` |
-| Coverage на усмотрение | 100% line+branch на scope или diff | **A25** · `coverage-*` · `no-pragma-no-cover` |
-| Баг → тест (норма) | Обязательный `test_regression_*` | **A12** · `regression-lock` |
-| Property/fuzz опционально | hypothesis / proptest | **B12** · `pytest-property` |
-| — | Mutation на critical код | **A28** · `mutation-critical` |
+| Pyramid описана | Pyramid **плюс** нормативные **taxonomy families** | **A12** · **A12a** · `test-taxonomy-gate` |
+| «Ключевые поведения» | `test_matrix` + `test_taxonomy_map` + Anti-N/A | **A12** · **A12a** · `test-matrix-gate` |
+| Acceptance словами | Каждый AC ↔ named test | **A34** · `intent-lock-gate` |
+| E2E можно | E2E без unit base = fail; API-only = contract@boundary | **A12** · **A12a** · `e2e-only-anti-pattern` |
+| Coverage выбирает агент | 100.00% line+branch **и** taxonomy green | **A25** · **A12a** · `coverage-*` |
+| Bug → test (норма) | Обязательный `test_regression_*` | **A12** · `regression-lock` |
+| Property/fuzz опционально | hypothesis / proptest на границах | **B12** · `pytest-property` |
+| — | Mutation на financial/critical | **A28** · `mutation-critical` |
 
-### Data · контракты · ops
+### Data · contracts · ops
 
-| v3.0 | Улучшение в v5.2 | Правила · gates |
+| v3.0 | Улучшение в v5.7 | Правила · gates |
 |------|------------------|-----------------|
-| Миграции намёком | DDL только в `migrations/`; schema ≡ DB | **A20** · `migration-path-only` · `schema-drift` |
-| OpenAPI «используй» | OpenAPI ≡ runtime; golden snapshots | **A21** · `api-contract-drift` · `snapshot-contract` |
+| Migrations намёком | DDL только в `migrations/`; schema ≡ DB | **A20** · `migration-path-only` · `schema-drift` |
+| OpenAPI «используй schema» | OpenAPI/proto ≡ runtime; golden snapshots | **A21** · `api-contract-drift` · `snapshot-contract` |
 | SemVer упомянут | Правила breaking + contract tests | **A21** |
-| SRE / events текстом | Domain events в infra; error budget | **B03** · **B04** |
-| Health «желательно» | `/health` + `/ready` с тестами | **B13** · `health-gate` |
-| Client UI принципы | lint + types + unit для frontend | **B11** · `frontend-quality` |
-| Self-review чеклист | B08 grep + machine AGENT-2 | **B08** · **AGENT-2** |
-| DoD размытый | A13: handler · DI · Result · docs · threat model | **A13** |
-| Handoff человеку нет | B14: evidence = артефакт передачи | **B14** |
+| SRE / events прозой | Domain events в infra; error budget | **B03** · **B04** |
+| Health «should» | `/health` + `/ready` tested | **B13** · `health-gate` |
+| Client UI принципы | lint + types + unit gate для frontend | **B11** · `frontend-quality` |
+| Self-review checklist | B08 grep + **machine** pre-commit AGENT-2 | **B08** · **AGENT-2** |
+| DoD размыт | A13: thin handler · DI · Result · taxonomy · AC · blast · threat model | **A13** |
+| Human handoff нет | B14: evidence = handoff artifact | **B14** |
 
 ---
 
-## Карта правил v5.2 (полный индекс)
+## Карта правил v5.7 (полный индекс)
 
 ```text
 PART A — A01 Context/tier      A11 Decomposition       A21 SemVer/contracts
         A02 Zero Trust         A12 Tests/pyramid       A22 prime_check
-        A03 API contract       A13 Definition of done  A23 Docker/infra
-        A04 Plugin boundaries  A14 Idempotency         A24 TDD-LOCK
-        A05 Layer law          A15 Deterministic time  A25 Coverage 100%
-        A06 DI & ports         A16 Secure-by-design    A26 Evidence block
-        A07 Design-first       A17 Clean code          A27 Test quality
-        A08 Anti-fork          A18 OWASP/hygiene       A28 Mutation
-        A09 Policy facades     A19 Supply chain        A29 ZTA matrix
-        A10 Result/errors      A20 Migrations          A30 Anti-slack
-                                                      A31 Legacy adoption
+        A03 API contract       A12a Test taxonomy      A23 Docker/infra
+        A04 Plugin boundaries  A13 Definition of done  A24 TDD-LOCK
+        A05 Layer law          A14 Idempotency         A25 Coverage 100%
+        A05a Package cohesion  A15 Deterministic time  A26 Evidence block
+        A06 DI & ports         A16 Secure-by-design    A27 Test quality
+        A07 Design-first       A17 Clean code          A28 Mutation
+        A08 Anti-fork          A18 OWASP/hygiene       A29 ZTA matrix
+        A09 Policy facades     A19 Supply chain        A30 Anti-slack
+        A10 Result/errors      A20 Migrations          A31 Legacy adoption
                                                       A32 Monorepo scope
+                                                      A33 Blast radius
+                                                      A34 Intent lock
+                                                      A35 Contract Surface
 
 PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B02 SOLID/GRASP        B07 YAGNI               B12 Fuzz/property
@@ -225,38 +263,39 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
 
-Outcomes (Part A/B + Pattern Catalog): Explicit errors · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Observable failures
+Outcomes: Explicit errors · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Package cohesion · Test taxonomy · Intent lock · Blast radius · Contract surface · Observable failures
 ```
 
 ---
 
 ## Checker = работа агента (не твоя)
 
-На tier ≥ PRIME **агент** владеет quality gate целиком:
+На tier ≥ PRIME **агент** владеет quality gate end-to-end:
 
 ```text
-НЕТ?     → агент scaffold scripts/prime_check/ + все ~50 step-модулей
-CONFIG?  → агент пишет prime_check.config.yaml (tier, scopes, stack)
-CI?      → агент добавляет workflow — та же команда что local
-DEPS?    → агент добавляет pytest/ruff/eslint/… для gates
-RUN?     → агент гоняет в shell — никогда «запустите сами»
-RED?     → агент чинит код И/ИЛИ checker → re-run → exit 0
-DONE?    → агент печатает PRIME-VERIFY-EVIDENCE
+MISSING?  → агент scaffold scripts/prime_check/ + все applicable step-модули
+CONFIG?   → агент пишет prime_check.config.yaml (tier, scopes, capabilities, ports, composition_root)
+CI?       → агент добавляет workflow — та же команда, что локально
+DEPS?     → агент ставит pytest/ruff/eslint/… для gates
+LAW→GATE? → каждый Enforced-by MUST = реальный step — без stubs
+RUN?      → агент в shell — никогда «запустите сами»
+RED?      → агент чинит код И/ИЛИ checker → re-run → exit 0
+DONE?     → агент печатает PRIME-VERIFY-EVIDENCE (taxonomy + contract_surface + AC + blast)
 ```
 
-**Ты** не ставишь, не настраиваешь, не запускаешь checker. **Агент.**
+**Ты** не ставишь, не настраиваешь и не запускаешь checker. **Агент делает.**
 
-## Как v5.2 проверяет
+## Как v5.7 проверяет
 
 ```text
-PHASE 0  агент bootstrap FULL checker если нет (STOP фича до green)
-PHASE 1  design artifact
-PHASE 2  failing tests first (TDD-LOCK)
-PHASE 3  реализация
+PHASE 0  агент bootstrap FULL checker если нет (STOP фичу до green)
+PHASE 1  design artifact: slices · AC · blast · test_taxonomy_map · contract_surface_map
+PHASE 2  сначала failing tests (TDD-LOCK) по family + AC — против Fake ports
+PHASE 3  implement внутри blast_radius — ports before adapters
 PHASE 4  --only → --diff → full → evidence · fix-until-green
 ```
 
-~50 шагов: static · **AST Prosecutor (7 gates, пишет агент)** · security · pyramid · matrices · coverage · data/ops · evidence.
+~50+ шагов: static · **AST Prosecutor (7 gates + cohesion + port-surface)** · security · pyramid · **taxonomy / intent-lock / contract surface** · matrices · coverage · data/ops · evidence.
 
 **AST Prosecutor ≠ CI-обёртка.** Checker сам парсит AST и import graph — слова агента не считаются, только `exit 0`.
 
@@ -268,7 +307,7 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 ## Лицензия
 
-| Использование | v3.0 | v5.2 |
+| Использование | v3.0 | v5.7 |
 |---------------|------|------|
 | **Читать / форкать / учить** | MIT · открыт | **Открыт** — полная спека в репо |
 | **Лично / хобби / pet** | MIT · free | **Бесплатно** |
@@ -280,7 +319,7 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 ## Cursor — как подключать (не засорять глобальные rules)
 
-**Не надо** пихать всю v5.2 в `.cursor/rules` или User Rules. ~1300 строк в always-on контексте жрут токены, конфликтуют с правилами проекта, и агент всё равно не «запомнит» спеку — ему нужен файл **когда задача этого требует**.
+**Не надо** пихать всю v5.7 в `.cursor/rules` или User Rules. ~2190 строк в always-on контексте жрут токены, конфликтуют с правилами проекта, и агент всё равно не «запомнит» спеку — ему нужен файл **когда задача этого требует**.
 
 **Надо** положить спеку **локально в workspace** и **подгружать по запросу**.
 
@@ -290,7 +329,7 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 | Способ | Когда |
 |--------|-------|
-| **Скопировать** `Mawyxx Prime V5.2.md` в репо (напр. `docs/standards/`) | Проще всего — один файл, версию фиксируешь ты |
+| **Скопировать** `Mawyxx Prime V5.7.md` в репо (напр. `docs/standards/`) | Проще всего — один файл, версию фиксируешь ты |
 | **Submodule** этого репо в `standards/mawyxx-prime/` | Пин на коммит; обновление через `git submodule update` |
 | **Клон** рядом с проектом + оба каталога в одном workspace Cursor | Спека вне app-репо — ок для личного use |
 
@@ -307,9 +346,10 @@ alwaysApply: true
 ---
 
 Project Skin + Empire Engine. Tier по риску (см. спеку §Tier).
-Полные правила: читай `docs/standards/Mawyxx Prime V5.2.md` при старте работы, смене архитектуры или перед merge — не угадывай.
+Полные правила: читай `docs/standards/Mawyxx Prime V5.7.md` при старте работы, смене архитектуры или перед merge — не угадывай.
 Нет checker? Агент FULL по AGENT-5 (steps, config, CI) — сам гоняет и чинит. Не проси пользователя запускать тесты.
 При RED: отчёт FULL-COLLECTION → batch-fix P1 → rerun.
+Anti-N/A · taxonomy · intent lock · blast radius · **contract surface (ports)** — coverage alone ≠ done.
 ```
 
 Путь поправь под то, куда положил файл.
@@ -318,12 +358,12 @@ Project Skin + Empire Engine. Tier по риску (см. спеку §Tier).
 
 | Кто | Как |
 |-----|-----|
-| **Ты** | `@Mawyxx Prime V5.2.md` (или твой путь) в начале задачи: «сделай X по PRIME», «bootstrap checker», «почини RED» |
+| **Ты** | `@Mawyxx Prime V5.7.md` (или твой путь) в начале задачи: «сделай X по PRIME», «bootstrap checker», «почини RED» |
 | **Агент** | Boot rule велит читать спеку → открывает сам; для узкой задачи — только нужные **AGENT-*** / **A*** / **B*** секции |
 | **Никто** | Кодинг по v3.0 без tier — boot rule не обязателен |
 
 **Норм:** boot rule + локальный файл + `@` когда ставки высокие.  
-**Плохо:** вся v5.2 в User Rules; дублировать A01–A32 в десять `.mdc`; надеяться, что агент помнит прошлый чат вместо перечитывания AGENT-5.
+**Плохо:** вся v5.7 в User Rules; дублировать A01–A35 в десять `.mdc`; надеяться, что агент помнит прошлый чат вместо перечитывания AGENT-5.
 
 ### 4. Команды checker (после того как агент поднимет `scripts/prime_check/`)
 
