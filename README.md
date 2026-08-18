@@ -4,9 +4,9 @@
 
 [Russian version → README.ru.md](README.ru.md)
 
-Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.7** names every rule, adds agent workflow, and requires a **quality gate** to enforce **outcomes** — including honest N/A, test taxonomy, intent lock, minimal blast radius, and **Contract Surface** (ports · interfaces · DTO/ACL · composition root). Compact SSOT (~2190 lines).
+Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.7** names every rule, adds agent workflow, and requires a **quality gate** to enforce **outcomes** — including honest N/A, test taxonomy, intent lock, minimal blast radius, **Contract Surface** (ports · interfaces · DTO/ACL · composition root), and **rich domain** (invariants on the entity, not public status setters). Compact SSOT.
 
-**Project Skin · Empire Engine:** write in **your project's style** (stack, folders, framework, capability packages, port forms) — but **always with Empire discipline** (contracts-only in core, taxonomy of tests, anti-N/A, acceptance ↔ tests, security, fix-until-green). Not «project style OR enterprise» — **both**. Pattern Catalog maps Skin; gates enforce Engine. Coverage % alone is **not** done. Concrete I/O in core is **not** done.
+**Project Skin · Empire Engine:** write in **your project's style** (stack, folders, framework, capability packages, port forms, lint/log tools) — but **always with Empire discipline** (contracts-only in core, rich entities when they have lifecycle, expected vs unexpected errors, taxonomy of tests, anti-N/A, acceptance ↔ tests, security, fix-until-green). Not «project style OR enterprise» — **both**. Pattern Catalog maps Skin; gates enforce Engine. Coverage % alone is **not** done. Concrete I/O in core is **not** done. Anemic `user.status = 'active'` is **not** done. Rewriting Nest/Rails/Go into textbook `domain/entities` is **not** the law.
 
 **v5.7 is open in this repo** — read, fork, study, use personally for free. **Corporate / team / client production** still requires a one-time license ($50/employee) → [@ExcitedSkam](https://t.me/ExcitedSkam).
 
@@ -17,7 +17,7 @@ Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.7** nam
 | File | Content | Access |
 |------|---------|--------|
 | `Mawyxx Prime V3.0.md` | 10 sections · ~220 lines | **MIT · open** |
-| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A35** (+ A05a, A12a) · **B01–B14** · ~2190 lines | **Open in repo** · corp use = paid |
+| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A35** (+ A05a, A12a) · **B01–B14** · ~2280 lines | **Open in repo** · corp use = paid |
 | `scripts/prime_check/` | **Agent creates FULL** per **AGENT-5** (~50+ steps, config, CI) | **Not in repo** — agent bootstraps, configures, runs, fixes — **user does nothing** |
 
 ---
@@ -84,11 +84,13 @@ What makes the current contract hard to fake:
 | **Intent lock** | **A34** · `intent-lock-gate` | «Acceptance понял» without named tests |
 | **Blast radius** | **A33** · soft `blast-radius-gate` | Touching half the monorepo for one button |
 | **Contract Surface** | **A35** · `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` | Concrete infra in UC · framework DI as excuse · mock concrete instead of Fake port |
+| **Rich domain / Anti-anemic** | **A05** · **B06** · `anemic-mutation-gate` | `user.status = 'active'` outside the entity · public setter without invariant |
+| **Expected vs unexpected errors** | **A10** | try/catch forest in the use-case · swallowing DB-down as Ok |
 | **Law→Gate** | **AGENT-5** | MUST without a real checker step |
 | **Agent failure modes** | Doctrine header | Typical AI self-deception → which rule FAILs it |
-| **Evidence honesty** | **A26** | Evidence lists taxonomy · **contract_surface** · AC · blast |
+| **Evidence honesty** | **A26** | Evidence lists taxonomy · **contract_surface** · **rich_domain** · **error_split** · AC · blast |
 
-**Deprecated reading (do not apply):** «flat dump OK if layers green» · «coverage alone = done» · «one impl → no port when I/O».
+**Deprecated reading (do not apply):** «flat dump OK if layers green» · «coverage alone = done» · «one impl → no port when I/O» · «anemic entity OK if layers green» · «rewrite the repo to `domain/entities`».
 
 ---
 
@@ -108,6 +110,8 @@ What makes the current contract hard to fake:
 | **Blast radius** | **A33** | Declare + respect minimal files/capabilities per feature |
 | **Intent lock** | **A34** | Each acceptance criterion ↔ ≥1 named test (GWT / Skin-native) |
 | **Contract Surface** | **A35** | Outbound/inbound ports · DTO/ACL · SPI · API/event contracts · Fake vs port · composition root only — taxonomy + Anti-N/A + gates |
+| **Rich domain / Anti-anemic** | **A05** · **B06** | Lifecycle/status via entity methods; `anemic-mutation-gate`; textbook Clean tree is a **catalog sample**, not a mandatory Skin |
+| **Expected vs unexpected errors** | **A10** | Named business Err in core; infra crash → adapter + global presentation handler |
 | **Fix until green** | FIX-UNTIL-GREEN · A30 | Red gate → fix → re-run — agent never abandons |
 | **TDD lock** | A24 | Failing test **before** production code per applicable family + AC |
 | **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` with taxonomy/AC/blast — chat «done» without it = invalid |
@@ -166,6 +170,8 @@ Not optional «where needed». **Skin** = project-native; **Engine** = always on
 | **Intent lock** | PRIME+ features | **A34** — AC ↔ named tests | `intent-lock-gate` |
 | **Blast radius** | STANDARD+ | **A33** — minimal capabilities/files | soft `blast-radius-gate` + DoD |
 | **Contract surface** | PRIME+ · When I/O / boundary | **A35** — ports · DTO · API/event · composition root | `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` |
+| **Rich domain** | When entity has status/lifecycle | **A05** · **B06** — mutate via entity methods, not public assign | `anemic-mutation-gate` · `fsm-transition-gate` |
+| **Expected vs unexpected errors** | PRIME+ | **A10** — named Err in core; infra → global handler | `err-variant-gate` · `no-transport-in-domain` |
 | **Observable failures** | PRIME+ | **A10** · **B03** · **A12a** observability family | `error-context-gate` |
 
 ---
@@ -176,7 +182,7 @@ Not optional «where needed». **Skin** = project-native; **Engine** = always on
 
 | v3.0 | v5.7 improvement | Rules · gates |
 |------|------------------|---------------|
-| «4 layers» in prose | **Separation roles** + import graph + **capability packaging** | **A05** · **A05a** · `import-graph-gate` · `package-cohesion-gate` |
+| «4 layers» in prose | **Separation roles** + import graph + **capability packaging** + **rich domain** | **A05** · **A05a** · `import-graph-gate` · `package-cohesion-gate` · `anemic-mutation-gate` |
 | DI described | **Explicit Ports** even for one impl; framework DI wires Port→Adapter; Fake vs port | **A06** · **A35** · `port-surface-gate` · `di-purity` · `composition-root-gate` |
 | Coding to interfaces (v3 prose) | Full **Contract Surface** taxonomy (outbound/inbound/DTO/SPI/API/event/DbC) | **A35** · Pattern Catalog |
 | Default tier implied | **STANDARD** for app; **PRIME** when triggers (auth, PII, payments, FSM…) | **A01** |
@@ -184,10 +190,10 @@ Not optional «where needed». **Skin** = project-native; **Engine** = always on
 | Design-first implied | Design artifact: slices, AC, blast, taxonomy map, **contract_surface_map**, routes, Err | **A07** · AGENT-OMEGA PHASE 1 |
 | Anti-duplication verbal | No `*_v2` policy forks | **A08** · `anti-fork-gate` |
 | Single policy owner | Policy facades — one SSOT | **A09** |
-| Result / typed errors | Explicit failure paths; every Err tested + error context | **A10** · `anti-null-gate` · `err-variant-gate` · `error-context-gate` |
+| Result / typed errors | Explicit failure paths; **expected vs unexpected**; every Err tested + error context | **A10** · `anti-null-gate` · `err-variant-gate` · `error-context-gate` |
 | File size «split if hard to test» | Hard limits: >300 fail, complexity >10 fail; packages not only smaller files | **A11** · **A05a** · `file-size-guard` · `cyclomatic-gate` |
 | CQRS «when needed» | Formal CQRS rule when read/write diverge | **B01** |
-| FSM «no illegal jumps» | Every edge tested; transition returns **new** immutable state | **B06** · `fsm-transition-gate` · `immutability-gate` |
+| FSM «no illegal jumps» | Every edge tested; transition = **entity method** + **new** immutable state When in-memory | **B06** · **A05** · `fsm-transition-gate` · `anemic-mutation-gate` · `immutability-gate` |
 | Idempotency «key on retry» | **Idempotent-Ledger:** key + WAL/ledger; `test_double_submit_*` | **A14** · **A09** · `idempotency-matrix-gate` |
 | Module boundaries verbal | **Bounded-Context Lock:** no shared domain entities — DTO/primitives/events only | **A04** · **A05** · **B05** · `context-leak-gate` |
 | Minimal scope verbal | **Blast radius** declared and soft-gated | **A33** · `blast-radius-gate` |
@@ -263,7 +269,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
 
-Outcomes: Explicit errors · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Package cohesion · Test taxonomy · Intent lock · Blast radius · Contract surface · Observable failures
+Outcomes: Explicit errors · Expected vs unexpected · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Package cohesion · Rich domain When · Test taxonomy · Intent lock · Blast radius · Contract surface · Observable failures
 ```
 
 ---
@@ -319,7 +325,7 @@ Open ≠ free for corporations. The spec is public; commercial deployment on com
 
 ## Cursor — how to adopt (don't pollute global rules)
 
-**Do not** paste the full v5.7 spec into `.cursor/rules` or User Rules. ~2190 lines in always-on context burns tokens, fights project rules, and the agent still won't internalize everything — it needs the file when the task needs it.
+**Do not** paste the full v5.7 spec into `.cursor/rules` or User Rules. ~2280 lines in always-on context burns tokens, fights project rules, and the agent still won't internalize everything — it needs the file when the task needs it.
 
 **Do** keep the spec **locally in the workspace** and load it **on demand**.
 

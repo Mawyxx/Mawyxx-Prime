@@ -4,9 +4,9 @@
 
 [English version → README.md](README.md)
 
-Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.7** именует каждое правило, добавляет workflow агента и требует **quality gate** для enforcement **outcomes** — включая честные N/A, taxonomy тестов, intent lock, минимальный blast radius и **Contract Surface** (порты · интерфейсы · DTO/ACL · composition root). Компактный SSOT (~2190 строк).
+Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.7** именует каждое правило, добавляет workflow агента и требует **quality gate** для enforcement **outcomes** — включая честные N/A, taxonomy тестов, intent lock, минимальный blast radius, **Contract Surface** (порты · интерфейсы · DTO/ACL · composition root) и **богатый домен** (инварианты в сущности, не публичные сеттеры статуса). Компактный SSOT.
 
-**Project Skin · Empire Engine:** пиши **в стиле проекта** (стек, папки, фреймворк, capability-пакеты, формы портов) — но **всегда с дисциплиной Empire** (в core только контракты, taxonomy тестов, anti-N/A, acceptance ↔ tests, security, fix-until-green). Не «или проект, или enterprise» — **оба**. Pattern Catalog = Skin; gates = Engine. Coverage % сам по себе **не** done. Concrete I/O в core **не** done.
+**Project Skin · Empire Engine:** пиши **в стиле проекта** (стек, папки, фреймворк, capability-пакеты, формы портов, lint/логи) — но **всегда с дисциплиной Empire** (в core только контракты, богатые сущности при lifecycle, expected vs unexpected ошибки, taxonomy тестов, anti-N/A, acceptance ↔ tests, security, fix-until-green). Не «или проект, или enterprise» — **оба**. Pattern Catalog = Skin; gates = Engine. Coverage % сам по себе **не** done. Concrete I/O в core **не** done. Анемичное `user.status = 'active'` **не** done. Переписать Nest/Rails/Go под учебник `domain/entities` — **не** закон.
 
 **v5.7 открыт в репо** — читай, форкай, учись, лично используй бесплатно. **Корпоративное / командное / клиентский прод** — разовая лицензия ($50/сотрудник) → [@ExcitedSkam](https://t.me/ExcitedSkam).
 
@@ -17,7 +17,7 @@
 | Файл | Содержание | Доступ |
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | 10 разделов · ~220 строк | **MIT · открыт** |
-| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A35** (+ A05a, A12a) · **B01–B14** · ~2190 строк | **Открыт в репо** · корп = платно |
+| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A35** (+ A05a, A12a) · **B01–B14** · ~2280 строк | **Открыт в репо** · корп = платно |
 | `scripts/prime_check/` | **Агент создаёт FULL** по **AGENT-5** (~50+ steps, config, CI) | **Не в репо** — агент bootstrap, config, run, fix — **пользователь не трогает** |
 
 ---
@@ -84,11 +84,13 @@
 | **Intent lock** | **A34** · `intent-lock-gate` | «Acceptance понял» без named tests |
 | **Blast radius** | **A33** · soft `blast-radius-gate` | Потрогал half монорепо ради одной кнопки |
 | **Contract Surface** | **A35** · `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` | Concrete в UC · «framework DI = без порта» · mock concrete вместо Fake |
+| **Rich domain / Anti-anemic** | **A05** · **B06** · `anemic-mutation-gate` | `user.status = 'active'` снаружи сущности · публичный сеттер без инварианта |
+| **Expected vs unexpected errors** | **A10** | try/catch-лес в UC · глотать DB-down как Ok |
 | **Law→Gate** | **AGENT-5** | MUST без реального step checker'а |
 | **Agent failure modes** | шапка Doctrine | Типичный самообман ИИ → какой rule FAIL |
-| **Evidence honesty** | **A26** | Evidence: taxonomy · **contract_surface** · AC · blast |
+| **Evidence honesty** | **A26** | Evidence: taxonomy · **contract_surface** · **rich_domain** · **error_split** · AC · blast |
 
-**Deprecated reading (не применять):** «flat dump OK if layers green» · «coverage alone = done» · «одна impl → без порта при I/O».
+**Deprecated reading (не применять):** «flat dump OK if layers green» · «coverage alone = done» · «одна impl → без порта при I/O» · «анемичная сущность ок, слои зелёные» · «перепиши репо под `domain/entities`».
 
 ---
 
@@ -108,6 +110,8 @@
 | **Blast radius** | **A33** | Объявить + держать минимум файлов/capabilities на фичу |
 | **Intent lock** | **A34** | Каждый acceptance criterion ↔ ≥1 named test (GWT / Skin-native) |
 | **Contract Surface** | **A35** | Outbound/inbound ports · DTO/ACL · SPI · API/event · Fake vs port · composition root — taxonomy + Anti-N/A + gates |
+| **Rich domain / Anti-anemic** | **A05** · **B06** | Lifecycle/status через методы сущности; `anemic-mutation-gate`; учебник Clean-дерева — **sample в каталоге**, не обязательный Skin |
+| **Expected vs unexpected errors** | **A10** | Named business Err в core; infra-сбой → adapter + global handler в presentation |
 | **Fix until green** | FIX-UNTIL-GREEN · A30 | Red gate → fix → re-run — агент не бросает |
 | **TDD lock** | A24 | Failing test **до** production code по family + AC |
 | **Evidence block** | A26 | `PRIME-VERIFY-EVIDENCE` с taxonomy/AC/blast — «готово» без него = invalid |
@@ -166,6 +170,8 @@ PRIME — не изолированный чеклист. v5.7 **операци�
 | **Intent lock** | PRIME+ features | **A34** — AC ↔ named tests | `intent-lock-gate` |
 | **Blast radius** | STANDARD+ | **A33** — минимум capabilities/files | soft `blast-radius-gate` + DoD |
 | **Contract surface** | PRIME+ · When I/O / boundary | **A35** — порты · DTO · API/event · composition root | `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` |
+| **Rich domain** | When entity has status/lifecycle | **A05** · **B06** — мутация через методы сущности, не public assign | `anemic-mutation-gate` · `fsm-transition-gate` |
+| **Expected vs unexpected errors** | PRIME+ | **A10** — named Err в core; infra → global handler | `err-variant-gate` · `no-transport-in-domain` |
 | **Observable failures** | PRIME+ | **A10** · **B03** · family observability в **A12a** | `error-context-gate` |
 
 ---
@@ -176,7 +182,7 @@ PRIME — не изолированный чеклист. v5.7 **операци�
 
 | v3.0 | Улучшение в v5.7 | Правила · gates |
 |------|------------------|-----------------|
-| «4 слоя» текстом | **Separation roles** + import graph + **capability packaging** | **A05** · **A05a** · `import-graph-gate` · `package-cohesion-gate` |
+| «4 слоя» текстом | **Separation roles** + import graph + **capability packaging** + **rich domain** | **A05** · **A05a** · `import-graph-gate` · `package-cohesion-gate` · `anemic-mutation-gate` |
 | DI описан | **Явные Ports** даже при 1 impl; framework DI вяжет Port→Adapter; Fake vs port | **A06** · **A35** · `port-surface-gate` · `di-purity` · `composition-root-gate` |
 | Coding to interfaces (v3) | Полная taxonomy **Contract Surface** | **A35** · Pattern Catalog |
 | Default tier | **STANDARD** для app; **PRIME** по триггерам | **A01** |
@@ -184,10 +190,10 @@ PRIME — не изолированный чеклист. v5.7 **операци�
 | Design-first намёком | Design artifact + **contract_surface_map** | **A07** · AGENT-OMEGA PHASE 1 |
 | Анти-дубли словами | Нет `*_v2` policy forks | **A08** · `anti-fork-gate` |
 | Один владелец политики | Policy facades — SSOT | **A09** |
-| Typed errors | Explicit failure paths; каждый Err в тестах + error context | **A10** · `anti-null-gate` · `err-variant-gate` · `error-context-gate` |
+| Typed errors | Explicit failure paths; **expected vs unexpected**; каждый Err в тестах + error context | **A10** · `anti-null-gate` · `err-variant-gate` · `error-context-gate` |
 | «Режь если трудно тестить» | Лимиты >300 / complexity >10; пакеты, не только мелкие файлы | **A11** · **A05a** · `file-size-guard` · `cyclomatic-gate` |
 | CQRS «когда надо» | Формальное правило CQRS | **B01** |
-| FSM «без прыжков» | Каждое ребро в тестах; transition = **новый** immutable state | **B06** · `fsm-transition-gate` · `immutability-gate` |
+| FSM «без прыжков» | Каждое ребро в тестах; transition = **метод сущности** + **новый** immutable state When in-memory | **B06** · **A05** · `fsm-transition-gate` · `anemic-mutation-gate` · `immutability-gate` |
 | Idempotency «ключ на retry» | **Idempotent-Ledger:** key + WAL/ledger; `test_double_submit_*` | **A14** · **A09** · `idempotency-matrix-gate` |
 | Границы модулей словами | **Bounded-Context Lock:** нет shared domain entities — только DTO/primitives/events | **A04** · **A05** · **B05** · `context-leak-gate` |
 | Minimal scope словами | **Blast radius** объявлен и soft-gated | **A33** · `blast-radius-gate` |
@@ -263,7 +269,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
 
-Outcomes: Explicit errors · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Package cohesion · Test taxonomy · Intent lock · Blast radius · Contract surface · Observable failures
+Outcomes: Explicit errors · Expected vs unexpected · Immutability When · Injectable nondeterminism · Idempotent mutations When · Module isolation When · Package cohesion · Rich domain When · Test taxonomy · Intent lock · Blast radius · Contract surface · Observable failures
 ```
 
 ---
@@ -319,7 +325,7 @@ PHASE 4  --only → --diff → full → evidence · fix-until-green
 
 ## Cursor — как подключать (не засорять глобальные rules)
 
-**Не надо** пихать всю v5.7 в `.cursor/rules` или User Rules. ~2190 строк в always-on контексте жрут токены, конфликтуют с правилами проекта, и агент всё равно не «запомнит» спеку — ему нужен файл **когда задача этого требует**.
+**Не надо** пихать всю v5.7 в `.cursor/rules` или User Rules. ~2280 строк в always-on контексте жрут токены, конфликтуют с правилами проекта, и агент всё равно не «запомнит» спеку — ему нужен файл **когда задача этого требует**.
 
 **Надо** положить спеку **локально в workspace** и **подгружать по запросу**.
 
