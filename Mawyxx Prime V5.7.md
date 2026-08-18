@@ -4,22 +4,22 @@
 
 **Agent contract** — единый нормативный файл для ИИ-кодера.
 
-> **v5.7** — **Contract Surface** ([A35](#prime-a35--contract-surface)) · **Anti-Anemic / Rich Domain** ([A05](#prime-a05--layer-law) · [B06](#prime-b06--fsm)) · expected vs unexpected errors ([A10](#prime-a10--result)). Core/app depends on **contracts only**. Honesty · taxonomy · cohesion · blast · intent — вшиты.  
-> **Не применять:** flat-dump «ок если слои зелёные» · coverage alone = done · «одна impl → без порта при I/O» · `user.status = 'active'` снаружи сущности · «перепиши репо под `domain/entities`».
+> **v5.7** — **правда исхода**, не наличие артефактов. Contract Surface **живой** ([A36](#prime-a36--live-surface)) · AC = **оракул** ([A34](#prime-a34--intent-lock)) · no-swallow ([A37](#prime-a37--honest-errors--no-swallow)) · checker не театр ([A38](#prime-a38--checker-integrity)) · FFI на PRIME ([A16](#prime-a16--secure-by-design)) · coverage там, где OS ([A25](#prime-a25--coverage-absolute)).  
+> **Не применять:** зелёный `prime_check` = 10/10 · AC↔имя теста без оракула · порт в yaml без вызова · `#[ignore]` e2e · exclude composition · stub `return GREEN`.
 
 ### Universal Doctrine — Project Skin · Empire Engine (read first)
 
 > **Форма = проект. Дух = всегда Empire.**  
 > Не «как принято в репо, но получше где надо». Не «enterprise только на платежах».  
-> **Всегда:** пишешь **на языке и в стиле проекта** — но с дисциплиной Empire: taxonomy тестов, **контрактная поверхность**, **богатый домен** (инварианты в сущности, не сеттеры снаружи), **честные When/N/A**, **acceptance ↔ tests**, **минимальный blast radius**, cohesion, security, evidence, fix-until-green.
+> **Всегда:** пишешь **на языке и в стиле проекта** — но с дисциплиной Empire: taxonomy с **оракулом**, **живые** порты, **богатый домен**, честный error (не swallow), FFI-дисциплина When unsafe, coverage на I/O/composition, **честные When/N/A**, **минимальный blast**, checker без театра.
 
 | Принцип | Правило |
 |---------|---------|
 | **Project Skin** | Стек/папки/naming/test runner/DI/lint/logs **как в репо**; capability-пакеты ([A05a](#prime-a05a--package-cohesion)); формы портов = Pattern Catalog; виды тестов = Engine. |
-| **Empire Engine** | Слои · cohesion · **contract surface** · **rich domain** · taxonomy · anti-N/A · intent · blast · gates — **всегда** для tier. Law без step = ложь ([AGENT-5](#agent-5--prime-check)). Coverage ≠ taxonomy. Concrete ≠ contracts. Анемичная сущность со статусом ≠ «слои зелёные». |
+| **Empire Engine** | Слои · cohesion · **живой** contract surface · **rich domain** · taxonomy с оракулом · anti-N/A · blast · no-swallow · FFI When · честный coverage · **checker integrity** — **всегда** для tier. Law без step = ложь. Артефакт без исхода = ложь. |
 | **WHEN** | Триггер включает family (тесты **или** контракты); `N/A` только с reason — иначе FAIL ([A12a](#prime-a12a--test-taxonomy), [A35](#prime-a35--contract-surface)). |
 | **Minimal blast** | Минимум файлов/capabilities ([A33](#prime-a33--blast-radius)); качество и порты не режутся. |
-| **Никогда** | «потом тесты» · N/A без причины · coverage vanity · acceptance в голове · half-repo «на всякий» · «одна impl → concrete в UC» при I/O · `entity.status = …` вне метода сущности · навязать учебник `domain/entities`. |
+| **Никогда** | «потом тесты» · N/A без причины · coverage vanity · AC без оракула · порт без вызова · `let _ =` на I/O · ignored e2e без skipped_steps · exclude composition на greenfield · театральный checker · учебник `domain/entities`. |
 
 ### Agent failure modes (30 секунд — читать до кода)
 
@@ -32,9 +32,15 @@
 | N/A-spam / пустой reason | Anti-N/A в [A12a](#prime-a12a--test-taxonomy) · `test-taxonomy-gate` |
 | E2E-only / unit-only при API+DB | Pyramid [A12](#prime-a12--tests--coverage) |
 | Coverage vanity | [A25](#prime-a25--coverage-absolute) ≠ taxonomy green |
-| «Acceptance понял» без теста | [A34](#prime-a34--intent-lock) |
+| «Acceptance понял» / тест только по имени AC | [A34](#prime-a34--intent-lock) behavior-lock — нет оракула |
+| Порт в yaml, в `run()` не вызывается | [A36](#prime-a36--live-surface) · `live-surface-gate` |
+| `let _ =` / `.ok()` / empty catch на I/O | [A37](#prime-a37--honest-errors--no-swallow) · `no-swallow-gate` |
+| `#[ignore]` / `xtest.skip` без skipped_steps | [A12a](#prime-a12a--test-taxonomy) · `ignored-test-gate` |
+| exclude composition/adapters + 100% fakes | [A25](#prime-a25--coverage-absolute) · `exclude-honesty-gate` |
+| Checker: `return GREEN` / path.exists / `"AC{i}" in text` | [A38](#prime-a38--checker-integrity) · `checker-integrity-gate` |
+| unsafe без SAFETY; `safety_profile: false` при FFI | [A16](#prime-a16--secure-by-design) FFI profile · `ffi-safety-gate` |
 | Разнёс half-repo | [A33](#prime-a33--blast-radius) |
-| Law в спеке, step-заглушка | Law→Gate [AGENT-5](#agent-5--prime-check) |
+| Law в спеке, step-заглушка **или** existence-only step | Law→Gate + [A38](#prime-a38--checker-integrity) |
 | Evidence без families | [A26](#prime-a26--evidence-block) |
 | Concrete infra в UC / нет `contract_surface_map` | [A35](#prime-a35--contract-surface) · `port-surface-gate` |
 | «Одна реализация → без порта» при I/O | [A35](#prime-a35--contract-surface) · [A06](#prime-a06--di--ports) |
@@ -60,7 +66,7 @@
 
 **Нет checker в репо → STOP фичу → [AGENT-5](#agent-5--prime-check) bootstrap FULL → green → только потом задача пользователя.**
 
-**Цель:** High Cohesion пакетов ([A05a](#prime-a05a--package-cohesion)) · Low Coupling через **контракты** ([A35](#prime-a35--contract-surface)) · **богатый домен** ([A05](#prime-a05--layer-law)) · **честная taxonomy** ([A12a](#prime-a12a--test-taxonomy)) · **intent = tests** ([A34](#prime-a34--intent-lock)) · **малый blast** ([A33](#prime-a33--blast-radius)) · измеримые gates. Не vanity coverage. Не concrete в core. Не анемичный статус. ISO 25010 + ISO 5055.
+**Цель:** правда исхода. Живые контракты ([A36](#prime-a36--live-surface)) · оракул в AC ([A34](#prime-a34--intent-lock)) · no-swallow ([A37](#prime-a37--honest-errors--no-swallow)) · cohesion · rich domain · честный coverage · checker без театра ([A38](#prime-a38--checker-integrity)). Не зелёные имена. Не ISO-таблицы ради таблиц.
 
 **Applicability keywords (RFC 2119 + WHEN):**
 
@@ -84,7 +90,10 @@
 | **Module isolation** | Нет импорта чужих **private** domain types | [A04](#prime-a04--integration--plugin-boundaries) | When multi-module / service split | `context-leak-gate` |
 | **Package cohesion** | Код одного capability рядом (slice / feature package); нет flat layer-dump | [A05a](#prime-a05a--package-cohesion) · [A05](#prime-a05--layer-law) | STANDARD+ · When ≥2 capabilities / growing domain | `package-cohesion-gate` (soft) |
 | **Test taxonomy** | Применимые виды тестов написаны; **N/A только с валидным reason** | [A12a](#prime-a12a--test-taxonomy) · [A12](#prime-a12--tests--coverage) | STANDARD+; full matrix PRIME+ | `test-taxonomy-gate` · matrix gates |
-| **Intent lock** | Acceptance criteria задачи ↔ named tests | [A34](#prime-a34--intent-lock) | PRIME+ features | `intent-lock-gate` · `test-matrix-gate` |
+| **Behavior lock** | Каждый AC несёт **оракул** — наблюдаемый факт; тест обязан его сломать, если поведение соврало | [A34](#prime-a34--intent-lock) | PRIME+ features | `intent-lock-gate` (oracle, не substring) |
+| **Live surface** | Объявленный порт/поле **вызывается**; identity/todo impl = FAIL | [A36](#prime-a36--live-surface) | PRIME+ · When ports/DTO/settings | `live-surface-gate` |
+| **No swallow** | Result на границе процесса mapped или ADR; dump-bucket Err запрещён | [A37](#prime-a37--honest-errors--no-swallow) | PRIME+ | `no-swallow-gate` · `err-variant-gate` (provoke path) |
+| **Checker integrity** | Step не existence-only, не безусловный GREEN, не `"AC{i}" in text` | [A38](#prime-a38--checker-integrity) | PRIME+ | `checker-integrity-gate` |
 | **Blast radius** | Минимум файлов/capabilities на фичу | [A33](#prime-a33--blast-radius) | STANDARD+ | soft `blast-radius-gate` + DoD |
 | **Contract surface** | Core/app зависит только от контрактов; concrete в adapters / composition root | [A35](#prime-a35--contract-surface) · [A06](#prime-a06--di--ports) · [A04](#prime-a04--integration--plugin-boundaries) | PRIME+ · When I/O / boundary / multi-entry | `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` |
 | **Rich domain** | Lifecycle/status меняет **метод сущности** с инвариантом; не публичный сеттер / field assign | [A05](#prime-a05--layer-law) · [B06](#prime-b06--fsm) | When entity has status/lifecycle | `anemic-mutation-gate` · `fsm-transition-gate` |
@@ -156,13 +165,17 @@ AST Prosecutor = локальный CISQ-аналог (агент пишет с�
 | **PRIME+** | V1–V4 for exposed web/API surface | Threat Model mini · full ZTA matrix · injection fuzz |
 | **CRITICAL** | all applicable ASVS chapters for surface | Threat Model full · `mutation-critical` · `injection-fuzz` mandatory |
 
-#### SEI CERT · MISRA — safety-critical profile (When native / embedded / CRITICAL)
+#### SEI CERT · MISRA — native / FFI profile (PRIME+ When FFI — не только CRITICAL)
 
-**When** stack = C · C++ · Rust `unsafe` · embedded · avionics/automotive/medical profile · tier **CRITICAL**:
+**When** в `src` есть FFI: Rust `unsafe` · JNI · ctypes/`cffi` · Win32/GDI · raw pointers · C/C++ · embedded.  
+**MUST** на этом When включить `ffi_profile: true` (и `safety_profile: true` на CRITICAL / embedded).  
+**FAIL:** `safety_profile: false` **и** `ffi_profile: false` при `unsafe`/JNI/ctypes/Win32 в src.
+
+**CRITICAL** / avionics/automotive/medical — полный MISRA denylist дополнительно.
 
 | Family | CERT / MISRA intent | PRIME rule |
 |--------|---------------------|------------|
-| **Memory safety** | no unchecked buffer arithmetic; no use-after-free patterns | ban raw pointer arithmetic without ADR; Rust: `unsafe` only with ADR + tests |
+| **Memory safety** | no unchecked buffer arithmetic; no use-after-free | каждый `unsafe` / FFI блок — `// SAFETY:` с инвариантом; native handle = RAII/Drop; raw ptr в TLS только рядом с documented owner |
 | **Concurrency** | no data races; defined locking order | [A05](#prime-a05--layer-law) immutability · `immutability-gate` · FSM atomic transitions [B06](#prime-b06--fsm) |
 | **Predictability** | no undefined behaviour; bounded execution | `deterministic-runtime` · no `eval`/`exec` · no unbounded recursion without ADR |
 | **Forbidden language subset** | MISRA banned constructs | extend `forbidden_patterns` in config: `goto`, `setjmp`, unchecked casts, VLAs (C) |
@@ -186,7 +199,13 @@ Gates ниже — **outcome checks**. Шаг `N/A` только с ADR, есл�
 | Protected operation без auth matrix | `zta-matrix-gate` → exit 1 | PRIME+ · When auth |
 | Применимый вид теста из taxonomy отсутствует | `test-taxonomy-gate` → exit 1 | PRIME+ · [A12a](#prime-a12a--test-taxonomy) |
 | `N/A` без trigger-reason / «потом» | `test-taxonomy-gate` → exit 1 | PRIME+ · Anti-N/A |
-| Acceptance criterion без named test | `intent-lock-gate` → exit 1 | PRIME+ · [A34](#prime-a34--intent-lock) |
+| AC без оракула / тест только по имени | `intent-lock-gate` → exit 1 | PRIME+ · [A34](#prime-a34--intent-lock) |
+| Порт/поле объявлены, не живут | `live-surface-gate` → exit 1 | PRIME+ · [A36](#prime-a36--live-surface) |
+| Swallowed Result на I/O границе | `no-swallow-gate` → exit 1 | PRIME+ · [A37](#prime-a37--honest-errors--no-swallow) |
+| `#[ignore]` / skip без per-test skipped_steps | `ignored-test-gate` → exit 1 | PRIME+ |
+| exclude composition/I/O adapters (greenfield) | `exclude-honesty-gate` → exit 1 | PRIME+ greenfield · [A25](#prime-a25--coverage-absolute) |
+| Checker step = existence / `return GREEN` | `checker-integrity-gate` → exit 1 | PRIME+ · [A38](#prime-a38--checker-integrity) |
+| unsafe без `// SAFETY:` / native handle без Drop | `ffi-safety-gate` → exit 1 | When FFI in src · [A16](#prime-a16--secure-by-design) |
 | Happy-path-only (нет negative/boundary) | `negative-path-gate` / `boundary-value-gate` → exit 1 | PRIME+ · When validators / state-changing |
 | Evidence без taxonomy APPLIED\|N/A list | `evidence-block` → invalid | PRIME+ · [A26](#prime-a26--evidence-block) |
 | Secret в repo / history / логах | `gitleaks-history` → exit 1 | Always (network tier+) |
@@ -249,7 +268,12 @@ files_to_touch: [...]
 new_error_variants: [...]
 new_operations: [HTTP route | RPC method | GraphQL field | CLI cmd → statuses/outcomes]
 fsm_transitions: [...]                    # only When entity has status
-acceptance_criteria: [AC1…, AC2…]         # from task/PRD — [A34](#prime-a34--intent-lock); empty on PRIME+ feature → STOP
+acceptance_criteria:                  # [A34](#prime-a34--intent-lock) — каждый AC = id + statement + oracle
+  - id: AC1
+    statement: "process does not create a visible overlapped window"
+    oracle: { kind: hwnd|pixels|fs|order|error_id|toast|state, assert: "FakeOverlay.shown==false until hotkey" }
+    test: test_ac1_no_visible_window
+  # empty on PRIME+ feature → STOP; имя теста без oracle = FAIL
 blast_radius: [capabilities…, files…]     # minimal set — [A33](#prime-a33--blast-radius)
 test_matrix: behavior × input × expected outcome
 test_taxonomy_map:                        # [A12a](#prime-a12a--test-taxonomy) — N/A MUST cite When-trigger absent
@@ -257,7 +281,9 @@ test_taxonomy_map:                        # [A12a](#prime-a12a--test-taxonomy) �
   integration: […] | N/A(no I/O)
   e2e_or_contract: […]
   regression: […] | N/A(no bugfix)
-  mutation: CRITICAL|SHOULD | N/A(tier<CRITICAL & mutation off)
+  mutation: APPLIED on critical_scope (PRIME greenfield MUST) | N/A(legacy & mutation ADR)
+  e2e_or_contract: […] | N/A(no UI / no exposed op)
+  skipped_steps: [{step, test, trigger, adr, sunset}]   # one skip = one trigger; NEVER one ADR for 15 N/A
   property: […] | N/A(no pure invariant)
   injection: […] | N/A(no untrusted input)
   access_control: […] | N/A(no auth)
@@ -353,7 +379,9 @@ Keywords / tiers: Applicability table above · [A01](#prime-a01--context--risk-t
 - **«На каждый CRUD — Playwright + mutation + full fuzz»** — over-test; уважай колонку **When** в A12a.
 - **«Inbound UseCase iface + 3 adapters на будущее»** при single HTTP entry — over-port; `N/A(single HTTP entry)` ок.
 - **«Перепиши Nest/Rails/Go под `domain/entities` + husky + Pino»** — учебник ≠ закон; Skin репо остаётся формой ([A05a](#prime-a05a--package-cohesion), Pattern Catalog).
-- **Анемичная сущность со статусом** (`user.status = 'active'` в UC) — не «слои зелёные»; инвариант в методе сущности ([A05](#prime-a05--layer-law), [B06](#prime-b06--fsm)).
+- **«Порт в yaml = архитектура»** без вызова из UC — dead abstraction ([A36](#prime-a36--live-surface)).
+- **«test_acceptance_ac1_* без оракула»** — таблица синонимов, не lock ([A34](#prime-a34--intent-lock)).
+- **«Наплоди порты и test_err_* имена при сомнении»** — Enough vs too much = **FAIL**, не абзац ([A35](#prime-a35--contract-surface), [A12a](#prime-a12a--test-taxonomy), [B07](#prime-b07--yagni)).
 
 ### Separation + cohesion (summary)
 
@@ -374,7 +402,8 @@ Capability packages — [A05a](#prime-a05a--package-cohesion). Flat dump при 
 - **MUST NOT:** flat dump несвязанных capabilities в один слой-мешок (`domain/*.py` bag, общий `ports/` на всё) при ≥2 направлениях — [A05a](#prime-a05a--package-cohesion).
 - **MUST NOT:** concrete infra types in application/core signatures — [A35](#prime-a35--contract-surface).
 - **MUST NOT:** wire `new ConcreteAdapter()` outside composition root — [A35](#prime-a35--contract-surface).
-- **MUST NOT:** public field-assign / anemic setter of lifecycle status outside the entity’s methods — [A05](#prime-a05--layer-law), [B06](#prime-b06--fsm).
+- **MUST NOT:** `let _ =` / `.ok()` / empty `catch` on process-boundary I/O without ADR+sunset — [A37](#prime-a37--honest-errors--no-swallow).
+- **MUST NOT:** `#[ignore]` / `xtest.skip` / `pytest.mark.skip` without a per-test `skipped_steps` row.
 - **MUST NOT:** rewrite a working Skin into textbook Clean folders «для PRIME».
 
 ### Forbidden patterns (security)
@@ -421,7 +450,9 @@ Capability packages — [A05a](#prime-a05a--package-cohesion). Flat dump при 
 [ ] adoption_mode set (greenfield | legacy) — A31
 [ ] Design artifact: test_matrix + test_taxonomy_map + contract_surface_map + acceptance_criteria + blast_radius (A24, A12a, A35, A34, A33)
 [ ] No naked N/A — every N/A cites absent When-trigger (Anti-N/A tests + contracts)
-[ ] Each acceptance criterion has named test (intent-lock-gate)
+[ ] Each AC has oracle + test body asserts that oracle — not substring AC1 in the name (A34, intent-lock-gate)
+[ ] Listed ports are constructed AND called from application (A36, live-surface-gate)
+[ ] No swallowed Result on process I/O; err-variant tests provoke the production path (A37)
 [ ] Outbound I/O → explicit ports; concrete only in composition root (A35, port-surface-gate)
 [ ] Each outbound port has Fake/InMemory (port-test-double-gate) or ADR
 [ ] Lifecycle/status mutated via entity/VO methods with invariants — not public assign/setter (A05, B06, anemic-mutation-gate)
@@ -540,24 +571,98 @@ done: --diff → FULL → exit 0 → --evidence → paste block
 4. Hint: move to mirrored slice or features/<cap>/…
 ```
 
-#### `test-taxonomy-gate` + Anti-N/A ([A12a](#prime-a12a--test-taxonomy))
-
-```text
-1. Load design artifact test_taxonomy_map (or tests/taxonomy_inventory.yaml agent writes)
-2. Infer triggers from diff + design (auth routes? FSM? I/O? UI? bugfix? multi-step? Err types?)
-3. For each family in A12a tables:
-   - If trigger present → require ≥1 test name that exists in tests_scope (glob/AST collect)
-   - If trigger absent → require N/A(<reason>) where reason ∈ allowlist of absent-triggers
-4. FAIL if: missing family | N/A() empty | N/A("потом"|"skip"|"n/a") | N/A while trigger detected
-5. Cross-check acceptance_criteria ([A34](#prime-a34--intent-lock)): each AC → test reference
-```
-
-#### `intent-lock-gate` ([A34](#prime-a34--intent-lock))
+#### `intent-lock-gate` ([A34](#prime-a34--intent-lock) — behavior-lock)
 
 ```text
 1. acceptance_criteria empty on PRIME+ feature change → FAIL STOP
-2. Each AC string → must appear in test name or test docstring/marker
-3. Hint: add test_acceptance_* / GWT docstring
+2. Each AC MUST have: id, statement, oracle.kind, oracle.assert, test ref
+3. FAIL if oracle missing | oracle.kind empty | test body has no assert/expect matching oracle.assert tokens
+   (HWND/pixels/fs/error_id/toast/shown/style — Skin-native API OK)
+4. FAIL if lock is only: AC id in test name / "AC{i}" in docstring / inventory.yaml exists
+5. Hint: write the observable fact first; name the test after the fact, not AC1
+```
+
+#### `test-taxonomy-gate` + Anti-N/A ([A12a](#prime-a12a--test-taxonomy))
+
+```text
+1. Load test_taxonomy_map (or tests/taxonomy_inventory.yaml)
+2. Infer triggers from diff + design
+3. For each A12a family:
+   - trigger present → ≥1 test whose BODY has a non-trivial oracle assert (see A27)
+   - trigger absent → N/A(<absent-trigger>) — one reason per skip, not one ADR for 15 families
+4. FAIL: missing family | N/A spam | N/A while trigger detected | APPLIED but only name exists (no oracle)
+5. Cross-check AC oracles ([A34](#prime-a34--intent-lock))
+```
+
+#### `live-surface-gate` ([A36](#prime-a36--live-surface))
+
+```text
+1. For each port in architecture.ports / contract_surface_map.outbound:
+   - AST: type is constructed in composition_root_scope AND a method is called from application_scope
+   - else FAIL (declared-not-lived)
+2. Serialized Settings/DTO field never read outside serde/schema → FAIL (unread field)
+3. impl Trait for T whose methods are identity / todo!() / Ok(()) / pass without ADR+sunset → FAIL
+4. Adapter type name contains a crate/feature token (Wgc, DXGI, BitBlt, Stripe, Redis…)
+   not referenced in src except the name → FAIL (lying adapter)
+5. Port listed but zero call sites in application → FAIL (port spam)
+```
+
+#### `no-swallow-gate` ([A37](#prime-a37--honest-errors--no-swallow))
+
+```text
+1. AST in composition + presentation + application: let _ = expr; .ok(); .unwrap_or_default() on Result
+   from I/O register/save/capture/autostart/hotkey — FAIL unless skipped_steps ADR+sunset on that line
+2. Empty catch / except: pass / catch {} on those calls → FAIL
+3. One Err variant used as dump-bucket (≥3 distinct failure sites map to same variant without alias+ADR) → FAIL
+```
+
+#### `err-variant-gate` ([A10](#prime-a10--result) · [A37](#prime-a37--honest-errors--no-swallow))
+
+```text
+1. Collect named Err variants in core/app
+2. Each variant → test that CALLS production path (UC/adapter Fake) and observes that variant
+3. FAIL if test only assert_eq!(err.invariant_id(), "…") / Display / enum name without invoking producer
+4. Coverage of the return site required — not regex on test name test_err_*
+```
+
+#### `ignored-test-gate` ([A12a](#prime-a12a--test-taxonomy) · [A25](#prime-a25--coverage-absolute))
+
+```text
+1. Collect #[ignore] / xtest.skip / it.skip / pytest.mark.skip / .skip(
+2. Each MUST have skipped_steps row: {step, test, trigger, adr, sunset} — unique trigger, not shared ADR-N/A(desktop)
+3. FAIL if ignored without row
+4. e2e-ui: family APPLIED only if at least one e2e test actually runs (not all ignored)
+5. AC oracle kind hwnd|pixels|ui cannot be closed by unit-only while e2e is ignored
+```
+
+#### `exclude-honesty-gate` ([A25](#prime-a25--coverage-absolute))
+
+```text
+1. greenfield + PRIME: exclude_coverage MUST NOT contain composition_root_scope, infrastructure adapters, presentation command handlers
+2. ALLOW: generated/, vendor/, OS glue WITH an integration test of that adapter (real PNG, real mutex) + ADR+sunset
+3. FAIL: empty fakes-only 100% while composition.rs excluded
+```
+
+#### `ffi-safety-gate` ([A16](#prime-a16--secure-by-design))
+
+```text
+1. If src has unsafe / JNI / ctypes / winapi / raw ptr → ffi_profile MUST be true
+2. FAIL: ffi_profile false while those tokens exist in src
+3. FAIL: safety_profile false when tier CRITICAL or embedded with FFI
+4. Each unsafe block: preceding SAFETY comment with invariant (aliasing, HWND lifetime, GDI ownership)
+5. Native handle type without Drop/RAII/finalizer → FAIL
+6. clippy::undocumented_unsafe_blocks deny (Rust) or analog; geiger/unsafe budget ratchet when tool exists
+```
+
+#### `checker-integrity-gate` ([A38](#prime-a38--checker-integrity))
+
+```text
+1. AST scripts/prime_check/** (and stack equiv):
+   FAIL: return GREEN / return [] / if False: FAIL else GREEN / always-pass
+   FAIL: gate whose only check is path.exists() / file read without parse
+   FAIL: lock "AC{i}" in text / inventory filename exists
+2. no-trivial-assert implementation MUST flag more than assert!(true) (see A27)
+3. This gate runs on the checker itself every FULL run
 ```
 
 #### `port-surface-gate` + Anti-N/A contracts ([A35](#prime-a35--contract-surface))
@@ -688,13 +793,15 @@ architecture:
 | Soft→Fail | **`port-surface-gate`** | Types used as deps in `testable_core_scope` must be Protocol/iface/trait **or** listed in `architecture.ports`; concrete infra class names / banned module types in signatures → FAIL. Cross-check `contract_surface_map` Anti-N/A. | `place(repo: PostgresOrderRepo)` → FAIL | [A35](#prime-a35--contract-surface) |
 | Soft→Fail | **`composition-root-gate`** | `new Adapter()` / SDK clients only under `composition_root_scope` (+ tests). | `StripeClient()` inside UC → FAIL | [A35](#prime-a35--contract-surface) |
 | Soft→Fail | **`port-test-double-gate`** | Each outbound port → Fake/InMemory implementing port exists in tests. | Only `MagicMock(PostgresRepo)` → FAIL | [A35](#prime-a35--contract-surface) |
-| Soft→Fail | **`anemic-mutation-gate`** | Public assign/setter of lifecycle status **outside** the entity type’s methods. Hydrate in adapter OK. | `user.status = 'active'` in UC → FAIL; `user.activate()` OK | [A05](#prime-a05--layer-law) · [B06](#prime-b06--fsm) |
+| Soft→Fail | **`live-surface-gate`** | Declared port constructed+called; no identity impl; no unread serialized field; adapter name matches used crate | Port in yaml, never called → FAIL | [A36](#prime-a36--live-surface) |
+| Soft→Fail | **`no-swallow-gate`** | `let _ =` / `.ok()` / empty catch on process-boundary I/O | Hotkey register swallowed → FAIL | [A37](#prime-a37--honest-errors--no-swallow) |
 
 **Agent MUST:** при bootstrap создать `steps/architecture/` с реализацией **всех 7 AST gates** для detected stack — не откладывать «на потом».  
 **Agent MUST (PRIME+ growing domain):** реализовать **`package-cohesion-gate`** (soft → harden per `cohesion_mode`) + заполнить `architecture.capabilities` / `package_form` из фактической структуры.  
 **Agent MUST (PRIME+):** реализовать **`port-surface-gate`**, **`composition-root-gate`**, **`port-test-double-gate`** + заполнить `architecture.ports` / `composition_root_scope` / `port_mode`.  
-**Agent MUST (PRIME+ When status/lifecycle entity):** реализовать **`anemic-mutation-gate`** + **`fsm-transition-gate`**.  
-**Agent MUST (safety-critical When):** добавить `steps/safety/` — `clang-tidy`/`cppcheck`/`clippy` denylist, `forbidden_patterns` из CERT/MISRA profile, concurrency scan — tier CRITICAL или `safety_profile: true` в config.
+**Agent MUST (PRIME+):** реализовать **`live-surface-gate`**, **`no-swallow-gate`**, **`checker-integrity-gate`**, **`ignored-test-gate`**, **`exclude-honesty-gate`**.  
+**Agent MUST (When FFI in src):** реализовать **`ffi-safety-gate`**; `ffi_profile: true`.  
+**Agent MUST (safety-critical When):** добавить `steps/safety/` — CERT/MISRA denylist — CRITICAL / `safety_profile: true`.
 **Agent SHOULD:** в header каждого architecture step указать `iso_25010:` и `cisq_pillar:` для traceability в FIX PLAN.
 
 #### Stack-native AST tooling (agent wires per detected stack)
@@ -746,7 +853,10 @@ monorepo_scopes:                 # optional — A32
     tier: PRIME
   - path: tools/script/
     tier: LITE
-exclude_coverage: []             # EMPTY default; entry = adr_ref + ticket + sunset_date + owner
+exclude_coverage: []             # EMPTY default; greenfield MUST NOT exclude composition/adapters (A25)
+skipped_steps: []                # [{step, test, trigger, adr, sunset}] — one skip = one trigger
+ffi_profile: false               # MUST true When unsafe/JNI/ctypes/Win32 in src
+safety_profile: false            # true When CRITICAL/embedded; FAIL false if ffi in src and ffi_profile false
 zero_tolerance: true
 agent_evidence_required: true
 coverage:
@@ -755,8 +865,9 @@ coverage:
   diff_only_on_pr: true          # legacy: mandatory
   ratchet: true
 mutation:
-  min_kill_rate_prime: 85          # PRIME+ optional enable
-  min_kill_rate_critical: 95       # CRITICAL mandatory
+  min_kill_rate_prime: 85          # PRIME greenfield MUST on critical_scope (A28)
+  min_kill_rate_critical: 95
+  enabled_prime_greenfield: true   # MUST NOT set false to dodge A27 weak tests
 forbidden_patterns:
   - "pragma: no cover"
   - "istanbul ignore"
@@ -778,8 +889,7 @@ architecture:                      # AST Prosecutor — agent maps Skin → scop
   ports: [IOrderRepository, IClock]      # A35 — outbound ports
   composition_root_scope: [src/main.py, src/di/**]
   port_mode: fail                        # warn | fail
-safety_profile: false                 # true When C/C++/embedded/CRITICAL → CERT/MISRA steps
-forbidden_patterns:                  # extend per safety_profile
+forbidden_patterns:                  # extend per safety_profile / ffi_profile
   - "goto"
   - "setjmp"
   - "eval("
@@ -840,23 +950,29 @@ forbidden_patterns:                  # extend per safety_profile
 | `ssrf-gate` | outbound URL allowlist | A18 |
 | `zta-matrix-gate` | route × anon/valid/forbidden/expired | A02, A29, A12a |
 | **TESTS** | | |
-| `test-taxonomy-gate` | `test_taxonomy_map` ↔ named tests; Anti-N/A | A12a |
-| `intent-lock-gate` | each acceptance criterion ↔ named test | A34 |
+| `test-taxonomy-gate` | families APPLIED only with non-trivial oracle; Anti-N/A; one skip = one trigger | A12a |
+| `intent-lock-gate` | each AC has oracle; test body asserts it — not `"AC{i}" in name` | A34 |
+| `live-surface-gate` | declared ports/fields live (called, not identity/unread) | A36 |
+| `no-swallow-gate` | no swallowed Result on process I/O | A37 |
+| `checker-integrity-gate` | AST of prime_check: no unconditional GREEN, no existence-only | A38 |
+| `e2e-ui` | UI journeys **actually run**; ignored → skipped_steps | A12a, B11 |
+| `flaky-detector` | same test ×3 in one invocation — not «ran cargo test twice» | A27 |
+| `no-trivial-assert` | no tautology, no same-file constant, no enum-name/invariant_id-only | A27 |
+| `ignored-test-gate` | #[ignore]/skip without per-test skipped_steps → FAIL | A12a, A25 |
+| `err-variant-gate` | each Err provoked via production path + Fake — not name regex | A10, A37 |
+| `exclude-honesty-gate` | greenfield must not exclude composition/I/O adapters | A25 |
+| `ffi-safety-gate` | SAFETY comments, RAII, ffi_profile vs src | A16 |
 | `blast-radius-gate` | soft: diff vs declared blast_radius | A33 |
 | `pytest-unit` / stack equiv | all unit pass | A12, A12a |
 | `pytest-integration` | real DB/Redis/queue | A12, A12a |
 | `pytest-contract` | full HTTP stack / contract@boundary | A12, A12a |
 | `pytest-property` | hypothesis/proptest | A12a, B12 |
-| `e2e-ui` | UI journeys When client app | A12a, B11 |
-| `flaky-detector` | each test ×3 — unstable fail | A27 |
 | `no-empty-test` | test must have real assert | A27 |
-| `no-trivial-assert` | no `assert True` | A27 |
 | `e2e-only-anti-pattern` | E2E without unit base fail | A12 |
-| `test-matrix-gate` | design matrix ≡ tests + acceptance criteria | A12, A12a, A24 |
+| `test-matrix-gate` | design matrix ≡ tests + AC oracles (not `"AC{i}" in text`) | A12, A12a, A24, A34 |
 | `boundary-value-gate` | validators/ranges: 0,-1,null/empty,max edges | A12a |
 | `negative-path-gate` | reject/rollback/invalid for state-changing + auth | A12a |
 | `scenario-matrix-gate` | multi-step business flows covered | A12a |
-| `err-variant-gate` | every Err = `test_err_*` | A10, A12 |
 | `route-matrix-gate` | route × method × status | A03, A12, A12a |
 | `fsm-transition-gate` | every legal + illegal FSM edge | B06, A12a |
 | `regression-lock` | bug fix = `test_regression_*` | A12, A12a |
@@ -877,14 +993,15 @@ forbidden_patterns:                  # extend per safety_profile
 | `prod-config` | required env; no debug prod | A23 |
 | `health-gate` | /health /ready probes exist + tested | B13 |
 | `tls-min-version` | prod TLS < 1.2 fail | A23 |
-| **SAFETY — When C/C++/embedded / CRITICAL** | | |
+| **SAFETY — When FFI in src / CRITICAL** | | |
+| `ffi-safety-gate` | SAFETY comments · RAII · ffi_profile | A16 |
 | `cert-forbidden-gate` | AST/denylist: goto, unchecked cast, eval, VLAs (config) | A16 · CERT/MISRA profile |
 | `concurrency-race-gate` | shared mutable + missing sync in safety scope | A05 · B06 · CERT |
 | `clang-tidy` / `cppcheck` / `clippy-deny` | stack-native safety linter zero violations | A16 · ISO 5055 Security/Reliability |
 | **CLIENT** | | |
 | `frontend-quality` | lint + types + unit | B11 |
-| **CRITICAL** | | |
-| `mutation-critical` | mutmut ≥95% kill rate | A28 |
+| **CRITICAL / PRIME greenfield** | | |
+| `mutation-critical` | kill rate on critical_scope — PRIME greenfield MUST; CRITICAL ≥95% | A28 |
 | **OUTPUT** | | |
 | `evidence-block` | PRIME-VERIFY-EVIDENCE valid | A26 |
 
@@ -895,7 +1012,7 @@ stack-detect → config-valid → ci-parity →
 lint → typecheck → format-check → dead-code-gate → architecture gates →
 security scans → test pyramid → test-taxonomy-gate → coverage gates → matrix gates →
 data/contract gates → docker/ops gates →
-[mutation-critical if CRITICAL] → evidence-block
+[mutation-critical if CRITICAL or PRIME greenfield] → evidence-block
 ```
 
 ### Coverage gates — ZERO untested code ([A25](#prime-a25--coverage-absolute))
@@ -1007,14 +1124,17 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 | [A25](#prime-a25--coverage-absolute) | Coverage absolute — 100% + ratchet | PRIME+ |
 | [A26](#prime-a26--evidence-block) | Evidence block — verify transcript | PRIME+ |
 | [A27](#prime-a27--test-quality) | Test quality — no empty/trivial/flaky | PRIME+ |
-| [A28](#prime-a28--mutation-prime) | Mutation testing | CRITICAL; SHOULD PRIME+ |
+| [A28](#prime-a28--mutation-prime) | Mutation testing | PRIME greenfield MUST; CRITICAL ≥95% |
 | [A29](#prime-a29--zta-matrix) | ZTA auth scenario matrix | PRIME+ |
 | [A30](#prime-a30--anti-slack) | Anti-slack — no partial PR | PRIME+ |
 | [A31](#prime-a31--legacy-adoption) | Legacy adoption — diff-100 + ratchet | PRIME+ |
 | [A32](#prime-a32--monorepo-scope) | Monorepo per-path tiers | PRIME+ |
 | [A33](#prime-a33--blast-radius) | Blast radius — minimal feature scope | STANDARD+ |
-| [A34](#prime-a34--intent-lock) | Intent lock — acceptance ↔ tests | PRIME+ |
+| [A34](#prime-a34--intent-lock) | Behavior lock — AC oracle ↔ test body | PRIME+ |
 | [A35](#prime-a35--contract-surface) | Contract Surface — ports · DTO · API/event · composition root | PRIME+ |
+| [A36](#prime-a36--live-surface) | Live Surface — declared ports/fields must be used | PRIME+ |
+| [A37](#prime-a37--honest-errors--no-swallow) | Honest errors — no swallow, no dump-bucket, provoke path | PRIME+ |
+| [A38](#prime-a38--checker-integrity) | Checker integrity — no theatrical steps | PRIME+ |
 | [B01](#prime-b01--cqrs) | CQRS | PRIME+ |
 | [B02](#prime-b02--solid--grasp) | SOLID & GRASP | STANDARD+ |
 | [B03](#prime-b03--sre--observability--events) | SRE, observability, events | PRIME+ |
@@ -1146,6 +1266,7 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 - **MUST:** one application entry = one process (thin orchestrator); status mutation delegated to entity methods — not a second god-procedure.
 - **SHOULD NOT:** CQRS / extra layers for trivial CRUD ([B01](#prime-b01--cqrs), [B07](#prime-b07--yagni)).
 - **MUST NOT:** ORM types / SQL in core/domain ([A35](#prime-a35--contract-surface) · `import-graph-gate`).
+- **MUST NOT:** порт без вызова из application — dead abstraction ([A36](#prime-a36--live-surface)).
 
 **Thin transport:** route/handler validates → calls injected application entry → maps outcome. (Stack samples: [Pattern Catalog](#pattern-catalog--stack-native-equivalents).)
 
@@ -1337,9 +1458,10 @@ features/billing/{domain,app,infra,api}/
 | FP | `IO`/`Task` with typed failure channel |
 
 - **MUST:** application/core entry returns **typed failure** or throws **named** domain error — not generic `Error("failed")`.
-- **MUST:** presentation maps outcome → response only (global handler for unexpected; explicit map for expected).
+- **MUST:** presentation maps outcome → response **or GUI toast/balloon** (desktop: user-visible on every mapped error). Structured JSON log is Skin — **outcome:** failure reaches the user **or** a log with `invariant_id`. No log sink → `N/A(no log sink)` **plus** user toast.
+- **MUST:** every **expected** error variant has a test that **provokes the production path** (`err-variant-gate`) — not `assert_eq!(err.invariant_id(), "…")` without calling the UC/adapter.
 - **MUST NOT:** transport exceptions (`HTTPException`, status codes) in core.
-- **MUST:** every **expected** error variant has **dedicated test** (`err-variant-gate` checks coverage, not regex name).
+- **MUST NOT:** swallow process-boundary Result — [A37](#prime-a37--honest-errors--no-swallow).
 
 ### No silent null as failure (PRIME+) — `anti-null-gate`
 
@@ -1357,12 +1479,12 @@ features/billing/{domain,app,infra,api}/
 
 ### Observable failures (PRIME+) — logging contract
 
-**Outcome:** prod failure локализуется по trace за секунды. Поля могут жить в **log middleware** или **error type** — gate проверяет **наличие в log event**, не обязательно в struct.
+**Outcome:** failure reaches a **human or operator** — toast/balloon/stderr **or** a log line with `invariant_id`. JSON is Skin, not the law. GUI without a log sink: `N/A(no log sink)` **and** mapped toast. Correlation id in the log When a log sink exists.
 
-- **MUST** at log site on failure: `invariant_id` (rule/business code) + safe `context` (ids, status — **no PII**) + `correlation_id`/`trace_id` ([B03](#prime-b03--sre--observability--events)).
-- **MUST:** structured JSON logging — не `console.log("error")`.
-- **MUST:** transport пробрасывает correlation id from client through core.
-- **Enforced by:** `error-context-gate` — lint/log fixture asserts fields on each error variant test.
+- **MUST** at failure: `invariant_id` + safe `context` (no PII). `correlation_id` When log sink ([B03](#prime-b03--sre--observability--events)).
+- **MUST (desktop/tray PRIME):** every mapped error → user-visible toast/balloon ([B11](#prime-b11--client-apps)).
+- **MUST NOT:** require web-centric structured JSON on a tray app that has no log file — toast is the outcome.
+- **Enforced by:** `error-context-gate` · `no-swallow-gate` ([A37](#prime-a37--honest-errors--no-swallow)).
 
 ---
 
@@ -1414,14 +1536,14 @@ features/billing/{domain,app,infra,api}/
 Агент **MUST** перед кодом заполнить `test_taxonomy_map` в design artifact ([AGENT-OMEGA](#agent-omega--execution-phases-before-any-code)). Для каждого family: **named tests** **или** `N/A(<trigger absent>)`.  
 **MUST NOT:** «напишу unit — остальное потом».  
 **MUST NOT:** требовать *все* families на каждый CRUD — колонка **When** нормативна.  
-**MUST:** если When сработал — family **обязателен** (не SHOULD «по желанию»).
+**MUST:** если When сработал — family **обязателен** и **APPLIED только с нетривиальным оракулом** (тело теста ломается, если поведение соврало). Имя `test_err_*` без вызова продакшен-пути ≠ APPLIED.
 
 ### Anti-N/A (MUST — не обходить When)
 
 - **MUST:** `N/A` допустим **только** если reason явно = отсутствующий trigger из колонки When этой family (напр. `N/A(no auth)`, `N/A(no FSM)`, `N/A(no I/O)`).
 - **MUST NOT:** `N/A`, `N/A()`, `N/A(потом)`, `N/A(skip)`, `N/A(n/a)`, `N/A(не нужно)` — **FAIL** `test-taxonomy-gate`.
 - **MUST NOT:** ставить `N/A` когда diff/design **содержит** trigger (gate сверяет).
-- **MUST:** при сомнении — **включить** family (tier вверх по духу), не выключать.
+- **MUST:** при сомнении в **триггере** — включи family. При сомнении «наплодить ещё имена» — **не плоди**: лишний family без When = vanity ([B07](#prime-b07--yagni)).
 - **Enforced by:** `test-taxonomy-gate` algorithm in [AGENT-5](#agent-5--prime-check).
 
 ### 1. Пирамида — логика и стабильность
@@ -1430,7 +1552,7 @@ features/billing/{domain,app,infra,api}/
 |--------|-------------------------|----------|----------------|---------------|
 | **Unit** | Отдельные функции/компоненты в изоляции; крайние значения; **Fake ports**, не mock concrete | STANDARD+ | Always for new/changed logic | `pytest-unit` / jest · most tests |
 | **Integration** | Связка компонентов; реальная БД; внешние API/clients (**real adapters**) | PRIME+ | UC/touch touches DB, queue, HTTP client, filesystem | `pytest-integration` · real infra |
-| **E2E** | Действия пользователя; цепочки UI; развилки сценариев | PRIME+ | **UI / client app** in scope ([B11](#prime-b11--client-apps)) | Playwright/Cypress/Skin E2E |
+| **E2E** | Действия пользователя; цепочки UI; развилки сценариев | PRIME+ | **UI / client app** in scope ([B11](#prime-b11--client-apps)) | `e2e-ui` **runs** (not `#[ignore]`); else `skipped_steps` per test + ADR. AC with hwnd/pixels oracle **cannot** close via unit name while E2E ignored |
 | **Contract@boundary** | Полный API/CLI/RPC stack без браузера | PRIME+ | Exposed operation, **no UI** (or in addition to E2E) | `pytest-contract` · `route-matrix-gate` |
 
 **API-only:** Contract@boundary **заменяет** browser E2E (тот же уровень пирамиды). **MUST NOT** добавлять Selenium «для галочки».
@@ -1442,7 +1564,7 @@ features/billing/{domain,app,infra,api}/
 | Family | Outcome | Min tier | When | Gate / naming |
 |--------|---------|----------|------|---------------|
 | **Regression** | Старый баг не возвращается; гоняется на каждом обновлении | STANDARD+ | **Every bug fix** | `regression-lock` · `test_regression_*` |
-| **Mutation** | Качество *самих* тестов; слепые зоны | CRITICAL MUST; PRIME+ SHOULD | CRITICAL always on `critical_scope`; PRIME+ when `mutation:` enabled | `mutation-critical` ([A28](#prime-a28--mutation-prime)) |
+| **Mutation** | Качество *самих* тестов; слепые зоны | **PRIME greenfield MUST** on `critical_scope`; CRITICAL ≥95% | FSM, parsers, money, hotkey/crop/naming core | `mutation-critical` ([A28](#prime-a28--mutation-prime)). `enabled: false` на greenfield PRIME = FAIL |
 | **Property-based** | Случайные входы; математические/инвариантные свойства | PRIME+ | Parsers, crypto, money, serialization, idempotency invariants | `pytest-property` / hypothesis / fast-check ([B12](#prime-b12--fuzz--property)) |
 
 ### 3. Безопасность — защита от взлома
@@ -1481,11 +1603,12 @@ features/billing/{domain,app,infra,api}/
 
 | Задача | Достаточно (APPLIED) | Слишком / запрещено |
 |--------|----------------------|---------------------|
-| CRUD поле без auth, API-only | unit + boundary + contract + negative(invalid) + path; N/A(no auth, no FSM, no UI, no mutation) | Playwright + mutation + full fuzz «на всякий» |
-| Checkout: auth → cart → pay | unit + integration + scenario + BDD/AC + access_control + negative + idempotency + contract | Только unit happy-path |
+| CRUD поле без auth, API-only | unit + boundary + contract + negative(invalid) + path; N/A(no auth, no FSM, no UI) | Playwright + mutation + full fuzz «на всякий» |
+| Checkout: auth → cart → pay | unit + integration + scenario + BDD/AC **oracles** + access_control + negative | Только unit happy-path |
+| Status entity | state_transition + entity methods | `user.status =` в UC + только happy-path |
+| Desktop + hotkey + capture | integration adapter (real PNG/mutex) + E2E **running** or skipped_steps; AC hwnd oracle | 14 `test_err_*` string tests + unused port + `#[ignore]` e2e |
 | Bugfix off-by-one | regression + boundary + path; N/A(no new API) | Новый E2E suite без `test_regression_*` |
-| New Err variant | unit + err-variant + **observability** assert | «залогируем потом» |
-| Status entity | state_transition + entity methods (rich) | `user.status =` в UC + только happy-path |
+| New Err variant | UC/Fake **провоцирует** вариант + observability | `assert_eq!(id, "CaptureTimeout")` без вызова адаптера |
 
 ### Agent algorithm (MUST)
 
@@ -1504,10 +1627,12 @@ features/billing/{domain,app,infra,api}/
 - Happy path без **negative** + **boundary** на PRIME+.
 - Coverage 100% при пустом `test_taxonomy_map`.
 - N/A-spam / пустой reason ([Anti-N/A](#anti-na-must--не-обходить-when)).
-- Mutation skip на CRITICAL.
+- Mutation skip на PRIME greenfield / CRITICAL.
 - BDD = «обязателен Cucumber» — нет; обязателен **GWT outcome**.
 - Browser E2E на API-only сервисе.
-- «Acceptance в голове» без named tests на критерии задачи ([A34](#prime-a34--intent-lock)).
+- «Acceptance в голове» / AC закрыт **именем** теста без оракула ([A34](#prime-a34--intent-lock)).
+- 14 err-string тестов + unused port + ignored e2e = «taxonomy APPLIED».
+- `#[ignore]` без строки в `skipped_steps`.
 - Раздутый diff вне blast_radius ([A33](#prime-a33--blast-radius)).
 - Требовать `tests/unit|e2e` дерево, если репо колокейтит тесты.
 
@@ -1522,10 +1647,10 @@ features/billing/{domain,app,infra,api}/
 - **MUST:** thin transport + injected application entry typed against **ports** + explicit error mapping ([A35](#prime-a35--contract-surface)).
 - **MUST:** new/changed code placed in the correct **capability package/slice** ([A05a](#prime-a05a--package-cohesion)); design artifact lists slices.
 - **MUST:** `test_taxonomy_map` complete — every applicable family has tests; Anti-N/A green ([A12a](#prime-a12a--test-taxonomy)).
-- **MUST:** `contract_surface_map` complete — ports / composition root; Anti-N/A green ([A35](#prime-a35--contract-surface)).
-- **MUST:** lifecycle/status entities mutate via **methods with invariants**, not public assign ([A05](#prime-a05--layer-law), [B06](#prime-b06--fsm)).
-- **MUST:** expected vs unexpected errors split ([A10](#prime-a10--result)) — no try/catch forest in UC.
-- **MUST:** every acceptance criterion ↔ named test ([A34](#prime-a34--intent-lock)).
+- **MUST:** `contract_surface_map` complete **and live** — ports called ([A35](#prime-a35--contract-surface), [A36](#prime-a36--live-surface)).
+- **MUST:** every AC has **oracle** + test body asserts it ([A34](#prime-a34--intent-lock)).
+- **MUST:** no swallowed process I/O; err-variant provokes production path ([A37](#prime-a37--honest-errors--no-swallow)).
+- **MUST:** `checker-integrity-gate` green ([A38](#prime-a38--checker-integrity)).
 - **MUST:** diff inside declared `blast_radius` or justified expansion ([A33](#prime-a33--blast-radius)).
 - **MUST:** update API docs / ADR if contracts changed; breaking → major + contract + migration tests ([A21](#prime-a21--semver--contracts)).
 - **MUST:** tests per [A12](#prime-a12--tests--coverage) + [A12a](#prime-a12a--test-taxonomy); `prime_check` exit 0 + honest evidence ([A22](#prime-a22--prime-check), [A26](#prime-a26--evidence-block)).
@@ -1742,8 +1867,8 @@ features/billing/{domain,app,infra,api}/
 - **MUST:** CI = local (identical command).
 - **MUST:** ALL applicable steps from AGENT-5 (~50).
 - **MUST:** `coverage-line-100` + `coverage-branch-100` + `coverage-diff-100` + `coverage-ratchet`.
-- **MUST:** `zta-matrix-gate` + `gitleaks-history` + `dependency-audit` + architecture gates + **port-surface / composition-root / port-test-double** ([A35](#prime-a35--contract-surface)) + OWASP Top 10 closure ([A18](#prime-a18--owasp-input-hygiene)).
-- **MUST (safety_profile):** CERT/MISRA steps green before «done» on CRITICAL native/embedded.
+- **MUST:** `zta-matrix-gate` + architecture gates + **port-surface / live-surface / no-swallow / checker-integrity** + OWASP Top 10 closure ([A18](#prime-a18--owasp-input-hygiene)).
+- **MUST (ffi_profile):** `ffi-safety-gate` green when unsafe/JNI/ctypes/Win32 in src — **PRIME, not CRITICAL-only**.
 - **MUST:** `--diff` before full; `--evidence` before «done».
 - **MUST:** fail → structured Finding + EXEC SUMMARY + FIX PLAN ([Report output](#report-output--agent-readable-diagnostics)).
 - **MUST:** bug fix = regression test in same PR.
@@ -1810,8 +1935,10 @@ features/billing/{domain,app,infra,api}/
 - **MUST:** `coverage-diff-100` на каждый PR (legacy + greenfield).
 - **MUST:** `coverage-ratchet` — coverage never drops vs `main`.
 - **MUST NOT:** `# pragma: no cover` / `istanbul ignore` без ADR + config entry + sunset.
-- **MUST NOT:** widen `exclude_coverage` без ADR.
-- **MUST NOT:** declare done on coverage green if `test-taxonomy-gate` red.
+- **MUST NOT (greenfield PRIME):** `exclude_coverage` на composition root, I/O adapters, presentation command handlers — это спрятать 80% риска за 100% fakes (`exclude-honesty-gate`).
+- **ALLOW exclude:** generated/; vendor/; OS glue **with** an integration test of that adapter (real PNG, real mutex) + ADR + sunset + owner.
+- **MUST NOT:** declare done on coverage green if `test-taxonomy-gate` red or E2E all-ignored.
+- **MUST:** unit vs Fake **does not replace** adapter integration When filesystem/DB/OS ([A12a](#prime-a12a--test-taxonomy)).
 
 ---
 
@@ -1828,7 +1955,10 @@ features/billing/{domain,app,infra,api}/
   - `contract_surface:` each A35 family → `APPLIED:<ports>` \| `N/A:<reason>` ([A35](#prime-a35--contract-surface))
   - `rich_domain:` `APPLIED:<entity.methods>` \| `N/A(no status entity)` ([A05](#prime-a05--layer-law))
   - `error_split:` expected=named Err · unexpected=presentation handler ([A10](#prime-a10--result))
-  - `acceptance_criteria:` each AC → test ref ([A34](#prime-a34--intent-lock))
+  - `acceptance_criteria:` each AC → oracle.kind + test ref ([A34](#prime-a34--intent-lock))
+  - `live_surface:` ports called \| unread fields none ([A36](#prime-a36--live-surface))
+  - `no_swallow:` process I/O mapped ([A37](#prime-a37--honest-errors--no-swallow))
+  - `checker_integrity:` `checker-integrity-gate` green ([A38](#prime-a38--checker-integrity))
   - `blast_radius:` capabilities + files ([A33](#prime-a33--blast-radius))
   - changed_files, uncovered: NONE, fix_plan_executed: ALL
 - **MUST:** если был RED в сессии — evidence **не** печатается пока full run не green.
@@ -1839,25 +1969,38 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A27 — Test quality
 
-**Min tier:** PRIME+ **Enforced by:** `no-empty-test`, `no-trivial-assert`, `flaky-detector`
+**Min tier:** PRIME+ **Enforced by:** `no-empty-test`, `no-trivial-assert`, `flaky-detector`, `ignored-test-gate`
 
-- **MUST NOT:** tests without assertions; `assert True`; `expect(1).toBe(1)`.
-- **MUST:** flaky test (fails on re-run) = fix before merge.
+**Trivial (FAIL)** — не только `assert True`:
+
+| Pattern | Why it is theatre |
+|---------|-------------------|
+| `assert True` / `expect(1).toBe(1)` | tautology |
+| assert on a constant defined in the **same** test file | not production |
+| `assert_eq!(err.invariant_id(), "X")` / Display / enum **name** without calling the producer | err-variant vanity ([A37](#prime-a37--honest-errors--no-swallow)) |
+| `assert!(!name.contains("Window"))` as the only AC oracle | synonym lock, not behavior ([A34](#prime-a34--intent-lock)) |
+| `assert!(!user_message().is_empty())` | non-empty ≠ correct |
+
+- **MUST:** every APPLIED test has a **non-trivial oracle** — a fact that fails if production lies.
+- **MUST:** `flaky-detector` = **same test ×3 in one gate invocation**. `cargo test` twice in the chat ≠ flaky-detector.
+- **MUST NOT:** `#[ignore]` / skip without `skipped_steps` row (unique trigger; **MUST NOT** one ADR covering 15 N/A).
 - **MUST NOT:** E2E-only without unit foundation (`e2e-only-anti-pattern`).
-- **MUST NOT:** happy-path-only suites when negative/boundary When-triggers fired ([A12a](#prime-a12a--test-taxonomy)).
-- **MUST:** each test maps to a taxonomy family (name prefix or marker) so gates can inventory.
+- **MUST NOT:** happy-path-only when negative/boundary When fired ([A12a](#prime-a12a--test-taxonomy)).
+- **MUST:** each test maps to a taxonomy family so gates can inventory.
 
 ---
 
 ## PRIME-A28 — Mutation testing
 
-**Min tier:** CRITICAL mandatory; SHOULD enable at PRIME+  
-**Taxonomy family:** Mutation ([A12a](#prime-a12a--test-taxonomy))
+**Min tier:** **PRIME greenfield MUST** on `critical_scope`; CRITICAL ≥95%  
+**Taxonomy family:** Mutation ([A12a](#prime-a12a--test-taxonomy))  
+**Enforced by:** `mutation-critical`
 
-- **MUST (CRITICAL):** `mutation-critical` ≥95% kill rate on `critical_scope`.
-- **SHOULD (PRIME+):** ≥85% when `mutation` enabled in config.
-- **MUST NOT:** merge CRITICAL with surviving mutations on domain/invariants.
-- **MUST:** mutation is about **test quality** — surviving mutant → add/strengthen test, not weaken mutant config.
+- **MUST (PRIME greenfield):** mutation on `critical_scope` (FSM, parsers, money, hotkey/crop/naming — the core that fakes don't prove). `mutation.enabled_prime_greenfield: false` = FAIL.
+- **MUST (CRITICAL):** ≥95% kill rate on `critical_scope`.
+- **SHOULD (PRIME legacy):** ≥85% when enabled; ADR if skipped with sunset.
+- **MUST NOT:** merge with surviving mutants on domain invariants — strengthen the **test**, not weaken config.
+- **MUST:** mutation exists so A27 cannot be gamed by weak oracles.
 
 ---
 
@@ -1923,20 +2066,40 @@ features/billing/{domain,app,infra,api}/
 
 ---
 
-## PRIME-A34 — Intent lock
+## PRIME-A34 — Intent lock (behavior-lock)
 
-*Смысл задачи измерим тестами. Не «думай как PM» — **acceptance ↔ named tests**.*
+*Смысл задачи измерим **оракулом**, не именем теста. `AC1 ↔ test_acceptance_ac1_*` без наблюдаемого факта — таблица синонимов.*
 
 **Min tier:** PRIME+ **When:** user-facing / API / behavioral feature (не typo-fix)  
 **Enforced by:** `intent-lock-gate` · `test-matrix-gate`  
 **Aligns:** ISO 25010 Functional suitability · taxonomy Acceptance/BDD ([A12a](#prime-a12a--test-taxonomy))
 
-- **MUST:** до кода выписать `acceptance_criteria` из задачи/PRD/issue (если в задаче нет — **сформулировать явно** в design artifact и подтвердить в ответе).
-- **MUST:** empty `acceptance_criteria` на PRIME+ feature change → **STOP** (не писать production code).
-- **MUST:** каждый AC ↔ ≥1 named test (name, marker, or GWT docstring).
-- **MUST:** Given → When → Then form **или** эквивалент в test title — Skin-native.
-- **MUST NOT:** «и так понятно» / acceptance только в chat без теста.
-- **MUST NOT:** green coverage при failing/missing AC mapping.
+Каждый AC в design artifact:
+
+| Field | MUST |
+|-------|------|
+| `id` | stable (`AC1`…) |
+| `statement` | человеческий критерий |
+| `oracle.kind` | `hwnd` · `pixels` · `fs` · `order` · `error_id` · `toast` · `state` · Skin analog |
+| `oracle.assert` | факт, который **ломается**, если поведение соврало |
+| `test` | named test whose **body** asserts that fact |
+
+```text
+# FAIL — synonym lock
+AC1 ↔ test_acceptance_ac1_no_window
+  assert!(!state.name().contains("Window"))
+
+# PASS — behavior lock
+AC1: process does not create a visible overlapped window
+  oracle: hwnd / FakeOverlay.shown==false until hotkey
+  test reads style HWND / GetWindowLong / fake.shown
+```
+
+- **MUST:** empty `acceptance_criteria` на PRIME+ feature → **STOP**.
+- **MUST:** test body contains an assert matching `oracle.assert` tokens (Skin-native API OK).
+- **MUST NOT:** lock = AC id in test name / docstring / `"AC{i}" in inventory.yaml`.
+- **MUST NOT:** close hwnd/pixels/ui oracles with unit-only names while E2E is `#[ignore]` ([A12a](#prime-a12a--test-taxonomy)).
+- **MUST NOT:** «и так понятно» / acceptance только в chat.
 - **See:** Anti-N/A — нельзя `N/A` на acceptance family при наличии AC.
 
 ---
@@ -1947,22 +2110,23 @@ features/billing/{domain,app,infra,api}/
 
 **Min tier:** PRIME+ (outbound + composition root); STANDARD+ SHOULD for new I/O  
 **Aligns:** ISO 25010 Maintainability (modularity) · Compatibility · CISQ Maintainability  
-**Enforced by:** `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` · `dto-boundary-gate` · `inbound-port-gate` (soft) · `plugin-boundary-gate` · `event-contract-gate` (soft) · `di-purity` · `di-graph-gate` · `api-contract-drift`
+**Enforced by:** `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` · `live-surface-gate` · `dto-boundary-gate` · `inbound-port-gate` (soft) · `plugin-boundary-gate` · `event-contract-gate` (soft) · `di-purity` · `di-graph-gate` · `api-contract-drift`
 
 ### Doctrine
 
 Агент **MUST** перед кодом заполнить `contract_surface_map` в design artifact ([AGENT-OMEGA](#agent-omega--execution-phases-before-any-code)). Для каждого family: **named ports/contracts** **или** `N/A(<trigger absent>)`.  
 **MUST NOT:** «одна реализация → без порта» при I/O в testable core.  
 **MUST NOT:** требовать *все* families на каждый CRUD — колонка **When** нормативна.  
-**MUST:** если When сработал — family **обязателен**.
+**MUST:** если When сработал — family **обязателен**.  
+**MUST NOT:** «при сомнении наплоди порт». Порт только если application **вызывает** его и есть Fake. Иначе `N/A(no I/O)` или конкретный адаптер **только** в composition ([A36](#prime-a36--live-surface), [B07](#prime-b07--yagni)). Enough vs too much ниже — **FAIL**, не совет.
 
 ### Anti-N/A (MUST — не обходить When)
 
 - **MUST:** `N/A` допустим **только** если reason = отсутствующий trigger (напр. `N/A(no I/O)`, `N/A(single HTTP entry)`, `N/A(no events)`, `N/A(single capability)`).
 - **MUST NOT:** `N/A`, `N/A()`, `N/A(потом)`, `N/A(одна реализация)`, `N/A(framework DI)`, `N/A(skip)` — **FAIL** `port-surface-gate`.
 - **MUST NOT:** ставить `N/A` когда diff/design **содержит** I/O, multi-entry, cross-capability, exposed API, events.
-- **MUST:** при сомнении — **включить** port (tier вверх по духу), не выключать.
-- **Enforced by:** `port-surface-gate` algorithm in [AGENT-5](#agent-5--prime-check).
+- **MUST NOT:** «при сомнении включи порт» — это читается как CoordinateMapper / PipeCommandSink / identity impl. Сомнение → не плоди; `live-surface-gate` красный.
+- **Enforced by:** `port-surface-gate` · `live-surface-gate`.
 
 ### Contract families
 
@@ -1985,9 +2149,11 @@ features/billing/{domain,app,infra,api}/
 | Задача | Достаточно (APPLIED) | Слишком / запрещено |
 |--------|----------------------|---------------------|
 | Pure `calculateTax(a,b)` | без порта; `N/A(no I/O)` | `ITaxCalculator` ради галочки |
-| PlaceOrder + DB | `IOrderRepo` + Fake + adapter + composition root | 12 портов на каждый private method |
+| PlaceOrder + DB | `IOrderRepo` + Fake + **вызов из UC** + adapter + composition root | 12 портов на private method · identity mapper · port in yaml never called |
 | HTTP-only CRUD | outbound ports + API contract; inbound `N/A(single HTTP entry)` | UseCase iface + 3 adapters «на будущее» |
 | Working Nest/Rails/Go Skin | keep Skin folders; ports + rich entities inside | rewrite to textbook `domain/entities` «для PRIME» |
+| One I/O adapter, used | Port + Fake + call from UC | Stub `InstanceCommandSink` / `todo!()` impl without ADR sunset |
+| Settings DTO field | field read by runtime **or** removed from AC | `notify_on_save` serialized, never read |
 | Checkout + Stripe | `IPaymentGateway` + SPI/plugin | Hardcode Stripe SDK в UC |
 | Cross-capability charge | DTO/ACL + outbound ports | Import private `User` entity |
 
@@ -2002,6 +2168,9 @@ features/billing/{domain,app,infra,api}/
 - Дублировать OpenAPI «в голове» без schema drift gate.
 - Framework DI concrete как оправдание отсутствия Port.
 - Переписать Skin в учебник Clean folders.
+- Порт без вызова из application = dead abstraction (как `*_v2` в [A08](#prime-a08--anti-fork)) — [A36](#prime-a36--live-surface).
+- `impl Trait` identity / `Ok(())` / `todo!()` без ADR+sunset.
+- Adapter name (WgcCapture, StripeClient) когда crate/feature механизма нет в src.
 
 ### Agent algorithm (MUST)
 
@@ -2011,7 +2180,7 @@ features/billing/{domain,app,infra,api}/
 3. Declare ports/DTOs/API schemas before adapters
 4. Implement adapters + Fake/InMemory; wire only in composition root
 5. Unit tests against Fake ports; integration against real adapters
-6. prime_check: port-surface-gate + composition-root + port-test-double → exit 0
+6. prime_check: port-surface-gate + composition-root + port-test-double + **live-surface-gate** → exit 0
 ```
 
 ### Stack-native forms (Skin)
@@ -2022,6 +2191,59 @@ features/billing/{domain,app,infra,api}/
 | Inbound port | Protocol on UC | interface | iface | trait | command handler iface |
 | Composition root | `main` / DI container | `container.ts` | `main.go` wire | `main` / DI | `AppModule` / `@Configuration` |
 | Test double | InMemory implements Protocol | Fake class | fake struct | mock trait obj | test double bean |
+
+---
+
+## PRIME-A36 — Live Surface
+
+*Объявленный контракт должен **жить**. Порт в yaml без вызова — тот же класс лжи, что coverage vanity.*
+
+**Min tier:** PRIME+ **When:** ports / serialized settings / adapters exist  
+**Enforced by:** `live-surface-gate`  
+**Complements:** [A35](#prime-a35--contract-surface) (declare) · [A08](#prime-a08--anti-fork) (dead `*_v2`) · [B07](#prime-b07--yagni)
+
+**FAIL если:**
+
+- порт в `architecture.ports` / `contract_surface_map`, но нет construction в composition root **или** нет вызова из application;
+- поле Settings/DTO сериализуется и нигде не читается рантаймом (`notify_on_save`);
+- `impl Trait for T` — identity / `todo!()` / `Ok(())` / `pass` без ADR + sunset;
+- имя адаптера врёт про механизм (токен технологии в имени ⊆ crate/feature, не используемых в `src`).
+
+**Порт добавляй** только если: I/O из UC + Fake + **вызов**. Иначе `N/A(no I/O)` или конкретный адаптер только в composition. Fake считается вторым impl для теста — **не** требуй двух прод-адаптеров.
+
+- **MUST NOT:** CoordinateMapper / PipeCommandSink / stitch() / OverlayPhase «на всякий».
+- **MUST:** unread config field — выкинуть из AC **или** подключить к runtime в том же PR.
+
+---
+
+## PRIME-A37 — Honest errors & no swallow
+
+*[A10](#prime-a10--result) запрещает silent null. Этот закон запрещает swallowed Result, dump-bucket Err и err-тест без продакшен-пути.*
+
+**Min tier:** PRIME+ **Enforced by:** `no-swallow-gate` · `err-variant-gate` (provoke path)
+
+- **MUST:** каждый `Result` на границе процесса (hotkey register, autostart, save, capture, bind port) либо mapped в named error + toast/log, либо явный `_ =` с **ADR + sunset на эту строку**.
+- **MUST:** один вариант ошибки = один класс отказа пользователя. Dump-bucket (`CaptureTimeout` на GetDC==null **и** на hang) запрещён без `#[doc(alias)]` + ADR.
+- **MUST:** `err-variant-gate` — тест **вызывает** UC/адаптер (Fake или real) и наблюдает вариант. `assert_eq!(err.invariant_id(), "…")` без producer = FAIL.
+- **MUST NOT:** `let _ =` / `.ok()` / empty `catch {}` на I/O в composition и presentation.
+- **MUST (desktop):** composition не глотает ошибки UI-команд — тост или mapped Err ([B11](#prime-b11--client-apps)).
+
+---
+
+## PRIME-A38 — Checker integrity
+
+*Агент пишет checker и сам его зеленит. Step, который смотрит `path.exists()`, — театр. Law→Gate без этого закона всегда 7/10.*
+
+**Min tier:** PRIME+ **Enforced by:** `checker-integrity-gate` (AST `scripts/prime_check/**`)
+
+**MUST NOT** в step-модулях:
+
+- `return GREEN` / `return []` / `if False: FAIL else GREEN`;
+- единственная проверка — `path.exists()` / файл прочитан без parse содержимого;
+- inventory/lock = `"AC{i}" in text` / filename exists;
+- `no-trivial-assert`, который ловит только `assert!(true)` и пропускает tautology из [A27](#prime-a27--test-quality).
+
+**MUST:** этот gate гоняется на каждом FULL run **по самому checker**. Красный checker = красный продукт.
 
 ---
 
@@ -2137,8 +2359,9 @@ Assume external world **will** break.
 - **MUST:** full Part A for PRIME+ tasks.
 - **MAY:** KISS for LITE without network/secrets/auth.
 - **MUST NOT:** YAGNI exempts security ([A16](#prime-a16--secure-by-design)).
-- **MUST NOT:** YAGNI exempts taxonomy / Anti-N/A / intent lock / cohesion / **rich domain when status entity** — это Engine, не «лишние абстракции».
-- **MUST NOT:** YAGNI «одна impl → без порта» при I/O ([A35](#prime-a35--contract-surface)).
+- **MUST NOT:** YAGNI exempts taxonomy / Anti-N/A / **oracles** / cohesion / **rich domain when status entity** — это Engine.
+- **MUST NOT:** YAGNI «одна impl → без порта» при I/O из UC ([A35](#prime-a35--contract-surface)).
+- **MUST NOT:** YAGNI наоборот — **плодить** порты и `test_err_*` имена «при сомнении». Порт без вызова = dead abstraction ([A36](#prime-a36--live-surface), как `*_v2`).
 - **MUST NOT:** YAGNI as license to rewrite Skin into textbook Clean folders.
 - **MUST NOT:** раздувать Part B новыми философиями без Law→Gate — лучше 1 law + weave, чем 20 SHOULD.
 
@@ -2147,10 +2370,10 @@ Assume external world **will** break.
 **Min tier:** all
 
 1. Risk Tier + [AGENT-1](#agent-1--task-router) sections applied.
-2. Grep diff: `HTTPException` in domain, `Date.now`, magic numbers, duplicate policy, secrets, f-string SQL, `ALTER TABLE`, `dangerouslySetInnerHTML`, copy-pasted validation, cross-module domain entity imports, state-changing UC without idempotency key, `Err` without `rule_id`/`correlation_id`, `.status =` / `setStatus(` outside entity methods, bare `except Exception` / `catch (e)` in UC.
-3. **Taxonomy + intent + blast audit:** map complete? Anti-N/A? AC↔tests? diff in radius? ([A12a](#prime-a12a--test-taxonomy), [A34](#prime-a34--intent-lock), [A33](#prime-a33--blast-radius))
-4. **Rich domain + errors:** status writes via entity methods? expected vs unexpected split ([A05](#prime-a05--layer-law), [A10](#prime-a10--result))?
-5. Verify failures understood and fixed.
+2. Grep diff: swallowed `let _ =` / `.ok()` / empty catch on I/O; unused ports; `#[ignore]`; identity `impl`; unread config fields; `HTTPException` in domain, `Date.now`, secrets, f-string SQL, `.status =` outside entity, bare `except Exception` in UC.
+3. **Taxonomy + behavior-lock + blast:** families APPLIED with oracles? AC oracle in test body? Anti-N/A? one skip = one trigger?
+4. **Live surface + honest errors:** every listed port called? err-variant provokes producer? toast/log on mapped failure?
+5. **Checker:** no existence-only steps; `checker-integrity-gate` would pass on this repo's `prime_check`.
 6. [AGENT-2](#agent-2--pre-commit-checklist).
 
 ## PRIME-B09 — ADR
@@ -2180,11 +2403,14 @@ Assume external world **will** break.
 
 ## PRIME-B11 — Client apps (web / mobile / desktop)
 
-**Min tier:** STANDARD+
+**Min tier:** STANDARD+ · **desktop PRIME MUST** below  
+**Enforced by:** `e2e-ui` · `ignored-test-gate` · `no-swallow-gate` · `ffi-safety-gate` (When native)
 
 - **SHOULD:** Presentation = UI only; logic in hooks/stores/services/use cases.
-- **SHOULD:** server state on server; UI state local; **business invariants in Domain** — not in component/View/Widget.
-- **SHOULD:** HTTP via project API client/SDK — no raw `fetch` in presentational components.
+- **SHOULD:** server state on server; UI state local; **business invariants in Domain**.
+- **MUST (desktop PRIME):** composition **не глотает** ошибки UI-команд — mapped Err + toast/balloon ([A37](#prime-a37--honest-errors--no-swallow)).
+- **MUST (desktop PRIME):** E2E либо реально гоняется, либо каждая ignored-тест в `skipped_steps` с машиной/ADR. AC с hwnd/pixels **не** закрываются unit-именем.
+- **MUST:** settings, которые нельзя изменить в UI, **не** считаются настройками в AC ([A34](#prime-a34--intent-lock), [A36](#prime-a36--live-surface)).
 - **MUST:** lint + format + typecheck before done.
 - **MUST NOT:** `dangerouslySetInnerHTML`, `eval`, secrets in `localStorage` ([A18](#prime-a18--owasp-input-hygiene)).
 - **MAY:** 20-line component — no DI; 200-line component with business logic — **violation**.
@@ -2232,7 +2458,9 @@ Gates проверяют Engine, не заставляют одну колонк
 | Folder tree (Skin sample) | textbook `domain/entities` · `use-cases` · `infra` · `presentation` · `tests/unit\|e2e` | **Same outcome** via Nest modules, Rails MVC, Go `internal/<cap>`, mirrored slices — **MUST NOT** rewrite Skin into the sample |
 | Rich domain / Anti-anemic | `User.activate()` owns invariant | VO methods · FSM object · enum+validator **inside** the type — not `user.status =` in UC |
 | Test taxonomy complete | Unit+Int+Contract + When families | Same outcomes via jest/pytest/go test; GWT names ≡ BDD; Playwright When UI; contract@boundary When API-only; **folders** = Skin (colocate OK) |
-| Intent = tests | AC list ↔ test refs | Issue checkboxes + pytest markers; Given/When/Then docstrings |
+| Intent = tests | AC list ↔ **oracle in test body** | GWT docstring + hwnd/pixels/fs assert — not `"AC{i}" in name` |
+| Live surface | Port constructed + called from UC | Fake as second impl; identity/todo impl = FAIL — [A36](#prime-a36--live-surface) |
+| Honest errors | named Err **provoked**; no `let _ =` | toast/balloon on GUI; dump-bucket = FAIL — [A37](#prime-a37--honest-errors--no-swallow) |
 | Minimal blast | one capability PR | stacked PRs; Nx affected; CODEOWNERS scope |
 | Application entry | `*UseCase.execute()` | `*Handler`, `*Command`, `*Service.method`, MediatR, plain `fn`, Redux thunk, Effect |
 | Explicit errors | `Result<Ok,Err>` | Rust `Result`, Go `(T,error)`, sealed exceptions, `Either`, discriminated union |
@@ -2251,7 +2479,7 @@ Gates проверяют Engine, не заставляют одну колонк
 | Structural defect scan | CISQ / ISO 5055 automated measure | AST Prosecutor 7 gates + cohesion + **port-surface** + **anemic-mutation** + security static |
 | OWASP verification | ASVS checklist per tier | `zta-matrix-gate` · `injection-fuzz` · Threat Model in design artifact |
 
-**Agent algorithm:** detect Project Skin in repo → extend it (**including** existing capability packaging **and** port forms) → run **full Empire Engine** for tier → map gates to scopes → ADR only when introducing **new** Skin pattern. **Never** downgrade Engine because Skin is informal. **Never** treat flat layer dump as Skin if the Engine outcome is cohesion. **Never** skip Port because «framework DI / one impl». **Never** rewrite Skin into textbook `domain/entities`. **Never** treat anemic status writes as done because import-graph is green.
+**Agent algorithm:** detect Project Skin in repo → extend it (**including** existing capability packaging **and** port forms) → run **full Empire Engine** for tier → map gates to scopes → ADR only when introducing **new** Skin pattern. **Never** downgrade Engine because Skin is informal. **Never** treat flat layer dump as Skin if the Engine outcome is cohesion. **Never** skip Port because «framework DI / one impl» when UC calls I/O. **Never** add a port that is not called. **Never** treat AC-name lock as behavior-lock. **Never** treat existence-only checker as Law→Gate.
 
 ---
 
@@ -2269,7 +2497,12 @@ Gates проверяют Engine, не заставляют одну колонк
 | Outbound port | driven port: Repo, Clock, Gateway… |
 | Inbound port | driving port: UseCase/Command iface When multi-entry |
 | Composition root | only place concrete adapters are wired |
-| Intent lock | AC ↔ named tests ([A34](#prime-a34--intent-lock)) |
+| Intent lock / behavior-lock | AC + **oracle** ↔ test **body** ([A34](#prime-a34--intent-lock)) |
+| Live surface | declared port/field is constructed and called ([A36](#prime-a36--live-surface)) |
+| No swallow | process-boundary Result mapped or ADR ([A37](#prime-a37--honest-errors--no-swallow)) |
+| Checker integrity | no existence-only / unconditional GREEN steps ([A38](#prime-a38--checker-integrity)) |
+| Oracle | observable fact the test must break if production lies |
+| skipped_steps | one skip = one trigger + ADR + sunset — never one ADR for 15 N/A |
 | Blast radius | min capabilities/files ([A33](#prime-a33--blast-radius)) |
 | Law→Gate | MUST с Enforced-by → real step |
 | Package cohesion | capability folders ([A05a](#prime-a05a--package-cohesion)) |
@@ -2281,6 +2514,6 @@ Gates проверяют Engine, не заставляют одну колонк
 
 ---
 
-*Ни одной непокрытой строки. Ни одного «готово» при red gate. Агент чинит до green — не останавливается. Ни одного merge без `prime_check` exit 0. Ни одного concrete I/O в core без Port. Ни одного `entity.status = …` вне метода сущности. Ни одного учебника `domain/entities` вместо Skin репо.*
+*Ни одного зелёного `prime_check` без правды исхода. Ни одного AC без оракула. Ни одного порта без вызова. Ни одного `let _ =` на I/O. Ни одного театрального step. Ни одного exclude composition на greenfield.*
 
 *End of MAWYXX PRIME v5.7 — Build for Billions. Code for Vibe. Rule with Logic.*
