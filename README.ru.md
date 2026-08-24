@@ -4,7 +4,7 @@
 
 [English version → README.md](README.md)
 
-Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.7** именует каждое правило и требует **quality gate** на **правду исхода**, не на наличие артефактов — честные N/A, оракулы в тестах, **живые** порты, no-swallow, FFI на PRIME, coverage на I/O/composition, целостность checker. Компактный SSOT.
+Две спеки одной философии: **v3.0** учит паттернам (MIT). **v5.7** именует каждое правило и требует **quality gate** на **правду исхода**, не на наличие артефактов — честные N/A, оракулы в тестах, **живые** порты, no-swallow, **Behavior SSOT**, FFI на PRIME, coverage на I/O/composition, целостность checker. Компактный SSOT.
 
 **Project Skin · Empire Engine:** пиши **в стиле проекта** — но **всегда с дисциплиной Empire**. Зелёный `prime_check` из имён AC, неиспользуемых портов, `#[ignore]` e2e и exclude composition — **не** done. 100% fakes — **не** done.
 
@@ -17,7 +17,7 @@
 | Файл | Содержание | Доступ |
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | 10 разделов · ~220 строк | **MIT · открыт** |
-| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A38** (+ A05a, A12a) · **B01–B14** | **Открыт в репо** · корп = платно |
+| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A39** (+ A05a, A12a) · **B01–B14** | **Открыт в репо** · корп = платно |
 | `scripts/prime_check/` | **Агент создаёт FULL** по **AGENT-5** (~50+ steps, config, CI) | **Не в репо** — агент bootstrap, config, run, fix — **пользователь не трогает** |
 
 ---
@@ -85,6 +85,7 @@
 | **Live Surface** | **A36** · `live-surface-gate` | Порт в yaml без вызова · identity/todo impl · непрочитанное поле Settings |
 | **No swallow** | **A37** · `no-swallow-gate` · `err-variant-gate` (provoke path) | `let _ = register` · dump-bucket Err · err-тест без producer |
 | **Checker integrity** | **A38** · `checker-integrity-gate` | `return GREEN` · только path.exists · `"AC{i}" in text` |
+| **Behavior SSOT / Anti-Clone** | **A39** · `behavior-ssot-gate` · `anti-fork-gate` | Второй экземпляр того же алгоритма · clone-split под A11 · copy-paste чтобы blast A33 «маленький» |
 | **Coverage honesty** | **A25** · `exclude-honesty-gate` · `ignored-test-gate` | exclude composition · `#[ignore]` e2e без skipped_steps |
 | **FFI на PRIME** | **A16** · `ffi-safety-gate` | unsafe без SAFETY · `safety_profile: false` при Win32 в src |
 | **Blast radius** | **A33** · soft `blast-radius-gate` | Потрогал half монорепо ради одной кнопки |
@@ -93,9 +94,9 @@
 | **Expected vs unexpected errors** | **A10** | try/catch-лес в UC · глотать DB-down как Ok |
 | **Law→Gate** | **AGENT-5** | MUST без реального step checker'а |
 | **Agent failure modes** | шапка Doctrine | Типичный самообман ИИ → какой rule FAIL |
-| **Evidence honesty** | **A26** | Evidence: taxonomy · **contract_surface** · **rich_domain** · **error_split** · AC · blast |
+| **Evidence honesty** | **A26** | Evidence: taxonomy · **contract_surface** · **rich_domain** · **error_split** · **behavior_ssot** · AC · blast |
 
-**Deprecated reading (не применять):** «зелёный prime_check = 10/10» · «имя AC = lock» · «порт в yaml = архитектура» · «ignore e2e если имя есть» · «exclude composition, 100% fakes» · «unsafe ок до CRITICAL».
+**Deprecated reading (не применять):** «зелёный prime_check = 10/10» · «имя AC = lock» · «порт в yaml = архитектура» · «ignore e2e если имя есть» · «exclude composition, 100% fakes» · «unsafe ок до CRITICAL» · «скопировал, чтобы не трогать shared» · «разрезал файл = DRY» · «InputRouter обязателен в каждом приложении».
 
 ---
 
@@ -104,7 +105,7 @@
 | Добавление | Правило / модуль | Что делает |
 |------------|------------------|------------|
 | **Agent phases** | AGENT-OMEGA 0→4 | LOCK → design → TDD → implement → verify — обязательный порядок |
-| **Design artifact** | OMEGA PHASE 1 | `capability_slices` · `acceptance_criteria` · `blast_radius` · `test_taxonomy_map` · `contract_surface_map` до кода |
+| **Design artifact** | OMEGA PHASE 1 | `capability_slices` · `acceptance_criteria` · `blast_radius` · `test_taxonomy_map` · `contract_surface_map` · `behavior_owners` до кода |
 | **Task router** | AGENT-1 | Тип задачи → какие правила |
 | **Merge gate spec** | A22 · AGENT-5 | `prime_check` — единственный способ сказать «готово» на PRIME+ |
 | **Agent owns checker 100%** | AGENT-5 · A22 | Нет checker? Агент FULL: scaffold, steps, yaml, CI, deps, run, fix until green — **не просит пользователя** |
@@ -118,6 +119,7 @@
 | **Live Surface** | **A36** | Объявленный порт/поле constructed и called; identity impl FAIL |
 | **Honest errors / no swallow** | **A37** | Result на границе mapped; dump-bucket FAIL; err-variant провоцирует producer |
 | **Checker integrity** | **A38** | AST `prime_check`: нет безусловного GREEN, нет existence-only, нет substring-lock |
+| **Behavior SSOT / Anti-Clone** | **A39** | Один owner на политику/алгоритм; N≥2 копии → FAIL; форма = Skin (`fn`/facade/method/dispatcher) |
 | **Rich domain / Anti-anemic** | **A05** · **B06** | Lifecycle/status через методы сущности; `anemic-mutation-gate`; учебник Clean-дерева — **sample в каталоге**, не обязательный Skin |
 | **Expected vs unexpected errors** | **A10** | Named business Err в core; infra-сбой → adapter + global handler в presentation |
 | **Fix until green** | FIX-UNTIL-GREEN · A30 | Red gate → fix → re-run — агент не бросает |
@@ -179,6 +181,7 @@ PRIME — не изолированный чеклист. v5.7 **операци�
 | **Live surface** | PRIME+ · When ports/DTO | **A36** — объявленное должно вызываться | `live-surface-gate` |
 | **No swallow** | PRIME+ | **A37** — mapped Result; provoke err path | `no-swallow-gate` · `err-variant-gate` |
 | **Checker integrity** | PRIME+ | **A38** — checker не театр | `checker-integrity-gate` |
+| **Behavior SSOT** | PRIME+ · When N≥2 один алгоритм | **A39** — один owner; callers делегируют | `behavior-ssot-gate` · `anti-fork-gate` |
 | **Blast radius** | STANDARD+ | **A33** — минимум capabilities/files | soft `blast-radius-gate` + DoD |
 | **Contract surface** | PRIME+ · When I/O / boundary | **A35** — порты · DTO · API/event · composition root | `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` |
 | **Rich domain** | When entity has status/lifecycle | **A05** · **B06** — мутация через методы сущности, не public assign | `anemic-mutation-gate` · `fsm-transition-gate` |
@@ -199,15 +202,15 @@ PRIME — не изолированный чеклист. v5.7 **операци�
 | Default tier | **STANDARD** для app; **PRIME** по триггерам | **A01** |
 | Только Python verify | **Quality gate contract** + Law→Gate | **A22** · **AGENT-5** |
 | Design-first намёком | Design artifact + **contract_surface_map** | **A07** · AGENT-OMEGA PHASE 1 |
-| Анти-дубли словами | Нет `*_v2` policy forks | **A08** · `anti-fork-gate` |
-| Один владелец политики | Policy facades — SSOT | **A09** |
+| Анти-дубли словами | Нет `*_v2` policy forks **и** structural clones алгоритма | **A08** · **A39** · `anti-fork-gate` · `behavior-ssot-gate` |
+| Один владелец политики | Policy facades — SSOT; Behavior SSOT на любой shared algorithm | **A09** · **A39** |
 | Typed errors | Explicit failure paths; **expected vs unexpected**; каждый Err в тестах + error context | **A10** · `anti-null-gate` · `err-variant-gate` · `error-context-gate` |
-| «Режь если трудно тестить» | Лимиты >300 / complexity >10; пакеты, не только мелкие файлы | **A11** · **A05a** · `file-size-guard` · `cyclomatic-gate` |
+| «Режь если трудно тестить» | Лимиты >300 / complexity >10; **extract owner, затем shrink** — clone-split = FAIL | **A11** · **A05a** · **A39** · `file-size-guard` · `cyclomatic-gate` · `behavior-ssot-gate` |
 | CQRS «когда надо» | Формальное правило CQRS | **B01** |
 | FSM «без прыжков» | Каждое ребро в тестах; transition = **метод сущности** + **новый** immutable state When in-memory | **B06** · **A05** · `fsm-transition-gate` · `anemic-mutation-gate` · `immutability-gate` |
 | Idempotency «ключ на retry» | **Idempotent-Ledger:** key + WAL/ledger; `test_double_submit_*` | **A14** · **A09** · `idempotency-matrix-gate` |
 | Границы модулей словами | **Bounded-Context Lock:** нет shared domain entities — только DTO/primitives/events | **A04** · **A05** · **B05** · `context-leak-gate` |
-| Minimal scope словами | **Blast radius** объявлен и soft-gated | **A33** · `blast-radius-gate` |
+| Minimal scope словами | **Blast radius** объявлен; **MUST NOT** copy-paste, чтобы не трогать owner | **A33** · **A39** · `blast-radius-gate` · `behavior-ssot-gate` |
 | «Interface только если 2+ impl» | **I/O → порт всегда** на PRIME+; YAGNI только для pure functions | **A35** · **A04** · **A06** |
 
 ### Безопасность и международные стандарты
@@ -276,6 +279,7 @@ PART A — A01 Context/tier      A11 Decomposition       A21 SemVer/contracts
                                                       A36 Live Surface
                                                       A37 Honest errors
                                                       A38 Checker integrity
+                                                      A39 Behavior SSOT
 
 PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B02 SOLID/GRASP        B07 YAGNI               B12 Fuzz/property
@@ -283,7 +287,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
 
-Outcomes: Behavior lock · Live surface · No swallow · Checker integrity · Explicit errors · Rich domain When · Test taxonomy (oracle APPLIED) · Contract surface · Coverage honesty · FFI When
+Outcomes: Behavior lock · Live surface · No swallow · Checker integrity · Behavior SSOT · Explicit errors · Rich domain When · Test taxonomy (oracle APPLIED) · Contract surface · Coverage honesty · FFI When
 ```
 
 ---
@@ -383,7 +387,7 @@ Anti-N/A · taxonomy · intent lock · blast radius · **contract surface (ports
 | **Никто** | Кодинг по v3.0 без tier — boot rule не обязателен |
 
 **Норм:** boot rule + локальный файл + `@` когда ставки высокие.  
-**Плохо:** вся v5.7 в User Rules; дублировать A01–A38 в десять `.mdc`; надеяться, что агент помнит прошлый чат вместо перечитывания AGENT-5.
+**Плохо:** вся v5.7 в User Rules; дублировать A01–A39 в десять `.mdc`; надеяться, что агент помнит прошлый чат вместо перечитывания AGENT-5.
 
 ### 4. Команды checker (после того как агент поднимет `scripts/prime_check/`)
 

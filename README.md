@@ -4,7 +4,7 @@
 
 [Russian version → README.ru.md](README.ru.md)
 
-Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.7** names every rule and requires a **quality gate** that enforces **truth of outcome**, not presence of artifacts — honest N/A, test **oracles**, **live** ports, no swallowed errors, FFI on PRIME, coverage on I/O/composition, checker integrity. Compact SSOT.
+Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.7** names every rule and requires a **quality gate** that enforces **truth of outcome**, not presence of artifacts — honest N/A, test **oracles**, **live** ports, no swallowed errors, **Behavior SSOT**, FFI on PRIME, coverage on I/O/composition, checker integrity. Compact SSOT.
 
 **Project Skin · Empire Engine:** write in **your project's style** — but **always with Empire discipline**. A green `prime_check` built from AC-names, unused ports, `#[ignore]` e2e, and excluded composition is **not** done. Coverage % of fakes is **not** done.
 
@@ -17,7 +17,7 @@ Two specs for the same philosophy: **v3.0** teaches patterns (MIT). **v5.7** nam
 | File | Content | Access |
 |------|---------|--------|
 | `Mawyxx Prime V3.0.md` | 10 sections · ~220 lines | **MIT · open** |
-| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A38** (+ A05a, A12a) · **B01–B14** | **Open in repo** · corp use = paid |
+| `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A39** (+ A05a, A12a) · **B01–B14** | **Open in repo** · corp use = paid |
 | `scripts/prime_check/` | **Agent creates FULL** per **AGENT-5** (~50+ steps, config, CI) | **Not in repo** — agent bootstraps, configures, runs, fixes — **user does nothing** |
 
 ---
@@ -85,6 +85,7 @@ What makes the current contract hard to fake:
 | **Live Surface** | **A36** · `live-surface-gate` | Port in yaml never called · identity/todo impl · unread Settings field |
 | **No swallow** | **A37** · `no-swallow-gate` · `err-variant-gate` (provoke path) | `let _ = register` · dump-bucket Err · err test without producer |
 | **Checker integrity** | **A38** · `checker-integrity-gate` | `return GREEN` · path.exists-only · `"AC{i}" in text` |
+| **Behavior SSOT / Anti-Clone** | **A39** · `behavior-ssot-gate` · `anti-fork-gate` | Second copy of same algorithm · clone-split for A11 · copy-paste to keep A33 blast «small» |
 | **Coverage honesty** | **A25** · `exclude-honesty-gate` · `ignored-test-gate` | exclude composition · `#[ignore]` e2e without skipped_steps |
 | **FFI on PRIME** | **A16** · `ffi-safety-gate` | unsafe without SAFETY · `safety_profile: false` while Win32 in src |
 | **Blast radius** | **A33** · soft `blast-radius-gate` | Touching half the monorepo for one button |
@@ -93,9 +94,9 @@ What makes the current contract hard to fake:
 | **Expected vs unexpected errors** | **A10** | try/catch forest in the use-case · swallowing DB-down as Ok |
 | **Law→Gate** | **AGENT-5** | MUST without a real checker step |
 | **Agent failure modes** | Doctrine header | Typical AI self-deception → which rule FAILs it |
-| **Evidence honesty** | **A26** | Evidence lists taxonomy · **contract_surface** · **rich_domain** · **error_split** · AC · blast |
+| **Evidence honesty** | **A26** | Evidence lists taxonomy · **contract_surface** · **rich_domain** · **error_split** · **behavior_ssot** · AC · blast |
 
-**Deprecated reading (do not apply):** «green prime_check = 10/10» · «AC name = lock» · «port in yaml = architecture» · «ignore e2e if the name exists» · «exclude composition, 100% fakes» · «unsafe OK until CRITICAL».
+**Deprecated reading (do not apply):** «green prime_check = 10/10» · «AC name = lock» · «port in yaml = architecture» · «ignore e2e if the name exists» · «exclude composition, 100% fakes» · «unsafe OK until CRITICAL» · «copied so I wouldn’t touch shared» · «split the file = DRY» · «InputRouter required in every app».
 
 ---
 
@@ -104,7 +105,7 @@ What makes the current contract hard to fake:
 | Addition | Rule / module | What it does |
 |----------|---------------|--------------|
 | **Agent phases** | AGENT-OMEGA 0→4 | LOCK → design → TDD → implement → verify — mandatory order |
-| **Design artifact** | OMEGA PHASE 1 | `capability_slices` · `acceptance_criteria` · `blast_radius` · `test_taxonomy_map` · `contract_surface_map` before code |
+| **Design artifact** | OMEGA PHASE 1 | `capability_slices` · `acceptance_criteria` · `blast_radius` · `test_taxonomy_map` · `contract_surface_map` · `behavior_owners` before code |
 | **Task router** | AGENT-1 | Maps task type → which rules apply |
 | **Merge gate spec** | A22 · AGENT-5 | `prime_check` — only way to declare «done» at PRIME+ |
 | **Agent owns checker 100%** | AGENT-5 · A22 | No checker? Agent creates FULL: scaffold, steps, yaml, CI, deps, run, fix until green — **never asks user** |
@@ -118,6 +119,7 @@ What makes the current contract hard to fake:
 | **Live Surface** | **A36** | Declared port/field must be constructed and called; identity impl FAIL |
 | **Honest errors / no swallow** | **A37** | Process-boundary Result mapped; dump-bucket FAIL; err-variant provokes producer |
 | **Checker integrity** | **A38** | AST of `prime_check`: no unconditional GREEN, no existence-only, no substring-lock |
+| **Behavior SSOT / Anti-Clone** | **A39** | One owner per policy/algorithm; N≥2 copies → FAIL; form = Skin (`fn`/facade/method/dispatcher) |
 | **Rich domain / Anti-anemic** | **A05** · **B06** | Lifecycle/status via entity methods; `anemic-mutation-gate`; textbook Clean tree is a **catalog sample**, not a mandatory Skin |
 | **Expected vs unexpected errors** | **A10** | Named business Err in core; infra crash → adapter + global presentation handler |
 | **Fix until green** | FIX-UNTIL-GREEN · A30 | Red gate → fix → re-run — agent never abandons |
@@ -179,6 +181,7 @@ Not optional «where needed». **Skin** = project-native; **Engine** = always on
 | **Live surface** | PRIME+ · When ports/DTO | **A36** — declared must be called | `live-surface-gate` |
 | **No swallow** | PRIME+ | **A37** — mapped Result; provoke err path | `no-swallow-gate` · `err-variant-gate` |
 | **Checker integrity** | PRIME+ | **A38** — checker cannot be theatre | `checker-integrity-gate` |
+| **Behavior SSOT** | PRIME+ · When N≥2 same algorithm | **A39** — one owner; callers delegate | `behavior-ssot-gate` · `anti-fork-gate` |
 | **Blast radius** | STANDARD+ | **A33** — minimal capabilities/files | soft `blast-radius-gate` + DoD |
 | **Contract surface** | PRIME+ · When I/O / boundary | **A35** — ports · DTO · API/event · composition root | `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` |
 | **Rich domain** | When entity has status/lifecycle | **A05** · **B06** — mutate via entity methods, not public assign | `anemic-mutation-gate` · `fsm-transition-gate` |
@@ -199,15 +202,15 @@ Not optional «where needed». **Skin** = project-native; **Engine** = always on
 | Default tier implied | **STANDARD** for app; **PRIME** when triggers (auth, PII, payments, FSM…) | **A01** |
 | Python-only verify | **Quality gate contract** — stack-native entrypoint + Law→Gate | **A22** · **AGENT-5** |
 | Design-first implied | Design artifact: slices, AC, blast, taxonomy map, **contract_surface_map**, routes, Err | **A07** · AGENT-OMEGA PHASE 1 |
-| Anti-duplication verbal | No `*_v2` policy forks | **A08** · `anti-fork-gate` |
-| Single policy owner | Policy facades — one SSOT | **A09** |
+| Anti-duplication verbal | No `*_v2` policy forks **and** structural algorithm clones | **A08** · **A39** · `anti-fork-gate` · `behavior-ssot-gate` |
+| Single policy owner | Policy facades — one SSOT; Behavior SSOT for any shared algorithm | **A09** · **A39** |
 | Result / typed errors | Explicit failure paths; **expected vs unexpected**; every Err tested + error context | **A10** · `anti-null-gate` · `err-variant-gate` · `error-context-gate` |
-| File size «split if hard to test» | Hard limits: >300 fail, complexity >10 fail; packages not only smaller files | **A11** · **A05a** · `file-size-guard` · `cyclomatic-gate` |
+| File size «split if hard to test» | Hard limits: >300 fail, complexity >10 fail; **extract owner then shrink** — clone-split = FAIL | **A11** · **A05a** · **A39** · `file-size-guard` · `cyclomatic-gate` · `behavior-ssot-gate` |
 | CQRS «when needed» | Formal CQRS rule when read/write diverge | **B01** |
 | FSM «no illegal jumps» | Every edge tested; transition = **entity method** + **new** immutable state When in-memory | **B06** · **A05** · `fsm-transition-gate` · `anemic-mutation-gate` · `immutability-gate` |
 | Idempotency «key on retry» | **Idempotent-Ledger:** key + WAL/ledger; `test_double_submit_*` | **A14** · **A09** · `idempotency-matrix-gate` |
 | Module boundaries verbal | **Bounded-Context Lock:** no shared domain entities — DTO/primitives/events only | **A04** · **A05** · **B05** · `context-leak-gate` |
-| Minimal scope verbal | **Blast radius** declared and soft-gated | **A33** · `blast-radius-gate` |
+| Minimal scope verbal | **Blast radius** declared; **MUST NOT** copy-paste to avoid touching owner | **A33** · **A39** · `blast-radius-gate` · `behavior-ssot-gate` |
 | «Interface only if 2+ impl» | **I/O → port always** on PRIME+; YAGNI only for pure functions | **A35** · **A04** · **A06** |
 
 ### Security & international standards
@@ -276,6 +279,7 @@ PART A — A01 Context/tier      A11 Decomposition       A21 SemVer/contracts
                                                       A36 Live Surface
                                                       A37 Honest errors
                                                       A38 Checker integrity
+                                                      A39 Behavior SSOT
 
 PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B02 SOLID/GRASP        B07 YAGNI               B12 Fuzz/property
@@ -283,7 +287,7 @@ PART B — B01 CQRS              B06 FSM                 B11 Client apps
         B04 Resilience         B09 ADR                 B14 Human handoff
         B05 Inter-service      B10 Performance
 
-Outcomes: Behavior lock · Live surface · No swallow · Checker integrity · Explicit errors · Rich domain When · Test taxonomy (oracle APPLIED) · Contract surface · Coverage honesty · FFI When
+Outcomes: Behavior lock · Live surface · No swallow · Checker integrity · Behavior SSOT · Explicit errors · Rich domain When · Test taxonomy (oracle APPLIED) · Contract surface · Coverage honesty · FFI When
 ```
 
 ---
@@ -383,7 +387,7 @@ Adjust the path to where you copied the file.
 | **Neither** | v3.0-only vibe coding with no tier — boot rule optional |
 
 **Good:** boot rule + local file + `@` when stakes are high.  
-**Bad:** entire v5.7 in User Rules; duplicating A01–A38 into ten `.mdc` files; expecting the agent to remember last week's chat instead of re-reading AGENT-5.
+**Bad:** entire v5.7 in User Rules; duplicating A01–A39 into ten `.mdc` files; expecting the agent to remember last week's chat instead of re-reading AGENT-5.
 
 ### 4. Checker commands (after agent bootstraps `scripts/prime_check/`)
 
