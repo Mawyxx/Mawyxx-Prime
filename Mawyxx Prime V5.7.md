@@ -4,22 +4,47 @@
 
 **Agent contract** — единый нормативный файл для ИИ-кодера.
 
-> **v5.7** — **правда исхода**, не наличие артефактов. Contract Surface **живой** ([A36](#prime-a36--live-surface)) · AC = **оракул** ([A34](#prime-a34--intent-lock)) · no-swallow ([A37](#prime-a37--honest-errors--no-swallow)) · checker не театр ([A38](#prime-a38--checker-integrity)) · **Behavior SSOT** ([A39](#prime-a39--behavior-ssot)) · FFI на PRIME ([A16](#prime-a16--secure-by-design)) · coverage там, где OS ([A25](#prime-a25--coverage-absolute)).  
-> **Не применять:** зелёный `prime_check` = 10/10 · AC↔имя теста без оракула · порт в yaml без вызова · `#[ignore]` e2e · exclude composition · stub `return GREEN` · copy-paste вместо вызова owner · разрезал файл = DRY.
+> **v5.7** — **правда исхода**, не наличие артефактов. Contract Surface **живой** ([A36](#prime-a36--live-surface)) · AC = **оракул** ([A34](#prime-a34--intent-lock)) · no-swallow ([A37](#prime-a37--honest-errors--no-swallow)) · checker не театр ([A38](#prime-a38--checker-integrity)) · **Behavior SSOT** ([A39](#prime-a39--behavior-ssot)) · **Secure Continuum** ([A40](#prime-a40--secure-continuum)) · **Trust Pipeline** ([A41](#prime-a41--trust-pipeline)) · FFI на PRIME ([A16](#prime-a16--secure-by-design)) · coverage там, где OS ([A25](#prime-a25--coverage-absolute)).  
+> **Не применять:** зелёный `prime_check` = 10/10 · AC↔имя теста без оракула · порт в yaml без вызова · `#[ignore]` e2e · exclude composition · stub `return GREEN` · copy-paste вместо вызова owner · разрезал файл = DRY · «framework = OWASP закрыт» · «CI secrets ок» · «в чат скинул .env» · `security.md` без gate · `permissions: write-all` · «просто залогинен = authorized» · `update(**body)` · client `user_id` as ownership · token in URL.
 
 ### Universal Doctrine — Project Skin · Empire Engine (read first)
 
 > **Форма = проект. Дух = всегда Empire.**  
 > Не «как принято в репо, но получше где надо». Не «enterprise только на платежах».  
-> **Всегда:** пишешь **на языке и в стиле проекта** — но с дисциплиной Empire: taxonomy с **оракулом**, **живые** порты, **богатый домен**, честный error (не swallow), **один owner на алгоритм**, FFI-дисциплина When unsafe, coverage на I/O/composition, **честные When/N/A**, **минимальный blast**, checker без театра.
+> **Всегда:** пишешь **на языке и в стиле проекта** — но с дисциплиной Empire: taxonomy с **оракулом**, **живые** порты, **богатый домен**, честный error (не swallow), **один owner на алгоритм**, FFI-дисциплина When unsafe, coverage на I/O/composition, **честные When/N/A**, **минимальный blast**, checker без театра.  
+> **Default-secure:** любой вход снаружи = враг, пока schema + authz не сказали иначе. CRUD с id/PATCH — тоже security surface, не «потом A41».
 
 | Принцип | Правило |
 |---------|---------|
 | **Project Skin** | Стек/папки/naming/test runner/DI/lint/logs **как в репо**; capability-пакеты ([A05a](#prime-a05a--package-cohesion)); формы портов = Pattern Catalog; виды тестов = Engine. |
-| **Empire Engine** | Слои · cohesion · **живой** contract surface · **rich domain** · taxonomy с оракулом · anti-N/A · blast · no-swallow · **behavior SSOT** · FFI When · честный coverage · **checker integrity** — **всегда** для tier. Law без step = ложь. Артефакт без исхода = ложь. |
+| **Empire Engine** | Слои · cohesion · **живой** contract surface · **rich domain** · taxonomy с оракулом · anti-N/A · blast · no-swallow · **behavior SSOT** · **secure continuum** (app·CI·chat·ops) · **trust pipeline** (schema→authz→allowlist→safe sink) · FFI When · честный coverage · **checker integrity** — **всегда** для tier. Law без step = ложь. Артефакт без исхода = ложь. |
+| **Default-secure** | До кода — 5 вопросов PHASE 1. Любой «да» → [A18](#prime-a18--owasp-input-hygiene)/[A40](#prime-a40--secure-continuum)/[A41](#prime-a41--trust-pipeline) в **этом** PR. Все «нет» → честный `N/A(…)` ([Conflict Matrix](#conflict-matrix-при-сомнении--читать-это-не-конкурирующие-абзацы)). |
 | **WHEN** | Триггер включает family (тесты **или** контракты); `N/A` только с reason — иначе FAIL ([A12a](#prime-a12a--test-taxonomy), [A35](#prime-a35--contract-surface)). |
 | **Minimal blast** | Минимум файлов/capabilities ([A33](#prime-a33--blast-radius)); качество и порты не режутся. |
-| **Никогда** | «потом тесты» · N/A без причины · coverage vanity · AC без оракула · порт без вызова · `let _ =` на I/O · ignored e2e без skipped_steps · exclude composition на greenfield · театральный checker · дубль алгоритма в двух методах · учебник `domain/entities`. |
+| **Никогда** | «потом тесты» · N/A без причины · coverage vanity · AC без оракула · порт без вызова · `let _ =` на I/O · ignored e2e без skipped_steps · exclude composition на greenfield · театральный checker · дубль алгоритма · секрет вне vault/ref · IDOR / mass-assign · «обычный CRUD = без trust pipeline» · учебник `domain/entities`. |
+
+### Conflict Matrix (при сомнении — читать это, не конкурирующие абзацы)
+
+| Tension | Correct | Wrong |
+|---------|---------|-------|
+| Сомнение в **When-trigger** taxonomy/security | **Включи** family/gate | skip forever / «потом» |
+| «Обычный CRUD / не CRITICAL» vs A41 | Default-secure: id/PATCH/body → Trust Pipeline **сейчас** | «security touch только CRITICAL» |
+| Сомнение «наплодить порт / test_err_* / SecurityPort» | **Не плоди** ([A35](#prime-a35--contract-surface), [A36](#prime-a36--live-surface)) | unused Port / vanity names |
+| YAGNI vs [A39](#prime-a39--behavior-ssot) | N=1 local OK; **N≥2** extract owner | never extract **или** god-util на N=1 |
+| YAGNI vs [A40](#prime-a40--secure-continuum) / [A41](#prime-a41--trust-pipeline) | When surface exists → gate **MUST** | «CSRF/IDOR/ci-harden later» |
+| [A33](#prime-a33--blast-radius) vs A39/A41 | touch shared owner = **correct** blast | copy-paste to keep blast «small» |
+| Skin vs Engine | keep Nest/Rails/Go folders | rewrite to `domain/entities` |
+| [A40](#prime-a40--secure-continuum) vs [A41](#prime-a41--trust-pipeline) | A40 = channels (CI/chat/ops); A41 = in-process trust cut | «security = only CI» **или** «only handlers» |
+
+### Anti-N/A (SSOT — один раз)
+
+- **MUST:** `N/A` только с reason = **absent When-trigger** (`N/A(no auth)`, `N/A(no I/O)`, `N/A(no FSM)`…).
+- **MUST NOT:** `N/A`, `N/A()`, `N/A(потом)`, `N/A(skip)`, `N/A(одна реализация)`, `N/A(framework DI)`.
+- **Enforced by:** `test-taxonomy-gate` · `port-surface-gate`. Details: [A12a](#prime-a12a--test-taxonomy), [A35](#prime-a35--contract-surface). Conflict Matrix above for «при сомнении».
+
+### Spec Law Shape (как писать законы в этом файле)
+
+Каждый `PRIME-A*` / `PRIME-B*`: *why* → **Min tier / When / Enforced by** → Outcome → MUST/MUST NOT → Enough vs too much (When agents cheat) → See. Не дублировать OWASP/Anti-N/A таблицы — ссылка на SSOT. Эталон плотности: [A36](#prime-a36--live-surface)–[A41](#prime-a41--trust-pipeline).
 
 ### Agent failure modes (30 секунд — читать до кода)
 
@@ -29,7 +54,7 @@
 |-----------|-------------|
 | Happy-path only | [A12a](#prime-a12a--test-taxonomy) negative + boundary |
 | Flat layer-dump | [A05a](#prime-a05a--package-cohesion) |
-| N/A-spam / пустой reason | Anti-N/A в [A12a](#prime-a12a--test-taxonomy) · `test-taxonomy-gate` |
+| N/A-spam / пустой reason | [Anti-N/A SSOT](#anti-na-ssot--один-раз) · `test-taxonomy-gate` · `port-surface-gate` |
 | E2E-only / unit-only при API+DB | Pyramid [A12](#prime-a12--tests--coverage) |
 | Coverage vanity | [A25](#prime-a25--coverage-absolute) ≠ taxonomy green |
 | «Acceptance понял» / тест только по имени AC | [A34](#prime-a34--intent-lock) behavior-lock — нет оракула |
@@ -42,6 +67,17 @@
 | Разнёс half-repo | [A33](#prime-a33--blast-radius) |
 | Скопировал handler/retry/mapper в новый файл, чтобы не трогать shared | [A39](#prime-a39--behavior-ssot) · [A11](#prime-a11--decomposition) · [A33](#prime-a33--blast-radius) · `behavior-ssot-gate` |
 | A11 разрезал god-file на два клона | [A11](#prime-a11--decomposition) fake-split · [A39](#prime-a39--behavior-ssot) |
+| Зелёный zta, но `write-all` workflow | [A40](#prime-a40--secure-continuum) · `ci-harden-gate` |
+| `.env` / JWT / private key в Cursor/Telegram | [A40](#prime-a40--secure-continuum) · [A19](#prime-a19--supply-chain--secrets) · `channel-secret-gate` |
+| Helmet в package.json, middleware не подключён | [A40](#prime-a40--secure-continuum) · `security-headers-gate` · [A36](#prime-a36--live-surface) spirit |
+| Authorize скопирован в 12 контроллеров | [A39](#prime-a39--behavior-ssot) · [A02](#prime-a02--zero-trust) · [A40](#prime-a40--secure-continuum) |
+| Dockerfile non-root, Helm privileged / open TF | [A23](#prime-a23--infra--docker-security) · `iac-scan-gate` · [A40](#prime-a40--secure-continuum) |
+| `security.md` / OWASP checklist без Enforced-by gate | Law→Gate + [A38](#prime-a38--checker-integrity) · [A40](#prime-a40--secure-continuum) |
+| ZTA green, но `/orders/{id}` отдаёт чужой заказ (IDOR) | [A41](#prime-a41--trust-pipeline) · [A02](#prime-a02--zero-trust) · `idor-ownership-gate` |
+| PATCH принимает `is_admin` / `role` из JSON | [A41](#prime-a41--trust-pipeline) · `mass-assign-gate` |
+| `filename` = user input → `open(path)` | [A41](#prime-a41--trust-pipeline) · `path-escape-gate` |
+| JWT в query + `console.log(token)` | [A41](#prime-a41--trust-pipeline) · [A19](#prime-a19--supply-chain--secrets) · `session-token-gate` |
+| Authz после `charge()` / `delete()` | [A41](#prime-a41--trust-pipeline) · `trust-pipeline-gate` |
 | Law в спеке, step-заглушка **или** existence-only step | Law→Gate + [A38](#prime-a38--checker-integrity) |
 | Evidence без families | [A26](#prime-a26--evidence-block) |
 | Concrete infra в UC / нет `contract_surface_map` | [A35](#prime-a35--contract-surface) · `port-surface-gate` |
@@ -54,31 +90,17 @@
 
 ### Checker = 100% работа агента (не пользователя)
 
-На tier ≥ PRIME **человек не настраивает checker**. Агент **сам**, в этой сессии:
+На ≥PRIME человек **не** настраивает checker. Агент создаёт `scripts/prime_check/` + ~50 steps + yaml + CI + deps, гоняет `--only`/`--diff`/FULL, чинит код **и** checker до `exit 0`. Нет checker → STOP фичу → [AGENT-5](#agent-5--prime-check) bootstrap → green → потом задача.
 
-| Задача | Кто | Запрещено пользователю |
-|--------|-----|------------------------|
-| Создать `scripts/prime_check/` с нуля | **Агент** | «добавьте checker в репо» |
-| Написать **все** step-модули (~50) | **Агент** | «реализуйте gates сами» |
-| `prime_check.config.yaml` (tier, scopes, stack) | **Агент** | «настройте config» |
-| CI workflow (local ≡ CI) | **Агент** | «добавьте job в GitHub Actions» |
-| Dev-deps для lint/test/coverage | **Агент** | «установите pytest/ruff» |
-| Запуск `--only` / `--diff` / FULL | **Агент** в shell | «запустите тесты» / «проверьте сами» |
-| Чинить код **и** checker до `exit 0` | **Агент** | «не могу починить gate» |
-
-**Нет checker в репо → STOP фичу → [AGENT-5](#agent-5--prime-check) bootstrap FULL → green → только потом задача пользователя.**
-
-**Цель:** правда исхода. Живые контракты ([A36](#prime-a36--live-surface)) · оракул в AC ([A34](#prime-a34--intent-lock)) · no-swallow ([A37](#prime-a37--honest-errors--no-swallow)) · **один owner на алгоритм** ([A39](#prime-a39--behavior-ssot)) · cohesion · rich domain · честный coverage · checker без театра ([A38](#prime-a38--checker-integrity)). Не зелёные имена. Не ISO-таблицы ради таблиц. Не копии вместо вызова.
+**Цель:** правда исхода — A34–A41 + cohesion + rich domain + честный coverage. Не зелёные имена · не ISO ради таблиц · не копии вместо owner · не «безопасный код + дырявый CI» · не «залогинен ⇒ любой id».
 
 **Applicability keywords (RFC 2119 + WHEN):**
 
 | Keyword | Meaning |
 |---------|---------|
 | **Always** | Любой tier, любой стек |
-| **STANDARD+** | Tier ≥ STANDARD |
-| **PRIME+** | Tier ≥ PRIME |
-| **CRITICAL** | Tier = CRITICAL |
-| **When \<trigger\>** | Только если условие в задаче/дизайне (status field, retry risk, multi-module, container deploy…) |
+| **STANDARD+** / **PRIME+** / **CRITICAL** | Tier floor |
+| **When \<trigger\>** | Только если условие в задаче/дизайне |
 | **Stack-native** | Реализация = конвенция проекта; gate проверяет outcome |
 
 **Сквозные инварианты (outcomes — вшиты в правила, не отдельный модуль):**
@@ -97,6 +119,8 @@
 | **No swallow** | Result на границе процесса mapped или ADR; dump-bucket Err запрещён | [A37](#prime-a37--honest-errors--no-swallow) | PRIME+ | `no-swallow-gate` · `err-variant-gate` (provoke path) |
 | **Checker integrity** | Step не existence-only, не безусловный GREEN, не `"AC{i}" in text` | [A38](#prime-a38--checker-integrity) | PRIME+ | `checker-integrity-gate` |
 | **Behavior SSOT** | Политика/алгоритм имеет **одного owner** в `runtime_scope`; остальные CALL, не копируют | [A39](#prime-a39--behavior-ssot) · [A08](#prime-a08--anti-fork--policy-facades) | PRIME+ · When N≥2 copies (body above threshold) | `behavior-ssot-gate` · `anti-fork-gate` |
+| **Secure Continuum** | Секрет/trust не живут вне vault+allowlist на **всех** каналах (app · CI · chat · ops); контроль = gate, не `security.md` | [A40](#prime-a40--secure-continuum) · [A16](#prime-a16--secure-by-design) · [A19](#prime-a19--supply-chain--secrets) | PRIME+ · When network/auth/PII/deploy/CI | `ci-harden-gate` · `channel-secret-gate` · `security-headers-gate` · `cors-csrf-gate` · `iac-scan-gate` |
+| **Trust Pipeline** | На protected op trust режется в порядке schema→authn→authz(resource)→allowlisted command→UC→safe sink; attack class = gate+oracle | [A41](#prime-a41--trust-pipeline) · [A02](#prime-a02--zero-trust) · [A39](#prime-a39--behavior-ssot) | PRIME+ · When exposed op / auth / multi-user / upload | `trust-pipeline-gate` · `idor-ownership-gate` · `mass-assign-gate` · `path-escape-gate` · `session-token-gate` |
 | **Blast radius** | Минимум файлов/capabilities на фичу | [A33](#prime-a33--blast-radius) | STANDARD+ | soft `blast-radius-gate` + DoD |
 | **Contract surface** | Core/app зависит только от контрактов; concrete в adapters / composition root | [A35](#prime-a35--contract-surface) · [A06](#prime-a06--di--ports) · [A04](#prime-a04--integration--plugin-boundaries) | PRIME+ · When I/O / boundary / multi-entry | `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` |
 | **Rich domain** | Lifecycle/status меняет **метод сущности** с инвариантом; не публичный сеттер / field assign | [A05](#prime-a05--layer-law) · [B06](#prime-b06--fsm) | When entity has status/lifecycle | `anemic-mutation-gate` · `fsm-transition-gate` |
@@ -126,7 +150,7 @@
 | **Compatibility** | coexistence, interoperability | [A21](#prime-a21--semver--contracts) · [B05](#prime-b05--inter-service-contracts) | `api-contract-drift` · `snapshot-contract` · contract tests |
 | **Usability** | learnability, operability (UI) | [B11](#prime-b11--client-apps) | `frontend-quality` · E2E/scenario When UI |
 | **Reliability** | maturity, availability, fault tolerance, recoverability | [A12](#prime-a12--tests--coverage) · [A12a](#prime-a12a--test-taxonomy) · [A25](#prime-a25--coverage-absolute) · [B04](#prime-b04--resilience) · [A14](#prime-a14--idempotency) | 100% coverage · path/boundary · mutation · property · negative · idempotency |
-| **Security** | confidentiality, integrity, non-repudiation, accountability | [A02](#prime-a02--zero-trust) · [A16](#prime-a16--secure-by-design) · [A18](#prime-a18--owasp-input-hygiene) · [A19](#prime-a19--supply-chain) · [A29](#prime-a29--zta-matrix) · [A12a](#prime-a12a--test-taxonomy) | `zta-matrix-gate` · `injection-fuzz` · access_control/injection families · `gitleaks-history` · `dependency-audit` |
+| **Security** | confidentiality, integrity, non-repudiation, accountability | [A02](#prime-a02--zero-trust) · [A16](#prime-a16--secure-by-design) · [A18](#prime-a18--owasp-input-hygiene) · [A19](#prime-a19--supply-chain) · [A29](#prime-a29--zta-matrix) · [A40](#prime-a40--secure-continuum) · [A41](#prime-a41--trust-pipeline) · [A12a](#prime-a12a--test-taxonomy) | `zta-matrix-gate` · `idor-ownership-gate` · `trust-pipeline-gate` · `mass-assign-gate` · `injection-fuzz` · continuum gates · `gitleaks-history` · `dependency-audit` |
 | **Maintainability** | modularity, reusability, analysability, modifiability, testability | [A05](#prime-a05--layer-law) · [A05a](#prime-a05a--package-cohesion) · [A35](#prime-a35--contract-surface) · [A11](#prime-a11--decomposition) · [A17](#prime-a17--clean-code) · [A39](#prime-a39--behavior-ssot) · [B09](#prime-b09--adr) | **7 AST gates** · `package-cohesion-gate` · `port-surface-gate` · `anemic-mutation-gate` · `cyclomatic-gate` · `anti-fork-gate` · `behavior-ssot-gate` · ADR |
 | **Portability** | adaptability, installability | stack adapters · [A32](#prime-a32--monorepo-scope) | `stack-detect` · per-path tier |
 | **Operational** (25010 ops view) | deploy, monitor, restore | [B13](#prime-b13--ops--runbook) · [B03](#prime-b03--sre--observability--events) | `health-gate` · `prod-config` · trace_id |
@@ -138,7 +162,7 @@ AST Prosecutor = локальный CISQ-аналог (агент пишет с�
 | CISQ pillar | Structural defects (examples) | PRIME enforcement |
 |-------------|------------------------------|-------------------|
 | **Reliability** | unhandled paths, complexity hotspots, nondeterminism in core | `anti-null-gate` · `deterministic-runtime` · `err-variant-gate` · `cyclomatic-gate` |
-| **Security** | injection sinks, hardcoded secrets, weak crypto patterns | `no-string-sql` · `gitleaks-history` · `bandit` · `no-debug-bypass` |
+| **Security** | injection sinks, hardcoded secrets, weak crypto, CI privilege, open CORS, IDOR, mass-assign | `no-string-sql` · `gitleaks-history` · `bandit` · `no-debug-bypass` · continuum gates · `idor-ownership-gate` · `mass-assign-gate` · `trust-pipeline-gate` |
 | **Performance efficiency** | algorithmic hotspots, resource leaks in hot path | `cyclomatic-gate` · `dead-code-gate` · [B10](#prime-b10--performance) budgets |
 | **Maintainability** | coupling, god files, duplicate policy, layer violations, flat dumps, concrete-in-core, anemic status writes, algorithm clones | **7 AST gates** · `import-graph-gate` · `package-cohesion-gate` · `port-surface-gate` · `anemic-mutation-gate` · `anti-fork-gate` · `behavior-ssot-gate` · `file-size-guard` |
 
@@ -146,27 +170,17 @@ AST Prosecutor = локальный CISQ-аналог (агент пишет с�
 
 #### OWASP Top 10 · ASVS → tier-scaled verification
 
-| OWASP Top 10 (2021) | PRIME closure | Rule · gate |
-|---------------------|---------------|-------------|
-| A01 Broken Access Control | authz на **каждую** protected operation | [A02](#prime-a02--zero-trust) · `zta-matrix-gate` |
-| A02 Cryptographic Failures | no roll-your-own crypto; TLS min | [A16](#prime-a16--secure-by-design) · `tls-min-version` |
-| A03 Injection | parameterized SQL; fuzz boundaries | [A18](#prime-a18--owasp-input-hygiene) · `no-string-sql` · `injection-fuzz` |
-| A04 Insecure Design | Threat Model mini; design artifact | [A16](#prime-a16--secure-by-design) · [A07](#prime-a07--design-first) |
-| A05 Security Misconfiguration | no debug prod; hardened containers | [A23](#prime-a23--infra--docker-security) · `docker-security` · `prod-config` |
-| A06 Vulnerable Components | zero high/critical CVE | [A19](#prime-a19--supply-chain) · `dependency-audit` · `sbom` |
-| A07 Identification & Auth Failures | full auth scenario matrix | [A29](#prime-a29--zta-matrix) · `zta-matrix-gate` |
-| A08 Software & Data Integrity | lockfile, SBOM, no unsigned deps w/o ADR | [A19](#prime-a19--supply-chain) |
-| A09 Security Logging Failures | structured logs; no PII; err context | [B03](#prime-b03--sre--observability--events) · `pii-log-scan` · `error-context-gate` |
-| A10 SSRF | outbound URL allowlist | [A18](#prime-a18--owasp-input-hygiene) · `ssrf-gate` |
+**SSOT closure table:** [A18](#prime-a18--owasp-input-hygiene) (не дублировать здесь).  
+**Channels / in-process:** [A40](#prime-a40--secure-continuum) · [A41](#prime-a41--trust-pipeline).
 
-**OWASP ASVS** verification depth by tier:
+**OWASP ASVS** depth by tier:
 
 | Tier | ASVS target | Agent MUST |
 |------|-------------|------------|
-| **LITE** | hygiene only — no secrets, validate input | [A16](#prime-a16--secure-by-design) basics |
-| **STANDARD** | V1 Architecture + V2 Authentication partial | boundary validation · no secrets |
-| **PRIME+** | V1–V4 for exposed web/API surface | Threat Model mini · full ZTA matrix · injection fuzz |
-| **CRITICAL** | all applicable ASVS chapters for surface | Threat Model full · `mutation-critical` · `injection-fuzz` mandatory |
+| **LITE** | hygiene — no secrets, validate input | [A16](#prime-a16--secure-by-design) basics |
+| **STANDARD** | V1 + V2 partial | boundary validation · no secrets |
+| **PRIME+** | V1–V4 for exposed web/API | Threat Model mini · ZTA + Trust Pipeline · injection fuzz · continuum When CI |
+| **CRITICAL** | all applicable chapters | Threat Model full · `mutation-critical` · `injection-fuzz` |
 
 #### SEI CERT · MISRA — native / FFI profile (PRIME+ When FFI — не только CRITICAL)
 
@@ -209,6 +223,15 @@ Gates ниже — **outcome checks**. Шаг `N/A` только с ADR, есл�
 | exclude composition/I/O adapters (greenfield) | `exclude-honesty-gate` → exit 1 | PRIME+ greenfield · [A25](#prime-a25--coverage-absolute) |
 | Checker step = existence / `return GREEN` | `checker-integrity-gate` → exit 1 | PRIME+ · [A38](#prime-a38--checker-integrity) |
 | Дубль одного алгоритма/политики в ≥2 местах без единого owner | `behavior-ssot-gate` → exit 1 | PRIME+ · body above threshold ([A39](#prime-a39--behavior-ssot)) |
+| Secret / long-lived cloud key in CI with fork-PR trust · `write-all` | `ci-harden-gate` → exit 1 | PRIME+ · When CI ([A40](#prime-a40--secure-continuum)) |
+| Open CORS+credentials или missing CSRF When cookie session | `cors-csrf-gate` → exit 1 | When browser-facing ([A40](#prime-a40--secure-continuum)) |
+| Raw secret in evidence / chat handoff | `channel-secret-gate` → exit 1 · agent refuse | Always ([A40](#prime-a40--secure-continuum)) |
+| Security checklist / ADR without Enforced-by gate | Law→Gate + [A38](#prime-a38--checker-integrity) | PRIME+ · [A40](#prime-a40--secure-continuum) |
+| Client-supplied owner/tenant id trusted for access | `idor-ownership-gate` → exit 1 | multi-user ([A41](#prime-a41--trust-pipeline)) |
+| Full request bag bound onto entity | `mass-assign-gate` → exit 1 | patch/create ([A41](#prime-a41--trust-pipeline)) |
+| User path without root jail | `path-escape-gate` → exit 1 | uploads ([A41](#prime-a41--trust-pipeline)) |
+| Token in query/logs or homemade crypto | `session-token-gate` → exit 1 | token auth ([A41](#prime-a41--trust-pipeline)) |
+| Mutation before authz / raw body in UC | `trust-pipeline-gate` → exit 1 | protected ops ([A41](#prime-a41--trust-pipeline)) |
 | unsafe без `// SAFETY:` / native handle без Drop | `ffi-safety-gate` → exit 1 | When FFI in src · [A16](#prime-a16--secure-by-design) |
 | Happy-path-only (нет negative/boundary) | `negative-path-gate` / `boundary-value-gate` → exit 1 | PRIME+ · When validators / state-changing |
 | Evidence без taxonomy APPLIED\|N/A list | `evidence-block` → invalid | PRIME+ · [A26](#prime-a26--evidence-block) |
@@ -263,8 +286,21 @@ assign tier → tier ≥ PRIME?
 
 ### PHASE 1 — DESIGN ARTIFACT (в ответе до кода)
 
+**Default-secure (MUST до кода — ответить явно):**
+
+```text
+1. untrusted input? (HTTP/CLI/WS/file/upload/webhook)     → yes | N/A(no I/O)
+2. principal / session / token?                           → yes | N/A(no auth)
+3. resource id / multi-user / tenant / чужой id?          → yes | N/A(single-user)
+4. client body / PATCH / privileged fields?               → yes | N/A(no write body)
+5. secret · cookie · CI · HTML · path/upload?             → list | N/A(none)
+Any YES → fill trust_pipeline_map + secure_continuum_map this PR; enable matching A18/A40/A41 gates.
+All N/A → keep reasons; do NOT silently skip. «CRUD ≠ security» = FAIL reading.
+```
+
 ```text
 tier + triggers: [STANDARD | PRIME — why]
+default_secure: [answers 1–5 above]
 stack + existing_patterns: [detected — MVC | hexagonal | FP | framework-native]
 capability_slices: [orders | billing | auth | …]   # package map — [A05a](#prime-a05a--package-cohesion)
 package_form: [mirrored_slices | feature_packages | Nx_lib | Nest_module | …]
@@ -283,10 +319,9 @@ test_matrix: behavior × input × expected outcome
 test_taxonomy_map:                        # [A12a](#prime-a12a--test-taxonomy) — N/A MUST cite When-trigger absent
   unit: [test names…]
   integration: […] | N/A(no I/O)
-  e2e_or_contract: […]
-  regression: […] | N/A(no bugfix)
-  mutation: APPLIED on critical_scope (PRIME greenfield MUST) | N/A(legacy & mutation ADR)
   e2e_or_contract: […] | N/A(no UI / no exposed op)
+  regression: […] | N/A(no bug fix)
+  mutation: APPLIED on critical_scope (PRIME greenfield MUST) | N/A(legacy & mutation ADR)
   skipped_steps: [{step, test, trigger, adr, sunset}]   # one skip = one trigger; NEVER one ADR for 15 N/A
   property: […] | N/A(no pure invariant)
   injection: […] | N/A(no untrusted input)
@@ -311,6 +346,18 @@ behavior_owners:                      # [A39](#prime-a39--behavior-ssot) — emp
   - id: money-round | retry-http | authorize | …   # When second copy appears → MUST fill this session
     owner: path::symbol
     callers: [...]
+secure_continuum_map:                 # [A40](#prime-a40--secure-continuum) — Anti-N/A on absent surfaces
+  surfaces: [http, ci, iac, chat] | subset
+  threat_channels: […]                # MUST include ci/chat When those channels exist
+  header_policy: APPLIED | N/A(reason)
+  cors_csrf: APPLIED | N/A(reason)
+  ci_permissions_owner: path::workflow | N/A(no CI)
+  authz_owner: path::symbol | N/A(no auth)   # A39 link
+trust_pipeline_map:                   # [A41](#prime-a41--trust-pipeline) — Anti-N/A on absent surfaces
+  ops: [{id, pipeline: schema>authn>authz>command>uc, authz_owner, command_type}] | N/A(no protected op)
+  idor_cases: [{op, victim_resource, oracle_test}] | N/A(single-user)
+  privileged_fields_stripped: [role, is_admin, balance, …]
+  session_model: cookie | bearer | mtls | N/A
 ```
 
 ### PHASE 2 — TDD-LOCK ([A24](#prime-a24--tdd-lock) · [A12a](#prime-a12a--test-taxonomy))
@@ -332,98 +379,30 @@ print PRIME-VERIFY-EVIDENCE block ([A26](#prime-a26--evidence-block))
 
 **Нет легального выхода с exit ≠ 0.** Агент **не останавливает задачу** — итерирует fix → re-run до green.
 
-### Forbidden phrases (MUST NOT в ответе пользователю)
+### Forbidden phrases (MUST NOT в ответе)
 
-- «покрытие ~99%» / «достаточно для merge»
-- «запустите тесты» / «проверьте сами»
-- «prime_check добавим позже» / «настройте checker по README»
-- «установите pytest» / «добавьте GitHub Actions» / «создайте scripts/prime_check»
-- «edge case — можно без теста»
-- «тесты в отдельном PR»
-- «хватит unit / coverage 100%»
-- «happy path достаточно»
-- «E2E потом» / «негатив не нужен»
-- «N/A» / «не применимо» без причины из When-колонки
-- «acceptance в голове» / «и так понятно что делать»
-- «потрогал соседние модули на всякий случай»
-- «не могу починить» / «оставим красным» / «нужна ваша помощь с тестами»
-- «остановился, т.к. gate падает» — **fix until green**, не stop
-- «перепишу под domain/entities» / «так правильнее по учебнику Clean»
-- «анемичная модель ок, слои зелёные»
-- «скопировал, чтобы не трогать shared» / «разрезал файл — уже DRY»
+«~99%» · «запустите тесты» · «checker потом» · «установите pytest» · «edge без теста» · «тесты в другом PR» · «хватит unit» · «happy path достаточно» · «E2E/негатив потом» · naked `N/A` · «acceptance в голове» · «потрогал соседние на всякий» · «не могу починить / оставим красным» · «перепишу под domain/entities» · «скопировал чтобы не трогать shared» · «разрезал файл = DRY».
 
 ### 3-strike rule ([A30](#prime-a30--anti-slack))
 
-Один step падает **3 раза подряд** с **тем же патчем** → **redesign** (другой подход) + ADR → **продолжай fix loop** до green. Не бросать задачу.
+Один step падает **3 раза** с **тем же патчем** → redesign + ADR → continue fix loop. Не бросать задачу.
 
 ---
 
 ## AGENT-0 — Boot (read first)
 
-### Role
+Skin + Engine. До кода: tier ([A01](#prime-a01--context--risk-tier)) · **Default-secure 5Q** · [Conflict Matrix](#conflict-matrix-при-сомнении--читать-это-не-конкурирующие-абзацы) · [failure modes](#agent-failure-modes-30-секунд--читать-до-кода) · OMEGA 0–4.
 
-Skin + Engine. До кода: tier ([A01](#prime-a01--context--risk-tier)) · [failure modes](#agent-failure-modes-30-секунд--читать-до-кода) · OMEGA 0–4.
-
-- **MUST:** родной синтаксис репо; slices ([A05a](#prime-a05a--package-cohesion)); `test_taxonomy_map` + `contract_surface_map` + AC + blast ([A12a](#prime-a12a--test-taxonomy), [A35](#prime-a35--contract-surface), [A34](#prime-a34--intent-lock), [A33](#prime-a33--blast-radius)).
+- **MUST:** родной синтаксис; slices ([A05a](#prime-a05a--package-cohesion)); maps + AC + blast ([A12a](#prime-a12a--test-taxonomy), [A35](#prime-a35--contract-surface), [A34](#prime-a34--intent-lock), [A33](#prime-a33--blast-radius)).
+- **MUST:** Default-secure 5Q в PHASE 1. Любой YES на untrusted/auth/id/PATCH/secret → [A18](#prime-a18--owasp-input-hygiene)/[A40](#prime-a40--secure-continuum)/[A41](#prime-a41--trust-pipeline) **в этом PR** (не «security потом»).
 - **MUST:** нет/битый checker на PRIME+ → bootstrap [AGENT-5](#agent-5--prime-check) → green → потом фича.
 - **MUST:** `--only` после edit; перед done — `--diff` + FULL + evidence ([A26](#prime-a26--evidence-block)).
-- **MUST NOT:** happy-path / N/A-spam / concrete I/O в core / «запусти тесты» / done при exit ≠ 0.
+- **MUST NOT:** happy-path / N/A-spam / concrete I/O в core / «запусти тесты» / done при exit ≠ 0 / «обычный CRUD без trust pipeline».
+- Red → fix-until-green ([A30](#prime-a30--anti-slack)). No new feature on red.
 
-### Self-correction
+**Не применять (кратко):** pure-fn Port · CQRS на 3 поля · учебник `domain/entities` · port в yaml без вызова · AC-имя без оракула · coverage без taxonomy · Helmet-in-package.json · `.env` в чат · `write-all` · IDOR «просто залогинен» · `update(**body)` · «не CRITICAL → без A41». Полный список самообмана → failure modes; «при сомнении» → **Conflict Matrix**.
 
-Stop-the-line + fix-until-green ([A30](#prime-a30--anti-slack)). Red → EXEC SUMMARY / FIX PLAN → batch P1→P3 → re-run. No new feature on red.
-
-Keywords / tiers: Applicability table above · [A01](#prime-a01--context--risk-tier).
-
-### Анти-паттерны (когда НЕ применять PRIME)
-
-- **Port / interface на pure function без I/O и без границы** — YAGNI ([A35](#prime-a35--contract-surface) Enough vs too much).
-- Event bus / CQRS / 4 слоя для CRUD из 3 полей.
-- ADR на rename переменной или тривиальный фикс.
-- Абстракция «на будущее» **без** When-триггера (нет I/O, нет swap, нет multi-entry).
-- 5 слоёв для скрипта на 30 строк.
-- **«Одна реализация → concrete в UC» при I/O** — **запрещено** на PRIME+; порт + Fake всё равно нужен ([A35](#prime-a35--contract-surface), [A06](#prime-a06--di--ports)).
-- **«Один capability → сразу Nx monorepo + 12 пакетов»** — over-split; cohesion ≠ микропакет на каждый файл ([A05a](#prime-a05a--package-cohesion), [B07](#prime-b07--yagni)).
-- **«100% coverage = достаточно тестов»** — нет; без taxonomy families ([A12a](#prime-a12a--test-taxonomy)) это vanity.
-- **«На каждый CRUD — Playwright + mutation + full fuzz»** — over-test; уважай колонку **When** в A12a.
-- **«Inbound UseCase iface + 3 adapters на будущее»** при single HTTP entry — over-port; `N/A(single HTTP entry)` ок.
-- **«Перепиши Nest/Rails/Go под `domain/entities` + husky + Pino»** — учебник ≠ закон; Skin репо остаётся формой ([A05a](#prime-a05a--package-cohesion), Pattern Catalog).
-- **«Порт в yaml = архитектура»** без вызова из UC — dead abstraction ([A36](#prime-a36--live-surface)).
-- **«test_acceptance_ac1_* без оракула»** — таблица синонимов, не lock ([A34](#prime-a34--intent-lock)).
-- **«Наплоди порты и test_err_* имена при сомнении»** — Enough vs too much = **FAIL**, не абзац ([A35](#prime-a35--contract-surface), [A12a](#prime-a12a--test-taxonomy), [B07](#prime-b07--yagni)).
-- **«God-utils на первый вызов» / «InputRouter обязателен в каждом репо»** — premature / учебник. N=1 local OK; N≥2 → один owner Skin-native ([A39](#prime-a39--behavior-ssot), [B07](#prime-b07--yagni)).
-
-### Separation + cohesion (summary)
-
-Roles + dependency: Presentation → Application → Core ← Infrastructure — [A05](#prime-a05--layer-law).  
-Capability packages — [A05a](#prime-a05a--package-cohesion). Flat dump при ≥2 capabilities = FAIL. Cross-capability = public contracts ([A04](#prime-a04--integration--plugin-boundaries)).
-
-### Global FORBIDDEN
-
-- **MUST NOT:** construct application entry / wire deps manually inside transport (`new Handler(...)` без DI/framework).
-- **MUST NOT:** business policy in infrastructure adapters.
-- **MUST NOT:** duplicate auth / validation / idempotency / error-mapping / algorithm clones ([A08](#prime-a08--anti-fork--policy-facades), [A39](#prime-a39--behavior-ssot)).
-- **MUST NOT:** trust `localhost` / docker / «internal» route ([A02](#prime-a02--zero-trust)).
-- **MUST NOT:** `Date.now()`, `uuid()`, `random()` in Domain/Application ([A15](#prime-a15--deterministic-time)).
-- **MUST NOT:** secrets in repo, logs, tests ([A16](#prime-a16--secure-by-design), [A19](#prime-a19--supply-chain)).
-- **MUST NOT:** string-built SQL; DDL from use-case/handler ([A18](#prime-a18--owasp), [A20](#prime-a20--migrations)).
-- **MUST NOT:** ad-hoc `pip install` / `npm install` без lockfile ([A19](#prime-a19--supply-chain)).
-- **MUST NOT:** one class mixing unrelated business policies ([A17](#prime-a17--clean-code)).
-- **MUST NOT:** flat dump несвязанных capabilities в один слой-мешок (`domain/*.py` bag, общий `ports/` на всё) при ≥2 направлениях — [A05a](#prime-a05a--package-cohesion).
-- **MUST NOT:** concrete infra types in application/core signatures — [A35](#prime-a35--contract-surface).
-- **MUST NOT:** wire `new ConcreteAdapter()` outside composition root — [A35](#prime-a35--contract-surface).
-- **MUST NOT:** `let _ =` / `.ok()` / empty `catch` on process-boundary I/O without ADR+sunset — [A37](#prime-a37--honest-errors--no-swallow).
-- **MUST NOT:** `#[ignore]` / `xtest.skip` / `pytest.mark.skip` without a per-test `skipped_steps` row.
-- **MUST NOT:** rewrite a working Skin into textbook Clean folders «для PRIME».
-
-### Forbidden patterns (security)
-
-- **MUST NOT:** `eval`, `exec`, dynamic import on untrusted strings.
-- **MUST NOT:** `innerHTML` / `dangerouslySetInnerHTML` без ADR + sanitization.
-- **MUST NOT:** session tokens / secrets in `localStorage` без ADR.
-- **MUST NOT:** ORM `create_all()` / raw DDL on prod.
-- **MUST NOT:** debug auth bypass (`if True:`, `# TODO remove` credentials).
-
+**Global FORBIDDEN (Engine):** concrete I/O в core · policy в adapters · clone auth/validate/algorithm · trust localhost/CI/chat as auth · nondeterminism в core · secrets в repo/evidence/chat · string SQL · DDL вне migrations · `write-all` CI · flat dump ≥2 caps · swallow I/O Result · skip без `skipped_steps` · `eval`/unsanitized HTML · tokens in `localStorage` без ADR · debug auth bypass. See [A02](#prime-a02--zero-trust)·[A08](#prime-a08--anti-fork--policy-facades)·[A15](#prime-a15--deterministic-time)–[A20](#prime-a20--migrations)·[A35](#prime-a35--contract-surface)–[A41](#prime-a41--trust-pipeline).
 
 ---
 
@@ -434,89 +413,45 @@ Capability packages — [A05a](#prime-a05a--package-cohesion). Flat dump при 
 | **No prime_check in repo** | ≥PRIME | AGENT-5, A22 | **WRITE prime_check first** → full green |
 | Legacy repo bootstrap | ≥PRIME | A31, AGENT-5 | `adoption_mode: legacy` + diff gates |
 | Monorepo path | varies | A32 | per-path tier in config |
-| Any runtime code change | ≥PRIME | A01–A32, B03–B14 | `prime_check --diff` then **full** |
-| New/changed exposed operation (HTTP/gRPC/GraphQL/CLI) | ≥PRIME | A02, A03, A29, A12a | `route-matrix-gate` + `zta-matrix-gate` + contract/negative |
-| New feature / provider | ≥PRIME | A04–A07, **A05a**, **A12a**, **A35**, **A39**, A12, A24 | TDD → ports + taxonomy → Fake → adapter → full; **call existing owners** |
-| Auth / session | ≥PRIME | A02, A16, A29, A12a, A35 | `zta-matrix-gate` + access_control + policy ports |
+| Any runtime code change | ≥PRIME | A01–A41 (+ Default-secure 5Q); When I/O/auth/id/PATCH → **A18/A40/A41** | `prime_check --diff` then **full** |
+| New/changed exposed operation (HTTP/gRPC/GraphQL/CLI) | ≥PRIME | A02, A03, A18, A29, A12a, **A41**, **A40** When web | `route-matrix-gate` + `zta-matrix-gate` + `trust-pipeline-gate` + contract/negative |
+| New feature / provider | ≥PRIME | A04–A07, **A05a**, **A12a**, **A35**, **A39**, **A40**, **A41**, A12, A24 | TDD → ports + taxonomy → Fake → adapter → full; **call owners**; Default-secure then continuum/pipeline |
+| Auth / session | ≥PRIME | A02, A16, A29, A12a, A35, **A39**, **A40**, **A41** | `zta-matrix-gate` + `idor-ownership-gate` + one authorize owner + session-token |
+| Security / OWASP surface | ≥PRIME | A16, A18, A02, A29, A12a, **A40**, **A41** | injection + access_control + trust pipeline + continuum |
+| CRUD / resource id / PATCH body (даже «простая фича») | ≥PRIME | **A41**, A02, A18, A12a | schema→authz→allowlist; IDOR oracle When multi-user; `mass-assign-gate` |
+| Docker / compose / deploy | ≥PRIME | A16, A23, **A40** | `docker-security` + `prod-config` + `ci-harden` / `iac-scan` When present |
 | DB schema / persistence | ≥PRIME | A20, B06, A12a | integration + boundary + negative + `schema-drift` |
 | New dependency | any | A19 | `dependency-audit` + lockfile |
-| Docker / compose / deploy | ≥PRIME | A16, A23 | `docker-security` + `prod-config` (When containerized) |
 | Idempotency / retries | ≥PRIME | A14, A09, A12a | integration + contract + negative + double-submit |
 | Stateful entity (status) — When in design artifact | ≥PRIME | A05, B06, A14, A12a | `anemic-mutation-gate` + `fsm-transition-gate` + state_transition family |
-| Client UI | ≥PRIME | B11, A18, A12a | E2E/scenario + unit + `frontend-quality` |
+| Client UI | ≥PRIME | B11, A18, A12a, **A40** | E2E/scenario + unit + `frontend-quality` + headers/CORS When browser |
 | Financial / compliance | CRITICAL | All + B09 + A12a | full + mutation + property + injection-fuzz |
-| Security / OWASP surface | ≥PRIME | A16, A18, A02, A29, A12a | injection + access_control + fuzz + `ssrf-gate` |
 | Safety-critical (C/C++/embedded) | CRITICAL | A16, A15, B06 + CERT/MISRA profile | `clang-tidy`/`cppcheck`/`clippy` + immutability + forbidden_patterns |
-| Ops / deploy / health | ≥PRIME | B13, A23 | `health-gate` + `prod-config` |
+| Ops / deploy / health | ≥PRIME | B13, A23, **A40** | `health-gate` + `prod-config` + rotate/revoke on leak |
 | Script only (no network) | LITE | B07 | smoke only — no prime_check required |
 
 ---
 
 ## AGENT-2 — Pre-commit checklist (merge gate)
 
+*Полный DoD = [A13](#prime-a13--definition-of-done). Здесь — core ≤25.*
+
 ```text
-[ ] AGENT-OMEGA phases 0–4 completed
-[ ] prime_check EXISTS — bootstrapped THIS session if was missing (AGENT-5)
-[ ] adoption_mode set (greenfield | legacy) — A31
-[ ] Design artifact: test_matrix + test_taxonomy_map + contract_surface_map + behavior_owners + acceptance_criteria + blast_radius (A24, A12a, A35, A39, A34, A33)
-[ ] No naked N/A — every N/A cites absent When-trigger (Anti-N/A tests + contracts)
-[ ] Each AC has oracle + test body asserts that oracle — not substring AC1 in the name (A34, intent-lock-gate)
-[ ] Listed ports are constructed AND called from application (A36, live-surface-gate)
-[ ] No swallowed Result on process I/O; err-variant tests provoke the production path (A37)
-[ ] No second copy of an existing algorithm; owner listed or extracted this PR (A39, behavior-ssot-gate)
-[ ] behavior-ssot-gate GREEN or N/A(no cluster)
-[ ] Outbound I/O → explicit ports; concrete only in composition root (A35, port-surface-gate)
-[ ] Each outbound port has Fake/InMemory (port-test-double-gate) or ADR
-[ ] Lifecycle/status mutated via entity/VO methods with invariants — not public assign/setter (A05, B06, anemic-mutation-gate)
-[ ] Expected business failures = named Err/Result in core; unexpected infra = adapter + presentation handler — no try/catch forest in UC (A10)
-[ ] Diff stays inside declared blast_radius (or justify expansion)
-[ ] Risk Tier assigned with triggers documented (STANDARD default; PRIME when fired)
-[ ] Scanned touched files — stop-the-line if violation
-[ ] ZERO untested lines on changed files (coverage-diff-100 green)
-[ ] ZERO untested branches on changed files (coverage-branch-100 = path coverage)
-[ ] Boundary + negative tests for validators / state-changing (A12a)
-[ ] Applicable taxonomy families present or N/A(reason) — test-taxonomy-gate
-[ ] coverage-ratchet: no drop vs main
-[ ] no-pragma-no-cover + no-empty-test + no-trivial-assert GREEN
-[ ] Every Err variant has test (err-variant-gate)
-[ ] Every exposed operation × outcome in test_matrix (route-matrix-gate / contract)
-[ ] Every protected operation: auth matrix (zta-matrix-gate / access_control)
-[ ] Multi-step business flow: scenario (+ BDD/acceptance criteria) when applicable
-[ ] FSM: every legal + illegal transition tested (state_transition) when applicable
-[ ] Bug fix: regression-lock test named test_regression_*
-[ ] Fail-fast at boundary (A17); ZTA before UC (A02)
-[ ] gitleaks-history + no-secrets + dependency-audit GREEN (A19)
-[ ] import-graph-gate + di-graph-gate + cyclomatic-gate GREEN
-[ ] port-surface-gate + composition-root-gate + port-test-double-gate GREEN (A35)
-[ ] anemic-mutation-gate GREEN or N/A(no status entity) (A05, B06)
-[ ] package-cohesion-gate GREEN or SKIPPED(ADR) — capability slices named in design artifact (A05a)
-[ ] docker-security + prod-config + health-gate if infra touched (A23, B13)
-[ ] FSM transitions tested + concurrency where applicable (B06, A14)
-[ ] State-changing + retry risk: idempotency + double-submit test (A14, when applicable)
-[ ] Multi-module: no cross-module private type imports (A04, when applicable)
-[ ] Every Err: rule_id + state_snapshot + correlation_id (A10, B03, error-context-gate)
-[ ] `prime_check --diff` → exit 0
-[ ] `python -m scripts.prime_check` → exit 0 (FULL matrix)
-[ ] PRIME-VERIFY-EVIDENCE block printed (A26)
-[ ] CI workflow = identical command
-[ ] Threat Model mini if CRITICAL + security touch (OWASP A04 · ASVS)
-[ ] OWASP Top 10 surface mapped: access control · injection · misconfig · deps · logging (A18)
-[ ] CISQ pillars green: Reliability · Security · Maintainability static steps (AST Prosecutor)
-[ ] Safety-critical profile: CERT/MISRA forbidden_patterns + concurrency When C/C++/embedded
+[ ] OMEGA 0–4 + Default-secure 5Q + design maps (taxonomy · contracts · behavior_owners · secure_continuum · trust_pipeline · AC · blast)
+[ ] prime_check exists (bootstrap AGENT-5 if missing); adoption_mode set
+[ ] Anti-N/A ([SSOT](#anti-na-ssot--один-раз)); [Conflict Matrix](#conflict-matrix-при-сомнении--читать-это-не-конкурирующие-абзацы)
+[ ] A34 oracles · A36 live ports · A37 no-swallow · A38 checker integrity
+[ ] A39 no clone / owner · A40 continuum GREEN|N/A · A41 trust pipeline GREEN|N/A (+ IDOR When multi-user)
+[ ] A35 ports + Fake + composition root · A05/A05a rich domain + cohesion
+[ ] A12a applicable families · coverage-diff-100 + ratchet · err-variant / zta / route When triggered
+[ ] A19 secrets + audit · continuum CI/headers When triggered · A23 docker When touched
+[ ] `prime_check --diff` then FULL → exit 0 · evidence (A26) · CI ≡ local
+[ ] Threat Model When CRITICAL **or** any Default-secure YES (incl. CI/chat When present)
 ```
 
-**Coverage — ZERO tolerance (tier ≥ PRIME):**
+**Coverage ZERO (PRIME+):** line+branch 100% scope/diff · 0 uncovered Err on touch · matrix gaps 0 — details [A25](#prime-a25--coverage-absolute) / table in A13 evidence path.
 
-| Metric | Greenfield | Legacy (A31) |
-|--------|------------|--------------|
-| Line coverage | **100.00%** `runtime_scope` | **100.00%** changed files only |
-| Branch coverage | **100.00%** `runtime_scope` | **100.00%** changed files only |
-| Ratchet vs `main` | must not decrease | must not decrease |
-| Uncovered `Err` | **0** | **0** on touched UC |
-| Route without matrix test | **0** | **0** on touched routes |
-| Auth scenario missing | **0** | **0** on touched routes |
-
-**LITE only:** smoke test; no 100% gate. **Всё остальное — prime_check red → fix until green.**
+**LITE only:** smoke; no 100% gate. Else red → fix until green.
 
 ---
 
@@ -692,6 +627,110 @@ done: --diff → FULL → exit 0 → --evidence → paste block
 7. MUST NOT: path.exists("utils/") / helpers.rs exists. MUST parse AST. [A38](#prime-a38--checker-integrity)
 ```
 
+#### `ci-harden-gate` ([A40](#prime-a40--secure-continuum))
+
+```text
+1. When: .github/workflows | .gitlab-ci.yml | Jenkinsfile | equiv in repo; else N/A(no CI)
+2. Parse workflow YAML/AST — MUST NOT path.exists only ([A38](#prime-a38--checker-integrity))
+3. FAIL if default/job permissions is write-all OR absent when secrets/deploy present
+   — require explicit least set (Skin map in config: contents:read, id-token:write When OIDC…)
+4. FAIL if pull_request_target (or equiv) runs untrusted checkout with secrets without ADR+sunset
+5. FAIL if actions/uses unpinned (@v4 floating) When secure_continuum.ci_harden.pin_actions true
+6. FAIL if curl|sh / wget|bash install without checksum ADR
+7. ALLOW: allowlist [{path, reason, sunset}]
+```
+
+#### `channel-secret-gate` ([A40](#prime-a40--secure-continuum) · [A19](#prime-a19--supply-chain--secrets))
+
+```text
+1. Extend gitleaks/no-secrets patterns to docs, examples, evidence templates
+2. FAIL if evidence-block / design paste contains raw secret-shaped tokens
+3. FAIL if committed examples look like real keys (sk-…, BEGIN PRIVATE KEY, Bearer eyJ…)
+4. Agent discipline (spec): refuse to echo user-pasted secrets — rewrite to env var names;
+   on leak in chat → B14 rotate/revoke steps — MUST NOT ignore
+5. MUST NOT: existence of SECURITY.md as PASS
+```
+
+#### `security-headers-gate` ([A40](#prime-a40--secure-continuum) · [A18](#prime-a18--owasp-input-hygiene))
+
+```text
+1. When: web UI or public HTTP API; else N/A(api-json-only|no HTTP) with Anti-N/A reason
+2. Detect framework Skin (Express/Nest/FastAPI/Axum…)
+3. Assert CSP · HSTS(prod) · X-Content-Type-Options · frame deny — via middleware registration AST
+   or config snapshot test — MUST NOT «Helmet in package.json»
+4. ALLOW ADR for intentional omit with sunset
+```
+
+#### `cors-csrf-gate` ([A40](#prime-a40--secure-continuum) · [A18](#prime-a18--owasp-input-hygiene))
+
+```text
+1. When: browser-facing; else N/A(bearer-only|no browser) with reason
+2. CORS: allowlist origins — FAIL `*` with credentials
+3. CSRF: token or SameSite strategy When cookie session; N/A(bearer-only) OK with reason
+4. Parse config/code AST — FAIL open CORS + cookies
+```
+
+#### `iac-scan-gate` ([A40](#prime-a40--secure-continuum) · [A23](#prime-a23--infra--docker-security))
+
+```text
+1. When: k8s/helm/terraform/pulumi/cloudformation present; else N/A(no IaC)
+2. Soft→fail per secure_continuum.iac.mode: privileged pods, hostNetwork, public * IAM,
+   open security groups (denylist + one Skin linter: checkov|tfsec|kube-linter)
+3. MUST NOT require all scanners — one GREEN
+4. MUST NOT: Dockerfile-only harden while cluster wide open
+```
+
+#### `trust-pipeline-gate` ([A41](#prime-a41--trust-pipeline))
+
+```text
+1. When: protected / state-changing ops in design artifact / route matrix; else N/A
+2. Infer call chain Skin-native (handler → middleware → UC)
+3. FAIL if raw request/body reaches UC/repo without schema type boundary
+4. FAIL if authz runs after mutation / after side-effect write
+5. FAIL if UC reads untyped dict/map from transport as business input
+6. Cross-check secure_continuum_map.authz_owner OR behavior_owners id=authorize
+7. MUST NOT: path.exists("auth.ts"). MUST parse AST/call graph. [A38](#prime-a38--checker-integrity)
+```
+
+#### `idor-ownership-gate` ([A41](#prime-a41--trust-pipeline) · [A02](#prime-a02--zero-trust) · [A29](#prime-a29--zta-matrix))
+
+```text
+1. When: resource id in path/body + multi-user/tenant; else N/A(single-user)
+2. Require test oracle: principal A cannot read/mutate principal B's resource (403/404)
+3. Production path: authz uses server-side ownership/tenant — NOT client-supplied owner id
+4. Extend zta-matrix rows OR trust_pipeline_map.idor_cases — one skip = one ADR
+5. FAIL if only «anonymous vs logged-in» without cross-user When multi-user
+```
+
+#### `mass-assign-gate` ([A41](#prime-a41--trust-pipeline))
+
+```text
+1. When: update/patch/create from external input
+2. AST: entity/ORM update from full request / **body / Object.assign(entity, req) → FAIL
+   unless allowlisted fields / explicit Command / schema strips privileged keys
+3. Privileged fields (config denylist: role, is_admin, balance, password_hash, tenant_id…)
+   MUST NOT be optional client DTO fields without separate admin op + authz
+```
+
+#### `path-escape-gate` ([A41](#prime-a41--trust-pipeline) · [A18](#prime-a18--owasp-input-hygiene))
+
+```text
+1. When: file path / upload / download
+2. Detect path joins with user strings
+3. FAIL if no canonicalization + root prefix check (or Skin-safe API)
+4. Require negative test: `../` rejected
+```
+
+#### `session-token-gate` ([A41](#prime-a41--trust-pipeline) · [A19](#prime-a19--supply-chain--secrets))
+
+```text
+1. When: session or token auth; bearer-only → N/A(cookie flags) OK with reason
+2. FAIL token in query string / logged fragment
+3. FAIL cookie session without Secure+HttpOnly (prod) unless ADR
+4. FAIL custom crypto / homemade JWT verify when stack has standard lib
+5. FAIL secrets/tokens in logs (pair pii-log-scan)
+```
+
 #### `port-surface-gate` + Anti-N/A contracts ([A35](#prime-a35--contract-surface))
 
 ```text
@@ -751,99 +790,18 @@ STOP фичу → scaffold per ownership checklist above → ALL steps → FULL 
 
 Агент **адаптирует имена шагов**, не правила. `pytest-unit` → `vitest-unit` и т.д.
 
-### AST Prosecutor — не CI-обёртка, а ИИ-прокурор
+### AST Prosecutor — не CI-обёртка
 
-**Проблема:** checker только с `pytest` + coverage = хорошая CI-обёртка. Агент говорит «готово» словами — checker не может возразить.
+**Проблема:** pytest+coverage alone = CI-обёртка; агент «готов» словами.  
+**Решение:** агент **пишет** AST/import-graph steps в `scripts/prime_check/` (не shipped). Exit 0 = правда. CISQ/CERT map → [Quality Constellation](#quality-constellation--iso--cisq--owasp--cert-constitutional-layer). Scopes = Skin paths in config; Engine = outcomes.
 
-**Решение:** **AST Prosecutor** — Python/Node/Go/C/C++ **исходники** в `scripts/prime_check/`, которые **агент сам пишет** по [AGENT-5](#agent-5--prime-check). **Не в репо MAWYXX Prime** — нет готового checker'а, .exe или pip-пакета. Скрипт парсит AST + import graph → structured Finding. **Слова агента ≠ доказательство. Exit 0 = единственная правда.**
+**MUST:** architecture gates = real AST/import graph (не stub `return []`); FAIL → Finding (rule · file:line · hint · rerun).  
+**MUST NOT:** «import-graph failed» без file:line + chain + hint.
 
-**Стандарты:** AST Prosecutor = локальная реализация **ISO/IEC 5055** (CISQ) — автоматический поиск **структурных** дефектов по 4 столпам (Reliability · Security · Performance · Maintainability). Идея **SEI CERT / MISRA** static rules: запрет опасных конструкций на уровне AST, не на уровне «мы вроде аккуратные». См. [Quality Constellation](#quality-constellation--iso--cisq--owasp--cert-constitutional-layer).
+**Role scopes** (agent fills at bootstrap) — see Config yaml `architecture.*` below.  
+**Gate inventory:** FULL step map + algorithms above (`import-graph` · `di-purity` · `deterministic-runtime` · `anti-null` · `handler-purity` · `cyclomatic`/`file-size` · `anti-fork` · `behavior-ssot` · `package-cohesion` · `port-surface` · `composition-root` · `port-test-double` · `live-surface` · `no-swallow` · continuum · trust-pipeline · `ffi-safety` When FFI).
 
-**Skin & Engine:** нам похер *универсальные* имена папок (`Skin`). Engine = prosecutor читает `architecture.*` scopes из config и проверяет **outcomes** по графу импортов и AST — не по слову «Domain» в пути. **Package cohesion** — отдельный soft outcome: тематические папки из `architecture.capabilities` / `package_form`, не «всё в одном слое ок, раз import-graph зелёный».
-
-```text
-CI-only checker:     tests pass? coverage OK? → merge
-AST Prosecutor:      tests + coverage + import graph + DI purity + nondeterminism
-                     + explicit errors + thin handlers + complexity + anti-fork
-                     + package cohesion (capability slices)
-                     + contract surface (ports · composition root · Fake doubles)
-                     + rich domain (no anemic status writes)
-                     → FAIL PRIME-Axx [gate] file:line hint → agent MUST fix
-```
-
-**MUST:** architecture gates реализованы через **AST/import graph** — не regex-only, не «надеемся на линтер».
-**MUST:** каждый FAIL → structured Finding (rule ID, file:line, snippet, hint, rerun cmd) — см. [Report output](#report-output--agent-readable-diagnostics). Агент **не гадает** по сырому pytest/ruff — читает EXEC SUMMARY → FIX PLAN → Finding.
-**MUST NOT:** stub step `return []` — prosecutor gates = real parsers per stack adapter.
-**MUST NOT:** «import-graph failed» без file:line, import chain и hint куда перенести код.
-
-#### Config: role scopes (Skin → Engine mapping)
-
-Агент **сам** заполняет при bootstrap — по фактической структуре репо:
-
-```yaml
-architecture:
-  core_scope: [src/core/**, domain/**, internal/models/**]       # testable business logic
-  application_scope: [src/app/**, usecases/**, services/**]
-  presentation_scope: [src/api/**, routes/**, controllers/**, pages/**]
-  infrastructure_markers: [infra/**, adapters/**, repositories/**]
-  # imports FROM these paths INTO core_scope = FAIL import-graph-gate
-  banned_imports_in_core:          # extend per stack
-    python: [sqlalchemy, fastapi, httpx, requests, oracledb, pymongo, redis, celery]
-    node: [express, axios, pg, mongodb, typeorm]
-    go: [net/http, database/sql, gorm]
-  testable_core_scope: [core_scope + application_scope]  # deterministic-runtime, anti-null
-  handler_max_logic_lines: 15                            # handler-purity-gate
-  cyclomatic_max: 10                                   # cyclomatic-gate (A11)
-  file_max_lines: 300                                    # file-size-guard
-  # Package cohesion (A05a) — Soft gate; map Skin → capability names
-  package_form: mirrored_slices   # mirrored_slices | feature_packages | nest_modules | nx_libs | flat_ok
-  capabilities: [orders, billing, auth]                 # empty + package_form: flat_ok = single-capability / LITE
-  cohesion_mode: warn                  # off | warn | fail — PRIME+ growing domain → fail
-  # Contract surface (A35)
-  ports: [IOrderRepository, IClock, IPaymentGateway]   # outbound + strategy ports
-  composition_root_scope: [src/main.py, src/di/**, app/providers/**]
-  port_mode: fail                      # warn | fail
-```
-
-#### 🔱 7 AST architecture gates (+ soft cohesion + contract surface) — что prosecutor-скрипт (написанный агентом) проверяет локально
-
-| # | Gate | AST / analysis | Outcome | Rule |
-|---|------|----------------|---------|------|
-| 1 | **`import-graph-gate`** | Парсит `import`/`require`/`use` во всех файлах → строит DAG. Любой edge **core → infrastructure/presentation** или **core → banned module** = violation. | `sqlalchemy` в core file → instant FAIL | [A05](#prime-a05--layer-law) |
-| 2 | **`di-purity-gate`** | AST: `New(...)` / `new Foo()` / прямой вызов конструктора infra-класса (`PostgresRepository()`, `MongoClient()`, `axios.create`) внутри `application_scope` / `core_scope`. Allowlist: value objects, DTO, pure factories in tests. | Hardcoded DB client в UC → FAIL | [A06](#prime-a06--di--ports) |
-| 3 | **`deterministic-runtime-gate`** | AST + regex в `testable_core_scope`: `datetime.now`, `time.time`, `uuid4`, `random.randint`, `Date.now`, `Math.random`, `Uuid::new_v4`. Denylist per adapter. | `uuid4()` в core → FAIL, flaky tests impossible | [A15](#prime-a15--deterministic-time) |
-| 4 | **`anti-null-gate`** | Type checker + AST: return type `Optional`/`| None`/`null` на application entry; `return None` / `return null` как исход; nullable chain без guard. **Outcome:** no silent null as failure — not «must be Result monad» (Go `error`, Rust `Result`, typed throw OK). | `-> Order \| None: return None` → FAIL | [A10](#prime-a10--result) |
-| 5 | **`handler-purity-gate`** | AST: считает **логические** строки в `presentation_scope` handlers (exclude imports, decorators shell, blank). Flags: `if/else` business branches, SQL, direct repo calls, loops >1 nesting. | Handler >15 lines logic or business `if` → FAIL | [A05](#prime-a05--layer-law) |
-| 6 | **`cyclomatic-gate`** + **`file-size-guard`** | AST: McCabe per function; LOC per file. Thresholds from config (`cyclomatic_max: 10`, `file_max_lines: 300`). Ratchet: complexity не растёт vs `main` on touched files. | 400-line god-service, complexity 14 → FAIL | [A11](#prime-a11--decomposition) |
-| 7 | **`anti-fork-gate`** | Glob + AST fingerprint: `*_v2`, `*Copy`, `*Old`, `*New` policy files; duplicate validation/error-map blocks (hash AST bodies). **Also** near-duplicate algorithms without a shared call (pairs with `behavior-ssot-gate`). | Second auth validator **or** cloned retry loop → FAIL | [A08](#prime-a08--anti-fork--policy-facades) · [A39](#prime-a39--behavior-ssot) |
-| Soft→Fail | **`behavior-ssot-gate`** | AST cluster of same algorithm (body ≥ min_body_stmts) without one owner all others call. | Two UCs copy `round_money` → FAIL; both call `Money.round` → PASS | [A39](#prime-a39--behavior-ssot) |
-| Soft | **`package-cohesion-gate`** | Glob + path heuristics: новые/изменённые файлы в `core_scope`/`application_scope` должны лежать под `…/<capability>/…` (или feature-package root) из `architecture.capabilities`. Flat root dump (`domain/order.py`, `domain/invoice.py`, `domain/session.py` без подпапок) при `len(capabilities)≥2` и `cohesion_mode≠off` → WARN/FAIL. | Три несвязанных entity в корне `domain/` → FAIL/WARN | [A05a](#prime-a05a--package-cohesion) |
-| Soft→Fail | **`port-surface-gate`** | Types used as deps in `testable_core_scope` must be Protocol/iface/trait **or** listed in `architecture.ports`; concrete infra class names / banned module types in signatures → FAIL. Cross-check `contract_surface_map` Anti-N/A. | `place(repo: PostgresOrderRepo)` → FAIL | [A35](#prime-a35--contract-surface) |
-| Soft→Fail | **`composition-root-gate`** | `new Adapter()` / SDK clients only under `composition_root_scope` (+ tests). | `StripeClient()` inside UC → FAIL | [A35](#prime-a35--contract-surface) |
-| Soft→Fail | **`port-test-double-gate`** | Each outbound port → Fake/InMemory implementing port exists in tests. | Only `MagicMock(PostgresRepo)` → FAIL | [A35](#prime-a35--contract-surface) |
-| Soft→Fail | **`live-surface-gate`** | Declared port constructed+called; no identity impl; no unread serialized field; adapter name matches used crate | Port in yaml, never called → FAIL | [A36](#prime-a36--live-surface) |
-| Soft→Fail | **`no-swallow-gate`** | `let _ =` / `.ok()` / empty catch on process-boundary I/O | Hotkey register swallowed → FAIL | [A37](#prime-a37--honest-errors--no-swallow) |
-
-**Agent MUST:** при bootstrap создать `steps/architecture/` с реализацией **всех 7 AST gates** для detected stack — не откладывать «на потом».  
-**Agent MUST (PRIME+ growing domain):** реализовать **`package-cohesion-gate`** (soft → harden per `cohesion_mode`) + заполнить `architecture.capabilities` / `package_form` из фактической структуры.  
-**Agent MUST (PRIME+):** реализовать **`port-surface-gate`**, **`composition-root-gate`**, **`port-test-double-gate`** + заполнить `architecture.ports` / `composition_root_scope` / `port_mode`.  
-**Agent MUST (PRIME+):** реализовать **`live-surface-gate`**, **`no-swallow-gate`**, **`checker-integrity-gate`**, **`ignored-test-gate`**, **`exclude-honesty-gate`**, **`behavior-ssot-gate`**.  
-**Agent MUST (When FFI in src):** реализовать **`ffi-safety-gate`**; `ffi_profile: true`.  
-**Agent MUST (safety-critical When):** добавить `steps/safety/` — CERT/MISRA denylist — CRITICAL / `safety_profile: true`.
-**Agent SHOULD:** в header каждого architecture step указать `iso_25010:` и `cisq_pillar:` для traceability в FIX PLAN.
-
-#### Stack-native AST tooling (agent wires per detected stack)
-
-| Stack | Import graph | AST parse | Complexity |
-|-------|--------------|-----------|------------|
-| **Python** | `libcst` / `ast` + `importlib` | `ast.NodeVisitor` | `radon` / `lizard` |
-| **TS/Node** | `@typescript-eslint/parser` + `madge` | TS AST | `eslint complexity` |
-| **Rust** | `syn` / `cargo tree` | `syn` | `cargo-geiger` + custom |
-| **Go** | `go/parser` + `golang.org/x/tools/go/packages` | `go/ast` | `gocyclo` |
-| **Kotlin** | detekt architecture | PSI | detekt complexity |
-| **Swift** | SourceKit | SwiftSyntax | swiftlint |
-
-#### Example FAIL
+**Stack AST tooling (agent wires):** Python `libcst`/`ast` · TS `@typescript-eslint`/`madge` · Rust `syn` · Go `go/ast` · Kotlin detekt · Swift SourceKit.
 
 ```text
 FAIL PRIME-A05 [import-graph-gate] P1
@@ -853,19 +811,13 @@ FAIL PRIME-A05 [import-graph-gate] P1
   rerun: python -m scripts.prime_check --only import-graph-gate
 ```
 
-(Same Finding shape for di-purity / package-cohesion / taxonomy — see Report output.)
-
 ### AI MUST maintain
 
-Cross-platform entrypoint; structured Findings; `--list/--only/--diff/--evidence/--json`; local ≡ CI; agent owns create/fix of checker; no stub steps; no «настройте сами».
+Cross-platform entrypoint; structured Findings; `--list/--only/--diff/--evidence/--json`; local ≡ CI; no stub steps; no «настройте сами».
 
 ### Report output
 
-Default FULL = **collect all** findings (not fail-fast). Agent batch-fixes P1 then P2 then P3.
-
-**Finding:** `FAIL PRIME-XX [step] P1|P2|P3` · file:line · issue · hint · rerun cmd.
-
-**Report order:** EXEC SUMMARY → FIX PLAN → FINDINGS BY STEP → COVERAGE MAP / MATRIX GAPS (when relevant) → exit footer.
+FULL = **collect all** findings. Batch-fix P1→P3. Finding shape above. Report: EXEC SUMMARY → FIX PLAN → FINDINGS → COVERAGE/MATRIX gaps → exit footer.
 
 ### Config (`prime_check.config.yaml`)
 
@@ -921,6 +873,27 @@ behavior_ssot:                           # A39 — Anti-Clone
   mode: fail                             # warn | fail — PRIME+ fail
   min_body_stmts: 8
   allowlist: []                          # [{hash, reason, sunset}] ADR coincidental similarity
+secure_continuum:                        # A40 — Anti-Theatre
+  mode: fail                             # PRIME+ fail
+  ci_harden:
+    pin_actions: true
+    forbid_pull_request_target: true
+    allowlist: []                        # [{path, reason, sunset}]
+  headers:
+    mode: fail
+  cors_csrf:
+    mode: fail
+  iac:
+    mode: warn                           # fail when manifests present on PRIME+
+  channel_secret:
+    mode: fail
+trust_pipeline:                          # A41 — Hardened App Code
+  mode: fail
+  privileged_field_denylist: [role, is_admin, balance, password_hash, tenant_id]
+  idor_mode: fail
+  mass_assign_mode: fail
+  path_escape_mode: fail
+  session_token_mode: fail
 forbidden_patterns:                  # extend per safety_profile / ffi_profile
   - "goto"
   - "setjmp"
@@ -982,6 +955,16 @@ forbidden_patterns:                  # extend per safety_profile / ffi_profile
 | `injection-fuzz` | fuzz inputs on boundaries | A18, A12a, B12 |
 | `ssrf-gate` | outbound URL allowlist | A18 |
 | `zta-matrix-gate` | route × anon/valid/forbidden/expired | A02, A29, A12a |
+| `ci-harden-gate` | **YAML/AST** workflow: least permissions, pin actions, no privileged fork PR | A40 |
+| `channel-secret-gate` | no raw secrets in evidence/docs/examples; agent refuse echo | A40 · A19 |
+| `security-headers-gate` | CSP/HSTS/… registered in middleware — not package.json | A40 · A18 |
+| `cors-csrf-gate` | CORS allowlist; CSRF When cookie session | A40 · A18 |
+| `iac-scan-gate` | When k8s/tf/helm: privileged/public * IAM denylist + one Skin scanner | A40 · A23 |
+| `trust-pipeline-gate` | schema→authn→authz→command before UC; no raw body in UC; authz before mutation | A41 |
+| `idor-ownership-gate` | cross-user oracle; no client owner id as proof | A41 · A02 · A29 |
+| `mass-assign-gate` | no request-bag→entity; privileged fields stripped | A41 |
+| `path-escape-gate` | path under root jail; `../` negative test | A41 · A18 |
+| `session-token-gate` | no token in query/logs; cookie flags or bearer N/A | A41 · A19 |
 | **TESTS** | | |
 | `test-taxonomy-gate` | families APPLIED only with non-trivial oracle; Anti-N/A; one skip = one trigger | A12a |
 | `intent-lock-gate` | each AC has oracle; test body asserts it — not `"AC{i}" in name` | A34 |
@@ -1026,6 +1009,7 @@ forbidden_patterns:                  # extend per safety_profile / ffi_profile
 | `prod-config` | required env; no debug prod | A23 |
 | `health-gate` | /health /ready probes exist + tested | B13 |
 | `tls-min-version` | prod TLS < 1.2 fail | A23 |
+| `iac-scan-gate` | IaC beyond Docker When present | A40 · A23 |
 | **SAFETY — When FFI in src / CRITICAL** | | |
 | `ffi-safety-gate` | SAFETY comments · RAII · ffi_profile | A16 |
 | `cert-forbidden-gate` | AST/denylist: goto, unchecked cast, eval, VLAs (config) | A16 · CERT/MISRA profile |
@@ -1169,6 +1153,8 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 | [A37](#prime-a37--honest-errors--no-swallow) | Honest errors — no swallow, no dump-bucket, provoke path | PRIME+ |
 | [A38](#prime-a38--checker-integrity) | Checker integrity — no theatrical steps | PRIME+ |
 | [A39](#prime-a39--behavior-ssot) | Behavior SSOT — one owner per algorithm; Anti-Clone | PRIME+ |
+| [A40](#prime-a40--secure-continuum) | Secure Continuum — app · CI · chat · ops; Anti-Theatre | PRIME+ |
+| [A41](#prime-a41--trust-pipeline) | Trust Pipeline — hardened app code; IDOR/mass-assign/path/token | PRIME+ |
 | [B01](#prime-b01--cqrs) | CQRS | PRIME+ |
 | [B02](#prime-b02--solid--grasp) | SOLID & GRASP | STANDARD+ |
 | [B03](#prime-b03--sre--observability--events) | SRE, observability, events | PRIME+ |
@@ -1193,7 +1179,8 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 
 ## PRIME-A01 — Context & Risk Tier
 
-**Min tier:** all **Applicability:** Always
+**Min tier:** all **Enforced by:** DoD-only (tier in design artifact → applicable gates for that tier)  
+**Applicability:** Always
 
 - **MUST:** read project structure, stack, patterns, CI **before** writing. **Repo conventions = default form.**
 - **MUST:** classify tier. **App / API / service / lib с I/O = минимум STANDARD.** LITE — одноразовые скрипты без сети.
@@ -1221,25 +1208,41 @@ python -m scripts.prime_check                         # FULL — mandatory befor
 
 - **MUST:** authn + authz on **every** protected **operation** (HTTP route, RPC method, GraphQL field, CLI with credentials) **before** application logic.
 - **MUST:** localhost, docker network, `127.0.0.1`, sidecar, `/internal`, `/debug` — **те же правила** что и public internet в prod/staging.
+- **MUST:** CI job identity / deploy token / chat-ops bot ≠ trusted substitute for authz — same deny-by-default ([A40](#prime-a40--secure-continuum)).
 - **MUST NOT:** `LIME_TESTING=1`, compose network, reverse proxy, VPN как substitute auth.
 - **MUST NOT:** trust «мы внутри кластера» — [A23](#prime-a23--infra--docker-security).
-- **MUST:** allow/deny in Application layer — not «header present ⇒ OK».
-- **MUST:** validate input at boundary before UC ([A18](#prime-a18--owasp-input-hygiene)).
-- **MUST:** least privilege — minimal scopes, DTO fields, per-role secrets.
+- **MUST:** allow/deny in Application layer — not «header present ⇒ OK»; **one authorize owner** When N≥2 call sites ([A39](#prime-a39--behavior-ssot)).
+- **MUST:** authz is **resource-scoped** — principal may act on **this** resource (IDOR closed); not only «has valid token» ([A41](#prime-a41--trust-pipeline), `idor-ownership-gate`).
+- **MUST:** validate input at boundary before UC ([A18](#prime-a18--owasp-input-hygiene)); Trust Pipeline order ([A41](#prime-a41--trust-pipeline)).
+- **MUST:** least privilege — minimal scopes, DTO fields, per-role secrets, **CI workflow permissions** ([A40](#prime-a40--secure-continuum)).
 - **MUST:** deny-by-default; DB/Redis/cache **не** на public без TLS+auth.
 - **MUST:** `zta-matrix-gate` — full auth scenario matrix per **protected operation** ([A29](#prime-a29--zta-matrix), taxonomy **access_control** in [A12a](#prime-a12a--test-taxonomy)). HTTP — один частный случай.
+- **MUST:** When multi-user/tenant resources — matrix includes **cross-user/IDOR** oracle ([A41](#prime-a41--trust-pipeline)).
 - **MUST:** split metrics/admin from product API at ingress.
 
 ---
 
 ## PRIME-A03 — API response contract
 
-**Min tier:** PRIME+
+*Stable response shape — contract tests can assert status + error codes without guessing.*
+
+**Min tier:** PRIME+ **When:** exposed HTTP/RPC/GraphQL/CLI operation **Enforced by:** `route-matrix-gate` · `api-contract-drift` · `snapshot-contract`  
+**Aligns:** [A12a](#prime-a12a--test-taxonomy) contract · [A18](#prime-a18--owasp-input-hygiene) · [A21](#prime-a21--semver--contracts) · [A41](#prime-a41--trust-pipeline) When auth
+
+### Outcome (Engine)
+
+One envelope/error shape per surface; real status codes; every exposed op × outcome in matrix.
+
+### MUST / MUST NOT
 
 - **MUST:** consistent response format per API surface (envelope, status, error codes).
-- **MUST:** real HTTP status codes; documented error shapes.
-- **MUST NOT:** mix formats across endpoints.
-- **SHOULD:** health/metrics endpoints for observability ([B03](#prime-b03--sre--observability--events)).
+- **MUST:** real HTTP/RPC status codes; documented error shapes.
+- **MUST NOT:** mix formats across endpoints of the same surface.
+- **SHOULD:** health/metrics endpoints ([B03](#prime-b03--sre--observability--events)).
+
+### See
+
+[A12](#prime-a12--tests--coverage) · [A21](#prime-a21--semver--contracts) · [A29](#prime-a29--zta-matrix) When protected
 
 ---
 
@@ -1353,7 +1356,7 @@ One capability together (mirrored slices or feature package). Flat dump + green 
 
 **MUST NOT** invent a third universal tree if Skin already chose one of these.
 
-**Catalog sample — not a third MUST form.** Textbook Clean/hex (`domain/entities`, `application/use-cases`, `infrastructure/`, `presentation/`, `tests/unit|integration|e2e`) is **one Skin equivalent** in [Pattern Catalog](#pattern-catalog--stack-native-equivalents). If the repo already uses Nest modules, Rails, Go `internal/<cap>`, mirrored slices, or feature packages — **MUST NOT** rewrite it into that textbook tree. Husky / Prettier / Pino / Winston = **Skin-native** tooling ([A17](#prime-a17--clean-code), [B03](#prime-b03--sre--observability--events), [A22](#prime-a22--prime-check)) — not Empire MUST names.
+**Catalog sample — not a third MUST form.** Textbook Clean/hex is **one** Skin equivalent in [Pattern Catalog](#pattern-catalog--stack-native-equivalents). Nest/Rails/Go Skin stays; husky/Prettier/Pino = Skin tooling — not Empire MUST brands.
 
 ### Rules
 
@@ -1372,27 +1375,11 @@ One capability together (mirrored slices or feature package). Flat dump + green 
 ### Good / Bad
 
 ```text
-# BAD — layers OK for import-graph, cohesion dead
-domain/order.py
-domain/invoice.py
-domain/session.py
-application/place_order.py
-application/charge.py
-ports/   # every port in one bag
-
-# GOOD — mirrored slices
-domain/orders/order.py
-domain/billing/invoice.py
-application/orders/place_order.py
-infrastructure/orders/order_repo.py
-api/orders/routes.py
-
-# GOOD — feature package (Nest/Nx-style)
-features/orders/{domain,app,infra,api}/
-features/billing/{domain,app,infra,api}/
-
-# BAD — impose textbook Clean on a Nest/Rails/Go Skin
-# MUST NOT rewrite working modules into domain/entities + use-cases «для PRIME»
+# BAD — flat dump        # GOOD — mirrored / feature
+domain/order.py          domain/orders/…  OR  features/orders/{domain,app,…}
+domain/invoice.py        domain/billing/…
+ports/  # every port bag # capability-local ports
+# BAD — rewrite Nest/Rails/Go into textbook domain/entities «для PRIME»
 ```
 
 ### When N/A
@@ -1424,11 +1411,12 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A07 — Design-first order
 
-**Min tier:** PRIME+ **Applicability:** logical order — names = repo-native
+**Min tier:** PRIME+ **When:** any PRIME+ feature **Enforced by:** DoD-only ([A13](#prime-a13--definition-of-done) + OMEGA PHASE 1 — order is process, not an AST step)  
+**Applicability:** logical order — names = repo-native
 
 0. Tier + triggers + existing patterns + **capability_slices / package_form** ([A05a](#prime-a05a--package-cohesion)).  
 1. Contract/DTO + invariants; SemVer if breaking ([A21](#prime-a21--semver--contracts)); fill **`contract_surface_map`** ([A35](#prime-a35--contract-surface)).  
-2. Core rules + **outbound/inbound ports** — **in the capability package**, not flat dump. Status entities get **behavior methods**. If this **behavior already exists** → **call owner**; do not clone ([A39](#prime-a39--behavior-ssot)).  
+2. Core rules + **outbound/inbound ports** — **in the capability package**, not flat dump. Status entities get **behavior methods**. If this **behavior already exists** → **call owner**; do not clone ([A39](#prime-a39--behavior-ssot)). For touched protected ops → declare `trust_pipeline_map` ([A41](#prime-a41--trust-pipeline)).  
 3. Application entry + explicit errors (expected vs unexpected, [A10](#prime-a10--result)) + deps typed as **ports**.  
 4. Versioned migration if schema ([A20](#prime-a20--migrations)).  
 5. Infrastructure **adapters** implementing ports — capability-local when possible; wire in composition root.  
@@ -1443,90 +1431,71 @@ features/billing/{domain,app,infra,api}/
 
 - **MUST NOT:** second auth validator / idempotency handler / error mapper / `*_v2` fork; copy-paste validation.
 - **MUST:** structural clone of a policy/algorithm (renamed vars, extra log line) **is a fork** even without `*_v2` — one owner, N call sites ([A39](#prime-a39--behavior-ssot)).
+- **MUST:** authorize / validate / safe_path facades preferred owners for Trust Pipeline ([A41](#prime-a41--trust-pipeline)).
 - **MUST:** extend canonical facade; auth/payments/state-changing — via facades (When applicable).
 - **MUST NOT:** bypass facade from endpoint/UC «for convenience».
-- **See:** [A14](#prime-a14--idempotency) · [A39](#prime-a39--behavior-ssot).
+- **See:** [A14](#prime-a14--idempotency) · [A39](#prime-a39--behavior-ssot) · [A41](#prime-a41--trust-pipeline).
 
 ## PRIME-A09 — Policy facades
 
-*Merged into [A08](#prime-a08--anti-fork--policy-facades). Index alias kept.*
+*Index alias — **merged into [A08](#prime-a08--anti-fork--policy-facades).** No separate body.*
+
+**Min tier:** PRIME+ **When:** same as A08 **Enforced by:** `anti-fork-gate` · `behavior-ssot-gate` (via A08)  
+**See:** [A08](#prime-a08--anti-fork--policy-facades) · [A14](#prime-a14--idempotency) · [A39](#prime-a39--behavior-ssot)
 
 ---
 
 ## PRIME-A10 — Result & errors by tier
 
-*Explicit failure paths — stack-native; `Result` is one option, not the only ([Pattern Catalog](#pattern-catalog--stack-native-equivalents)).*
+*Explicit failure paths — stack-native; `Result` is one option ([Pattern Catalog](#pattern-catalog--stack-native-equivalents)).*
 
-**Min tier:** varies — see table **Enforced by (PRIME+):** `anti-null-gate` · `err-variant-gate` · `error-context-gate` · `no-transport-in-domain`
+**Min tier:** varies — see table **Enforced by (PRIME+):** `anti-null-gate` · `err-variant-gate` · `error-context-gate` · `no-transport-in-domain` · `no-swallow-gate` ([A37](#prime-a37--honest-errors--no-swallow))
 
-### Expected vs unexpected (PRIME+) — one split, not a try/catch forest
+### Expected vs unexpected (PRIME+)
 
-| Kind | Examples | Where it lives | Form |
-|------|----------|----------------|------|
-| **Expected business** | `EmailTaken`, `OrderNotFound`, `InsufficientFunds`, illegal FSM jump | **core/app** returns Result / named Err | caller treats as domain outcome; **tested** (`err-variant-gate`) |
-| **Unexpected infra** | DB down, timeout, partner 500, disk full | **adapter** maps to infra error; **presentation global handler** (middleware / exception filter / `main` recover) logs + maps to 5xx | **MUST NOT** `try/catch` every line in the use-case; **MUST NOT** swallow as `Ok` / empty |
+| Kind | Examples | Where | Form |
+|------|----------|-------|------|
+| **Expected business** | `EmailTaken`, illegal FSM | **core/app** named Err | tested (`err-variant-gate`) |
+| **Unexpected infra** | DB down, timeout | **adapter** → **one** presentation handler | **MUST NOT** try/catch forest in UC / swallow as Ok |
 
-- **MUST:** expected failures are **named** in the application contract — not generic `Error("failed")`.
-- **MUST:** unexpected I/O failures propagate out of the use-case (or map once at the adapter boundary) to a **single** presentation handler.
-- **MUST NOT:** catch-all in UC that hides infra crash; duplicate per-route try/catch that reimplements the global mapper.
-- **MUST NOT:** transport exceptions (`HTTPException`, status codes) in core — presentation maps named Err → response.
+- **MUST:** expected failures **named** in contract; unexpected I/O propagates to single presentation handler.
+- **MUST NOT:** transport exceptions in core; catch-all that hides infra crash.
 
 ### Error handling by tier
 
 | Tier | Approach |
 |------|----------|
-| **LITE** | Clear messages; fail-fast on bad input |
-| **STANDARD** | Typed errors / error codes; do not swallow exceptions |
-| **PRIME+** | Named domain errors; **explicit failure paths** — stack-native (см. Pattern Catalog) |
-| **Boundary** | User-friendly message; details in log only — not in UI |
+| **LITE** | Clear messages; fail-fast |
+| **STANDARD** | Typed errors; do not swallow |
+| **PRIME+** | Named domain errors; explicit failure paths (Pattern Catalog) |
+| **Boundary** | User-friendly message; details in log only |
 
-### Explicit errors (PRIME+) — outcome, not one monad
+### Explicit errors (PRIME+)
 
-**Outcome:** caller always knows success vs failure — no silent `null` as error, no swallowed exception in core.
+**Outcome:** caller always knows success vs failure — no silent `null` as error.
 
-| Stack | Acceptable forms |
-|-------|------------------|
-| Python/TS | `Result[Ok,Err]`, `Either`, discriminated union, typed exception hierarchy |
-| Rust | `Result<T,E>`, `thiserror` enums |
-| Go | `(T, error)` — **must** check `err != nil` |
-| Java/Kotlin | sealed Result, `Either`, typed exceptions (not generic in core) |
-| FP | `IO`/`Task` with typed failure channel |
-
-- **MUST:** application/core entry returns **typed failure** or throws **named** domain error — not generic `Error("failed")`.
-- **MUST:** presentation maps outcome → response **or GUI toast/balloon** (desktop: user-visible on every mapped error). Structured JSON log is Skin — **outcome:** failure reaches the user **or** a log with `invariant_id`. No log sink → `N/A(no log sink)` **plus** user toast.
-- **MUST:** every **expected** error variant has a test that **provokes the production path** (`err-variant-gate`) — not `assert_eq!(err.invariant_id(), "…")` without calling the UC/adapter.
-- **MUST NOT:** transport exceptions (`HTTPException`, status codes) in core.
+Acceptable forms = Skin: `Result`/`Either`/`(T,error)`/sealed/typed exception — see Pattern Catalog.  
+- **MUST:** presentation maps outcome → response **or** GUI toast; log with `invariant_id` When log sink (`N/A(no log sink)` + toast OK on tray).
+- **MUST:** every expected Err **provokes production path** (`err-variant-gate`) — not id-string assert alone.
 - **MUST NOT:** swallow process-boundary Result — [A37](#prime-a37--honest-errors--no-swallow).
 
-### No silent null as failure (PRIME+) — `anti-null-gate`
+### No silent null (`anti-null-gate`)
 
-Агенты `return None` / `null` как «не найдено» → NPE downstream. **Запрещено в testable core.**
+- **MUST NOT:** nullable return in application/core as sole error/absence signal.
+- **MUST:** explicit branch (`match` / `if err` / checked exception).
+- **MAY:** `Option` for optional data; nullable in ORM glue + ADR.
 
-- **MUST NOT:** nullable return в application/core как единственный сигнал ошибки/отсутствия.
-- **MUST:** explicit branch — `match` / `if err` / `.map_err` / checked exception.
-- **MAY:** `Option`/`Maybe` для **optional data** (не для error path) — с guard перед use.
-- **MAY:** nullable types in infra/ORM glue — с ADR boundary.
+### Observable failures
 
-```python
-# BAD:  def get_order(id) -> Order | None: return None
-# GOOD: Result / raise OrderNotFound / (Order, error) per stack
-```
-
-### Observable failures (PRIME+) — logging contract
-
-**Outcome:** failure reaches a **human or operator** — toast/balloon/stderr **or** a log line with `invariant_id`. JSON is Skin, not the law. GUI without a log sink: `N/A(no log sink)` **and** mapped toast. Correlation id in the log When a log sink exists.
-
-- **MUST** at failure: `invariant_id` + safe `context` (no PII). `correlation_id` When log sink ([B03](#prime-b03--sre--observability--events)).
-- **MUST (desktop/tray PRIME):** every mapped error → user-visible toast/balloon ([B11](#prime-b11--client-apps)).
-- **MUST NOT:** require web-centric structured JSON on a tray app that has no log file — toast is the outcome.
-- **Enforced by:** `error-context-gate` · `no-swallow-gate` ([A37](#prime-a37--honest-errors--no-swallow)).
+- **MUST** at failure: `invariant_id` + safe context (no PII); `correlation_id` When log sink ([B03](#prime-b03--sre--observability--events)).
+- **MUST (desktop/tray):** mapped error → user-visible toast ([B11](#prime-b11--client-apps)).
 
 ---
 
 ## PRIME-A11 — Decomposition
 
-**Min tier:** STANDARD+  
-**Aligns:** ISO 25010 **Maintainability** (analysability, modifiability) · CISQ **Maintainability** · ISO 5055 complexity defects
+**Min tier:** STANDARD+ **Enforced by:** `file-size-guard` · `cyclomatic-gate` · `dead-code-gate` · `behavior-ssot-gate` (fake-split) · `package-cohesion-gate` When flat dump  
+**Aligns:** ISO 25010 **Maintainability** · CISQ **Maintainability** · [A39](#prime-a39--behavior-ssot)
 
 - **SHOULD:** ≤120 lines per file.
 - **MUST:** file >200 → decompose or document exception; >300 → block.
@@ -1543,7 +1512,7 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A12 — Tests & coverage (ZERO untested code)
 
-**Min tier:** PRIME+ for 100% gate; STANDARD+ for pyramid  
+**Min tier:** PRIME+ for 100% gate; STANDARD+ for pyramid **Enforced by:** `coverage-*` · `test-taxonomy-gate` · matrix gates ([A12a](#prime-a12a--test-taxonomy))  
 **Kinds of tests:** [A12a](#prime-a12a--test-taxonomy) = SSOT.
 
 **Doctrine:** нет непокрытых строк/веток в scope **и** нет applicable family без named test / `N/A(reason)`. Coverage без taxonomy = vanity. Unit (**against Fake ports**) → integration (**real adapters**) → E2E UI **или** contract@boundary (API-only).
@@ -1576,13 +1545,9 @@ features/billing/{domain,app,infra,api}/
 **MUST NOT:** требовать *все* families на каждый CRUD — колонка **When** нормативна.  
 **MUST:** если When сработал — family **обязателен** и **APPLIED только с нетривиальным оракулом** (тело теста ломается, если поведение соврало). Имя `test_err_*` без вызова продакшен-пути ≠ APPLIED.
 
-### Anti-N/A (MUST — не обходить When)
+### Anti-N/A
 
-- **MUST:** `N/A` допустим **только** если reason явно = отсутствующий trigger из колонки When этой family (напр. `N/A(no auth)`, `N/A(no FSM)`, `N/A(no I/O)`).
-- **MUST NOT:** `N/A`, `N/A()`, `N/A(потом)`, `N/A(skip)`, `N/A(n/a)`, `N/A(не нужно)` — **FAIL** `test-taxonomy-gate`.
-- **MUST NOT:** ставить `N/A` когда diff/design **содержит** trigger (gate сверяет).
-- **MUST:** при сомнении в **триггере** — включи family. При сомнении «наплодить ещё имена» — **не плоди**: лишний family без When = vanity ([B07](#prime-b07--yagni)).
-- **Enforced by:** `test-taxonomy-gate` algorithm in [AGENT-5](#agent-5--prime-check).
+**SSOT:** [Doctrine Anti-N/A](#anti-na-ssot--один-раз). Taxonomy-specific: `N/A(no auth|no FSM|no I/O|…)`. «При сомнении» → [Conflict Matrix](#conflict-matrix-при-сомнении--читать-это-не-конкурирующие-абзацы) (триггер → включи family; vanity names → не плоди).
 
 ### 1. Пирамида — логика и стабильность
 
@@ -1660,41 +1625,39 @@ features/billing/{domain,app,infra,api}/
 
 ### Anti-patterns (MUST NOT)
 
-- Только unit при наличии API/DB/auth triggers.
-- Только E2E без unit.
-- Happy path без **negative** + **boundary** на PRIME+.
-- Coverage 100% при пустом `test_taxonomy_map`.
-- N/A-spam / пустой reason ([Anti-N/A](#anti-na-must--не-обходить-when)).
-- Mutation skip на PRIME greenfield / CRITICAL.
-- BDD = «обязателен Cucumber» — нет; обязателен **GWT outcome**.
-- Browser E2E на API-only сервисе.
-- «Acceptance в голове» / AC закрыт **именем** теста без оракула ([A34](#prime-a34--intent-lock)).
-- 14 err-string тестов + unused port + ignored e2e = «taxonomy APPLIED».
-- `#[ignore]` без строки в `skipped_steps`.
-- Раздутый diff вне blast_radius ([A33](#prime-a33--blast-radius)).
-- Требовать `tests/unit|e2e` дерево, если репо колокейтит тесты.
-
+Only unit при API/DB/auth · only E2E без unit · happy-path без negative/boundary · coverage 100% + empty taxonomy map · naked N/A ([SSOT](#anti-na-ssot--один-раз)) · mutation skip на PRIME greenfield · Cucumber-as-MUST · browser E2E на API-only · AC closed by test **name** ([A34](#prime-a34--intent-lock)) · 14 err-string + unused port + ignored e2e · `#[ignore]` без skipped_steps · blast outside [A33](#prime-a33--blast-radius) · force `tests/unit|e2e` tree when repo colocates.
 
 ---
 
 ## PRIME-A13 — Definition of Done
 
-**Min tier:** PRIME+
+**Min tier:** PRIME+ **Enforced by:** `prime_check` FULL exit 0 + evidence ([A22](#prime-a22--prime-check), [A26](#prime-a26--evidence-block)) — AGENT-2 is a **subset** of this checklist
 
 - **MUST NOT:** duplicate policy/mapper/facade **or** second copy of the same algorithm without calling owner ([A08](#prime-a08--anti-fork--policy-facades), [A39](#prime-a39--behavior-ssot)).
 - **MUST:** thin transport + injected application entry typed against **ports** + explicit error mapping ([A35](#prime-a35--contract-surface)).
-- **MUST:** new/changed code placed in the correct **capability package/slice** ([A05a](#prime-a05a--package-cohesion)); design artifact lists slices.
-- **MUST:** `test_taxonomy_map` complete — every applicable family has tests; Anti-N/A green ([A12a](#prime-a12a--test-taxonomy)).
-- **MUST:** `contract_surface_map` complete **and live** — ports called ([A35](#prime-a35--contract-surface), [A36](#prime-a36--live-surface)).
+- **MUST:** new/changed code in correct **capability package/slice** ([A05a](#prime-a05a--package-cohesion)); design artifact lists slices.
+- **MUST:** `test_taxonomy_map` complete; Anti-N/A green ([A12a](#prime-a12a--test-taxonomy), [SSOT](#anti-na-ssot--один-раз)).
+- **MUST:** `contract_surface_map` complete **and live** ([A35](#prime-a35--contract-surface), [A36](#prime-a36--live-surface)).
 - **MUST:** every AC has **oracle** + test body asserts it ([A34](#prime-a34--intent-lock)).
 - **MUST:** no swallowed process I/O; err-variant provokes production path ([A37](#prime-a37--honest-errors--no-swallow)).
 - **MUST:** `checker-integrity-gate` green ([A38](#prime-a38--checker-integrity)).
 - **MUST:** `behavior-ssot-gate` GREEN or `N/A(no cluster)` ([A39](#prime-a39--behavior-ssot)).
+- **MUST:** Secure Continuum gates GREEN or honest N/A; no secrets in evidence ([A40](#prime-a40--secure-continuum)).
+- **MUST:** Trust Pipeline gates GREEN or honest N/A; IDOR oracles When multi-user ([A41](#prime-a41--trust-pipeline)).
 - **MUST:** diff inside declared `blast_radius` or justified expansion ([A33](#prime-a33--blast-radius)).
 - **MUST:** update API docs / ADR if contracts changed; breaking → major + contract + migration tests ([A21](#prime-a21--semver--contracts)).
-- **MUST:** tests per [A12](#prime-a12--tests--coverage) + [A12a](#prime-a12a--test-taxonomy); `prime_check` exit 0 + honest evidence ([A22](#prime-a22--prime-check), [A26](#prime-a26--evidence-block)).
-- **MUST:** formatters green; migrations versioned ([A20](#prime-a20--migrations)).
+- **MUST:** tests per [A12](#prime-a12--tests--coverage) + [A12a](#prime-a12a--test-taxonomy); formatters green; migrations versioned ([A20](#prime-a20--migrations)).
 - **MUST:** Threat Model mini if security-sensitive ([A16](#prime-a16--secure-by-design)).
+
+**Coverage ZERO (PRIME+):**
+
+| Metric | Greenfield | Legacy (A31) |
+|--------|------------|--------------|
+| Line + branch | **100.00%** `runtime_scope` | **100.00%** changed files |
+| Ratchet vs `main` | must not decrease | must not decrease |
+| Uncovered `Err` / matrix / auth gaps on touch | **0** | **0** |
+
+**LITE only:** smoke; no 100% gate.
 
 ---
 
@@ -1746,30 +1709,34 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A16 — Secure-by-design
 
-**Min tier:** all* — full at PRIME+  
+**Min tier:** all* — full at PRIME+ **Enforced by:** `no-debug-bypass` · `pii-log-scan` · `gitleaks-history` · `dependency-audit` · `bandit`/`npm-audit` · Threat Model in design artifact (DoD) · [A18](#prime-a18--owasp-input-hygiene) · [A40](#prime-a40--secure-continuum) · [A41](#prime-a41--trust-pipeline)  
 **Aligns:** ISO 25010 **Security** · OWASP Top 10 **A04 Insecure Design** · ASVS V1 Architecture
 
-### Threat Model mini (CRITICAL / security touch)
+### Threat Model mini (CRITICAL / security touch / **any Default-secure YES**)
 
-- **MUST:** assets, untrusted boundaries, verify points, top-5 threats, failure scenarios.
-- **MUST:** map each threat → OWASP Top 10 category + PRIME rule ID + gate that closes it ([A18](#prime-a18--owasp-input-hygiene)).
+- **MUST:** assets, untrusted boundaries, verify points, top-5 threats, failure scenarios — When CRITICAL **or** any Default-secure 5Q answer is YES (CRUD with id/PATCH counts).
+- **MUST:** map each threat → OWASP Top 10 category + PRIME rule ID + gate that closes it ([A18](#prime-a18--owasp-input-hygiene), [A40](#prime-a40--secure-continuum)).
+- **MUST:** When CI or chat/agent channels exist — list **CI compromise** and **secret-exfil via chat** as threats with closing gates (`ci-harden-gate`, `channel-secret-gate`).
+- **MUST:** When app surface — map top threats to [A41](#prime-a41--trust-pipeline) gates (IDOR, mass-assign, injection, path, token).
 - **MUST (CRITICAL):** ASVS-relevant chapters listed in design artifact (auth, session, access control, data protection).
 - **SHOULD:** STRIDE or equivalent lightweight frame — outcome = traceable threats, not slide deck.
+- **MUST NOT:** «не CRITICAL → Threat Model N/A» при exposed op / resource id / client body.
 
 ### Security rules (all tiers)
 
-- **MUST:** secrets via env/vault only — never in code.
-- **MUST:** validate/sanitize input at boundary.
-- **MUST:** least privilege for services, users, API keys.
+- **MUST:** secrets via env/vault only — never in code, **evidence, chat, or CI logs** ([A40](#prime-a40--secure-continuum)).
+- **MUST:** validate/sanitize input at boundary; authorize/sanitize = one owner When N≥2 ([A39](#prime-a39--behavior-ssot)).
+- **MUST:** least privilege for services, users, API keys, **and CI workflows**.
 - **MUST NOT:** log PII, passwords, tokens, full PAN/card numbers.
 - **MUST NOT:** ignore known **high/critical** CVE — `dependency-audit` blocks merge ([A19](#prime-a19--supply-chain)).
 - **MUST:** `gitleaks` + `bandit`/`npm-audit` green in prime_check before merge.
+- **MUST NOT:** treat `security.md` checklist without Enforced-by gate as done ([A38](#prime-a38--checker-integrity), [A40](#prime-a40--secure-continuum)).
 
 ### Security MUST NOT
 
 - Roll-your-own crypto; secrets in git; debug auth bypass (`no-debug-bypass` gate).
 - New auth/payment path without docs/ADR + contract tests.
-- Implicit network trust ([A02](#prime-a02--zero-trust), [A23](#prime-a23--infra--docker-security)).
+- Implicit network trust ([A02](#prime-a02--zero-trust), [A23](#prime-a23--infra--docker-security), [A40](#prime-a40--secure-continuum)).
 - **MUST:** every security invariant = test from taxonomy (**injection** + **access_control** + **negative**) ([A12a](#prime-a12a--test-taxonomy)); every auth route = ZTA matrix ([A29](#prime-a29--zta-matrix)).
 - **MUST NOT:** insecure code «пофиксим потом» — prime_check red → **fix until green**.
 - **MUST NOT:** ship auth/payment without contract + access_control + negative families.
@@ -1778,11 +1745,12 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A17 — Clean code & patterns
 
-**Min tier:** STANDARD+
+**Min tier:** STANDARD+ **Enforced by:** `lint` · `typecheck` · `format-check` · `handler-purity-gate` · `anti-fork-gate` · `behavior-ssot-gate`  
+**See:** [B02](#prime-b02--solid--grasp) · [A39](#prime-a39--behavior-ssot) · [A41](#prime-a41--trust-pipeline) Fail-Fast = Trust Pipeline step 1
 
 ### Core patterns
 
-- **Fail-Fast** — validate at system **boundary** (API, CLI, form / DTO schema); data trusted inside the use-case. Presentation validates → UC; UC does **not** re-parse the HTTP body.
+- **Fail-Fast** — validate at system **boundary** (API, CLI, form / DTO schema) = Trust Pipeline step 1 ([A41](#prime-a41--trust-pipeline)); data trusted inside the use-case. Presentation validates → UC; UC does **not** re-parse / re-trust the HTTP body.
 - **No Magic Values** — constants in config, env, domain enum/type.
 - **Generic DRY** — When **N≥2** of the **same behavior** (policy/algorithm), extract to one owner is **MUST** ([A39](#prime-a39--behavior-ssot)). When **N=1**, local OK — **MUST NOT** premature abstraction ([B07](#prime-b07--yagni)).
 - **Rich types** — behavior with the data ([A05](#prime-a05--layer-law) Anti-Anemic); DTO bags stay at the edge.
@@ -1807,63 +1775,68 @@ features/billing/{domain,app,infra,api}/
 ## PRIME-A18 — OWASP input hygiene
 
 **Min tier:** PRIME+ (validation STANDARD+)  
-**Aligns:** OWASP Top 10 (2021) · OWASP ASVS V5 · ISO 25010 **Security** · CISQ **Security** pillar
+**Aligns:** OWASP Top 10 (2021) · OWASP ASVS V5 · ISO 25010 **Security** · CISQ **Security** pillar  
+**Enforced by:** `no-string-sql` · `injection-fuzz` · `ssrf-gate` · `security-headers-gate` · `cors-csrf-gate` · `zta-matrix-gate` · `mass-assign-gate` · `path-escape-gate` · `session-token-gate` · `idor-ownership-gate` · `trust-pipeline-gate` · [A40](#prime-a40--secure-continuum) · [A41](#prime-a41--trust-pipeline)
 
 - **MUST:** all external input untrusted until schema + auth + policy pass (HTTP, CLI args, WebSocket, file upload, webhooks, GraphQL variables…).
 - **MUST:** schema at boundary (Pydantic, zod, Joi, protobuf validate…).
 - **MUST:** parameterized SQL / prepared statements only — **no** string-built queries ([`no-string-sql`](#full-step-map--50-steps-mandatory-at-prime)).
 - **MUST:** encode HTML output; CSP When web UI; allowlist redirects; validate uploads (type, size, path).
+- **MUST:** path traversal blocked on file/upload paths When applicable.
 - **MUST:** close **every applicable** OWASP Top 10 item for the surface — table below is normative, not checklist decoration.
 
 | OWASP Top 10 | PRIME closure | Gate / test |
 |--------------|---------------|-------------|
-| **A01** Broken Access Control | [A02](#prime-a02--zero-trust) deny-by-default; authz in app layer | `zta-matrix-gate` |
+| **A01** Broken Access Control | [A02](#prime-a02--zero-trust) deny-by-default; **resource-scoped** authz; **one authorize owner** ([A39](#prime-a39--behavior-ssot)) | `zta-matrix-gate` · `idor-ownership-gate` · [A41](#prime-a41--trust-pipeline) |
 | **A02** Cryptographic Failures | no custom crypto; TLS ≥1.2 prod; secrets not in code | `tls-min-version` · [A19](#prime-a19--supply-chain) |
 | **A03** Injection | parameterized SQL; no shell with user input; fuzz | `no-string-sql` · `injection-fuzz` · taxonomy **injection** ([A12a](#prime-a12a--test-taxonomy)) |
-| **A04** Insecure Design | Threat Model · design artifact | [A16](#prime-a16--secure-by-design) · [A07](#prime-a07--design-first) |
-| **A05** Security Misconfiguration | hardened docker; no debug prod; env validation | [A23](#prime-a23--infra--docker-security) · `prod-config` |
+| **A04** Insecure Design | Threat Model · design artifact · CI/chat threats When present | [A16](#prime-a16--secure-by-design) · [A07](#prime-a07--design-first) · [A40](#prime-a40--secure-continuum) |
+| **A05** Security Misconfiguration | hardened docker; no debug prod; env validation; **CI least privilege**; headers When web | [A23](#prime-a23--infra--docker-security) · `prod-config` · `ci-harden-gate` · `security-headers-gate` |
 | **A06** Vulnerable Components | lockfile; zero high/critical CVE | `dependency-audit` · `sbom` |
 | **A07** Auth Failures | full scenario matrix per protected op | [A29](#prime-a29--zta-matrix) · `zta-matrix-gate` |
-| **A08** Integrity Failures | signed deps policy; immutable deploy artifacts | [A19](#prime-a19--supply-chain) |
-| **A09** Logging Failures | structured logs; no PII/secrets; err context | [B03](#prime-b03--sre--observability--events) · `pii-log-scan` · `error-context-gate` |
+| **A08** Integrity Failures | signed deps policy; immutable deploy artifacts; pin CI actions When PRIME+ | [A19](#prime-a19--supply-chain) · `ci-harden-gate` |
+| **A09** Logging Failures | structured logs; no PII/secrets; err context | [B03](#prime-b03--sre--observability--events) · `pii-log-scan` · `error-context-gate` · `channel-secret-gate` |
 | **A10** SSRF | outbound URL allowlist; block metadata IPs | `ssrf-gate` |
 
 **ASVS depth by tier** — см. [Quality Constellation](#quality-constellation--iso--cisq--owasp--cert-constitutional-layer). PRIME+ web/API **MUST** satisfy applicable ASVS L1–L3 verification items via gates above — not manual pen-test excuses.
 
 - **MUST:** contract tests for malformed/hostile input on **every** boundary declared in design artifact.
-- **MUST NOT:** «мы используем framework → OWASP закрыт» без `zta-matrix-gate` / `injection-fuzz` green.
+- **MUST:** browser-facing → `cors-csrf-gate` GREEN or honest N/A ([A40](#prime-a40--secure-continuum)).
+- **MUST:** Trust Pipeline for protected ops — mass-assign / path-escape / session-token / IDOR gates When triggers ([A41](#prime-a41--trust-pipeline)).
+- **MUST NOT:** «мы используем framework → OWASP закрыт» без `zta-matrix-gate` / `injection-fuzz` / continuum / trust-pipeline gates green.
 
 ---
 
 ## PRIME-A19 — Supply chain & secrets
 
-**Min tier:** all
+**Min tier:** all **Enforced by:** `gitleaks-history` · `no-secrets` · `dependency-audit` · `sbom` · `channel-secret-gate` · `ci-harden-gate` (When CI)
 
 - **MUST:** deps via lockfile; no ad-hoc install without update + justification.
 - **MUST:** secrets from env/store; never commit `.env`, keys, tokens.
-- **MUST NOT:** hardcode `sk-…`, `Bearer …`, passwords in source/tests.
-- **MUST:** stop-the-line if secret committed; rotate if leaked.
+- **MUST NOT:** hardcode `sk-…`, `Bearer …`, passwords in source/tests/**evidence/chat**.
+- **MUST:** stop-the-line if secret committed **or leaked via CI log / chat** — rotate + revoke ([B14](#prime-b14--human-handoff), [A40](#prime-a40--secure-continuum)).
 - **MUST:** `dependency-audit` — **zero high/critical CVE**; medium/low — fix or ADR with expiry.
 - **MUST:** `gitleaks` in prime_check on every run.
+- **MUST (PRIME+ When CI):** pin actions by SHA (or ADR); treat CI action supply chain as deps ([A40](#prime-a40--secure-continuum)).
+- **MUST (When publish artifacts):** Skin-native provenance/attestation or ADR — not unsigned «потом».
+- **MUST:** token handling follows `session-token-gate` — no token in query/logs ([A41](#prime-a41--trust-pipeline)).
 
 ---
 
 ## PRIME-A20 — Migrations
 
-**Min tier:** PRIME+
+**Min tier:** PRIME+ **When:** persistence schema **Enforced by:** `migration-path-only` · `no-ddl-in-app` · `schema-drift`
 
-- **MUST:** DDL only in versioned migrations (`migrations/`, `db/migrate/`…).
-- **MUST:** additive, numbered, idempotent.
-- **MUST NOT:** DDL from use-cases/handlers; ORM `create_all()` on prod.
-- **MUST:** multi-step mutations in one transaction (or outbox).
-- **MUST:** FSM transitions atomic under concurrency ([B06](#prime-b06--fsm)).
+- **MUST:** DDL only in versioned migrations; additive, numbered, idempotent.
+- **MUST NOT:** DDL from UC/handlers; ORM `create_all()` on prod.
+- **MUST:** multi-step mutations in one transaction (or outbox); FSM transitions atomic under concurrency ([B06](#prime-b06--fsm)).
 - **MUST NOT:** long business logic in open transaction.
 
 ---
 
 ## PRIME-A21 — SemVer & contracts
 
-**Min tier:** PRIME+  
+**Min tier:** PRIME+ **Enforced by:** `api-contract-drift` · `snapshot-contract` · `route-matrix-gate`  
 **Aligns:** taxonomy **contract** ([A12a](#prime-a12a--test-taxonomy)) · **API contract** family ([A35](#prime-a35--contract-surface)) · [A03](#prime-a03--api-response-contract)
 
 ### Contract sources
@@ -1890,47 +1863,24 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A22 — Prime Check (merge gate)
 
-*Quality gate contract — stack-native entrypoint; Python `prime_check` = reference impl.*
+*Quality gate contract — stack-native entrypoint; Python `prime_check` = reference. Spec: [AGENT-5](#agent-5--prime-check).*
 
-**Min tier:** PRIME+ — **обязателен**. Spec: [AGENT-5](#agent-5--prime-check).
+**Min tier:** PRIME+ **Enforced by:** AGENT-5 FULL step map (Law→Gate) · [A38](#prime-a38--checker-integrity)
 
-### Purpose
+### MUST / MUST NOT
 
-**Единственный** способ сказать «готово» на tier ≥ PRIME: **project quality gate** → **exit 0**.  
-**Агент владеет checker целиком:** создаёт · config · CI · ~50 steps · dev-deps · запуск · fix до green. Пользователь **не настраивает и не запускает**.
+- **MUST:** gate exists + config + CI; else agent bootstraps FULL **before** feature; agent owns steps/deps/run/fix.
+- **MUST:** Law→Gate; FULL matrix + `--diff` + evidence before done; CI ≡ local.
+- **MUST:** coverage 100% line+branch+diff+ratchet; architecture + port/live/no-swallow/checker/behavior-ssot; OWASP via [A18](#prime-a18--owasp-input-hygiene); continuum/trust When triggers ([A40](#prime-a40--secure-continuum), [A41](#prime-a41--trust-pipeline)); `ffi-safety-gate` When FFI on **PRIME**.
+- **MUST NOT:** done with exit ≠ 0 · stub `pass` steps · ask user to run/configure · 99.x% · exclude without ADR+sunset · CI≠local.
 
-### MUST
-
-- **MUST:** quality gate **exists + configured + CI wired**; if not — agent bootstraps **FULL** checker **before** feature ([AGENT-5](#agent-5--prime-check)).
-- **MUST:** agent writes `prime_check.config.yaml`, implements steps, adds CI job, installs gate dev-deps — **сам**.
-- **MUST:** Law→Gate — каждый Enforced-by gate = real step ([AGENT-5](#agent-5--prime-check)).
-- **MUST:** full matrix перед «done»; agent runs in shell ([AGENT-VERIFY](#agent-verify--you-run-prime_check)).
-- **MUST:** CI = local (identical command).
-- **MUST:** ALL applicable steps from AGENT-5 (~50).
-- **MUST:** `coverage-line-100` + `coverage-branch-100` + `coverage-diff-100` + `coverage-ratchet`.
-- **MUST:** `zta-matrix-gate` + architecture gates + **port-surface / live-surface / no-swallow / checker-integrity** + OWASP Top 10 closure ([A18](#prime-a18--owasp-input-hygiene)).
-- **MUST (ffi_profile):** `ffi-safety-gate` green when unsafe/JNI/ctypes/Win32 in src — **PRIME, not CRITICAL-only**.
-- **MUST:** `--diff` before full; `--evidence` before «done».
-- **MUST:** fail → structured Finding + EXEC SUMMARY + FIX PLAN ([Report output](#report-output--agent-readable-diagnostics)).
-- **MUST:** bug fix = regression test in same PR.
-
-### MUST NOT
-
-- Merge / declare done with exit ≠ 0.
-- Skip any mandatory step.
-- 99.x% coverage.
-- Exclude without ADR + ticket + sunset.
-- Ask user to run checker, configure yaml, add CI, or install pytest/ruff/eslint for gates.
-- Ship stub checker with `pass` steps — каждый step = real enforcement.
-- Different CI vs local rules.
-
-**LITE scripts only:** exempt from prime_check.
+**LITE scripts only:** exempt.
 
 ---
 
 ## PRIME-A23 — Infra & Docker security
 
-**Min tier:** PRIME+ **When:** containerized deploy or Docker files in repo **Enforced by:** `docker-security`, `compose-security`, `prod-config`
+**Min tier:** PRIME+ **When:** containerized deploy or Docker files in repo **Enforced by:** `docker-security`, `compose-security`, `prod-config`, `iac-scan-gate` (When broader IaC), `ci-harden-gate` (When CI)
 
 ### Docker MUST
 
@@ -1951,6 +1901,8 @@ features/billing/{domain,app,infra,api}/
 - **MUST NOT:** «internal» service-to-service без mTLS or signed token where data is sensitive.
 - **MUST:** secrets from vault/env — never committed compose overrides with real passwords.
 - **MUST:** `docker-security` + `compose-security` in prime_check when Docker files exist.
+- **MUST:** When k8s/helm/terraform/pulumi/cloudformation present → `iac-scan-gate` GREEN — Dockerfile-only harden while cluster open = FAIL ([A40](#prime-a40--secure-continuum)).
+- **MUST:** treat CI as infra — least workflow permissions ([A40](#prime-a40--secure-continuum)).
 
 ---
 
@@ -1962,7 +1914,7 @@ features/billing/{domain,app,infra,api}/
 - **MUST (legacy):** tests in **same PR**; test_matrix + `test_taxonomy_map` + AC mapping — order flexible.
 - **MUST:** test_matrix покрывает behaviors/errors/operations **и** acceptance criteria (GWT).
 - **MUST NOT:** «тесты потом» / «в следующем PR» / «сначала happy path» / «AC потом».
-- **MUST NOT:** naked N/A ([Anti-N/A](#anti-na-must--не-обходить-when)).
+- **MUST NOT:** naked N/A ([Anti-N/A SSOT](#anti-na-ssot--один-раз)).
 
 ---
 
@@ -2001,6 +1953,8 @@ features/billing/{domain,app,infra,api}/
   - `no_swallow:` process I/O mapped ([A37](#prime-a37--honest-errors--no-swallow))
   - `checker_integrity:` `checker-integrity-gate` green ([A38](#prime-a38--checker-integrity))
   - `behavior_ssot:` `APPLIED:<owners>` \| `N/A(no repeated behavior)` ([A39](#prime-a39--behavior-ssot))
+  - `secure_continuum:` `APPLIED:<gates>` \| `N/A(<reasons>)` ([A40](#prime-a40--secure-continuum))
+  - `trust_pipeline:` `APPLIED:<ops/gates>` \| `N/A(<reasons>)` ([A41](#prime-a41--trust-pipeline))
   - `blast_radius:` capabilities + files ([A33](#prime-a33--blast-radius))
   - changed_files, uncovered: NONE, fix_plan_executed: ALL
 - **MUST:** если был RED в сессии — evidence **не** печатается пока full run не green.
@@ -2048,17 +2002,19 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A29 — ZTA matrix
 
-**Min tier:** PRIME+ · detail + scenarios: [A02](#prime-a02--zero-trust) · gate `zta-matrix-gate`  
-**Taxonomy:** access_control ([A12a](#prime-a12a--test-taxonomy))
+**Min tier:** PRIME+ **Enforced by:** `zta-matrix-gate` · `idor-ownership-gate`  
+**See:** [A02](#prime-a02--zero-trust) · taxonomy access_control ([A12a](#prime-a12a--test-taxonomy)) · [A41](#prime-a41--trust-pipeline)
 
-- **MUST:** per protected op: anon→401; bad token→401/403; wrong scope→403; valid→2xx; IDOR→403/404 When multi-tenant.
-- **MUST NOT:** localhost/docker exempt. Matrix in test_matrix + taxonomy map.
+- **MUST:** per protected op: anon→401; bad token→401/403; wrong scope→403; valid→2xx; **IDOR/cross-user→403/404 When multi-user/tenant**.
+- **MUST:** IDOR oracle in test body — principal A cannot access B's resource ([A41](#prime-a41--trust-pipeline)).
+- **MUST NOT:** localhost/docker exempt. Matrix in test_matrix + taxonomy map + `trust_pipeline_map.idor_cases` When applicable.
+- **MUST NOT:** only «logged-in vs anon» when resources are multi-user.
 
 ---
 
 ## PRIME-A30 — Anti-slack · Fix until green
 
-**Min tier:** PRIME+
+**Min tier:** PRIME+ **Enforced by:** DoD-only (process — agent loop until `prime_check` exit 0; [A22](#prime-a22--prime-check))
 
 - **MUST:** red gate → **fix loop** (edit → re-run) until `exit 0` — **никогда не бросать задачу**.
 - **MUST NOT:** partial PR (код без taxonomy/AC mapping, API без contract, infra без docker gates, happy-path-only, N/A-spam, diff вне blast без reason).
@@ -2071,7 +2027,7 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A31 — Legacy adoption
 
-**Min tier:** PRIME+ **When:** existing codebase, not greenfield
+**Min tier:** PRIME+ **When:** existing codebase, not greenfield **Enforced by:** `coverage-diff-100` · `coverage-ratchet` · config `adoption_mode: legacy`
 
 - **MUST:** `adoption_mode: legacy` in config.
 - **MUST:** 100% coverage on **changed files only** — not whole repo day one.
@@ -2083,7 +2039,7 @@ features/billing/{domain,app,infra,api}/
 
 ## PRIME-A32 — Monorepo scope
 
-**Min tier:** PRIME+ **When:** monorepo
+**Min tier:** PRIME+ **When:** monorepo **Enforced by:** `config-valid` (monorepo_scopes) · `prime_check --diff` path scope · [A33](#prime-a33--blast-radius)
 
 - **MUST:** `monorepo_scopes` in config — per-path tier.
 - **MUST:** `prime_check --diff` respects path scope.
@@ -2102,7 +2058,7 @@ features/billing/{domain,app,infra,api}/
 - **MUST:** в PHASE 1 объявить `blast_radius`: capabilities + expected files.
 - **MUST:** edits stay inside radius; выход за радиус → обновить artifact + reason (или split PR).
 - **MUST NOT:** «заодно» рефакторить соседние capabilities / shared bags без задачи.
-- **MUST NOT:** keep blast small by **duplicating** behavior that belongs in an existing owner ([A39](#prime-a39--behavior-ssot)). Touching the owner + replacing copies = **correct** blast, not «half-repo».
+- **MUST NOT:** keep blast small by **duplicating** behavior that belongs in an existing owner ([A39](#prime-a39--behavior-ssot)). Touching the owner + replacing copies = **correct** blast, not «half-repo» — includes shared **authorize/sanitize** ([A40](#prime-a40--secure-continuum)).
 - **MUST NOT:** путать с YAGNI на тесты — малый blast **не** отменяет [A12a](#prime-a12a--test-taxonomy) / [A34](#prime-a34--intent-lock).
 - **SHOULD:** один capability на PR, если задача не требует cross-cut.
 - **Good:** `orders` slice only. **Bad:** touched `orders`+`billing`+`auth`+DI root «на всякий».  
@@ -2162,15 +2118,11 @@ AC1: process does not create a visible overlapped window
 **MUST NOT:** «одна реализация → без порта» при I/O в testable core.  
 **MUST NOT:** требовать *все* families на каждый CRUD — колонка **When** нормативна.  
 **MUST:** если When сработал — family **обязателен**.  
-**MUST NOT:** «при сомнении наплоди порт». Порт только если application **вызывает** его и есть Fake. Иначе `N/A(no I/O)` или конкретный адаптер **только** в composition ([A36](#prime-a36--live-surface), [B07](#prime-b07--yagni)). Enough vs too much ниже — **FAIL**, не совет.
+**MUST NOT:** «при сомнении наплоди порт» — [Conflict Matrix](#conflict-matrix-при-сомнении--читать-это-не-конкурирующие-абзацы). Порт только если application **вызывает** его и есть Fake. Иначе `N/A(no I/O)` или concrete **только** в composition ([A36](#prime-a36--live-surface), [B07](#prime-b07--yagni)). Enough vs too much = **FAIL**.
 
-### Anti-N/A (MUST — не обходить When)
+### Anti-N/A
 
-- **MUST:** `N/A` допустим **только** если reason = отсутствующий trigger (напр. `N/A(no I/O)`, `N/A(single HTTP entry)`, `N/A(no events)`, `N/A(single capability)`).
-- **MUST NOT:** `N/A`, `N/A()`, `N/A(потом)`, `N/A(одна реализация)`, `N/A(framework DI)`, `N/A(skip)` — **FAIL** `port-surface-gate`.
-- **MUST NOT:** ставить `N/A` когда diff/design **содержит** I/O, multi-entry, cross-capability, exposed API, events.
-- **MUST NOT:** «при сомнении включи порт» — это читается как CoordinateMapper / PipeCommandSink / identity impl. Сомнение → не плоди; `live-surface-gate` красный.
-- **Enforced by:** `port-surface-gate` · `live-surface-gate`.
+**SSOT:** [Doctrine Anti-N/A](#anti-na-ssot--один-раз). Contract-specific reasons: `N/A(no I/O|single HTTP entry|no events|…)`. Триггер сомнителен → Conflict Matrix row 1; «наплодить порт» → row 2.
 
 ### Contract families
 
@@ -2188,6 +2140,8 @@ AC1: process does not create a visible overlapped window
 | **Test double vs port** | Fake/InMemory implements **Port**, not mock concrete | PRIME+ | Always when outbound port exists | `port-test-double-gate` |
 | **Composition root only** | Wiring concrete → port | PRIME+ | Always when adapters exist | `composition-root-gate` · `di-graph-gate` |
 
+- **MUST:** external write input enters as **allowlisted Command/DTO** — never transport entity / request-bag → persistence ([A41](#prime-a41--trust-pipeline) mass-assign).
+
 ### Enough vs too much
 
 | Задача | Достаточно (APPLIED) | Слишком / запрещено |
@@ -2203,18 +2157,7 @@ AC1: process does not create a visible overlapped window
 
 ### Anti-patterns (MUST NOT)
 
-- Concrete infra type в signature application entry (`place(repo: PostgresOrderRepo)`).
-- «Одна реализация → без порта» при I/O в testable core.
-- God-port `IUnitOfWorkEverything` — дробить по capability ([B02](#prime-b02--solid--grasp) ISP).
-- Общий `ports/` bag на все capabilities при ≥2 slices ([A05a](#prime-a05a--package-cohesion)).
-- Mock concrete class в unit вместо Fake на Port.
-- Port без методов (пустой marker iface).
-- Дублировать OpenAPI «в голове» без schema drift gate.
-- Framework DI concrete как оправдание отсутствия Port.
-- Переписать Skin в учебник Clean folders.
-- Порт без вызова из application = dead abstraction (как `*_v2` в [A08](#prime-a08--anti-fork)) — [A36](#prime-a36--live-surface).
-- `impl Trait` identity / `Ok(())` / `todo!()` без ADR+sunset.
-- Adapter name (WgcCapture, StripeClient) когда crate/feature механизма нет в src.
+Concrete in UC signature · «одна impl → без порта» при I/O · god-port · flat `ports/` bag ≥2 caps · mock concrete · empty marker iface · OpenAPI «в голове» · framework DI as excuse · rewrite Skin · port without call ([A36](#prime-a36--live-surface)) · identity/`todo!()` without ADR · adapter name for missing crate.
 
 ### Agent algorithm (MUST)
 
@@ -2339,6 +2282,102 @@ AC1: process does not create a visible overlapped window
 
 ---
 
+## PRIME-A40 — Secure Continuum
+
+*Четвёртый класс лжи: безопасный код + дырявые CI/chat/IaC. `security.md` без gate — тот же театр, что A38. Форма контролей = Skin; закон = секрет/trust не живут вне vault+allowlist на всех каналах.*
+
+**Min tier:** PRIME+ · **When:** network-facing / auth / PII / payments / deploy / CI-present  
+**Enforced by:** `ci-harden-gate` · `channel-secret-gate` · `security-headers-gate` · `cors-csrf-gate` · `iac-scan-gate`  
+**Aligns:** [A02](#prime-a02--zero-trust) · [A16](#prime-a16--secure-by-design) · [A18](#prime-a18--owasp-input-hygiene) · [A19](#prime-a19--supply-chain--secrets) · [A23](#prime-a23--infra--docker-security) · [A38](#prime-a38--checker-integrity) · [A39](#prime-a39--behavior-ssot)
+
+**Outcome (Engine):** every trust/secret/boundary decision has a **gate-enforced** owner across `runtime_scope` + `ci_scope` + `ops_scope` + agent channel policy — not a markdown checklist.  
+**Form (Skin):** GitHub Actions / GitLab CI; Helmet / Nest middleware; Vault / GH Secrets — **not** a mandatory WAF product or textbook `security/` tree.
+
+### Channel table (FAIL = Too much)
+
+| Channel | Enough (PASS) | Too much / FAIL |
+|---------|---------------|-----------------|
+| App/API | schema@boundary · ZTA matrix · one authorize owner · headers/CORS/CSRF When web | «Nest defaults» without gate · clone authz per route |
+| Secrets | env/vault refs; gitleaks GREEN; rotate on leak | `.env` in chat · secret in evidence · ARG in Dockerfile |
+| CI/CD | least workflow permissions; pin actions by SHA When PRIME+; no secrets on fork PR; OIDC/short-lived When cloud | `write-all` · untrusted code + privileged secrets · `curl\|bash` |
+| IaC | docker gates + When k8s/tf/helm → `iac-scan-gate` | only Dockerfile hardened, cluster wide open |
+| Chat/agent | secret store / masked CI var; agent refuses echo into evidence | paste private key «to debug» |
+| Supply chain | lockfile + audit + SBOM; When publish → provenance Skin-native | unsigned release «потом» |
+
+### MUST / MUST NOT
+
+- **MUST:** fill `secure_continuum_map` in PHASE 1; Anti-N/A on absent surfaces (LITE offline OK with reasons).
+- **MUST:** When surface exists → enable the matching gate ([Conflict Matrix](#conflict-matrix-при-сомнении--читать-это-не-конкурирующие-абзацы): триггер → включи; unused SecurityPort → не плоди — [A36](#prime-a36--live-surface)).
+- **MUST:** authorize / sanitize / CSRF token mint = **one owner** When N≥2 ([A39](#prime-a39--behavior-ssot)).
+- **MUST:** Threat Model names CI compromise + chat exfil When those channels exist ([A16](#prime-a16--secure-by-design)).
+- **MUST NOT:** `permissions: write-all` / absent permissions when secrets or deploy present.
+- **MUST NOT:** treat framework defaults / Helmet-in-package.json / `security.md` as OWASP closed.
+- **MUST NOT:** echo raw secrets into evidence, logs, or chat replies — rewrite to env names; on leak → rotate ([B14](#prime-b14--human-handoff)).
+- **MUST NOT:** Dockerfile-only harden When broader IaC is open.
+- **MUST NOT:** mandate Snyk/Wiz/Vault Enterprise/Cloudflare; one Skin-native scanner/control GREEN.
+- **MUST NOT:** god-`SecurityService` on first use (N=1 local OK — [B07](#prime-b07--yagni)).
+
+**LITE offline script:** `N/A(ci)` / `N/A(web headers)` with reasons — not silent skip.
+
+**PHASE 1:** `secure_continuum_map` — surfaces, threat_channels, header/cors policies, `ci_permissions_owner`, `authz_owner`.
+
+---
+
+## PRIME-A41 — Trust Pipeline
+
+*Пятый класс лжи: «фича» со слоями, но soft to own. Залогинен ≠ authorized на любой id. Form = Skin middleware; Engine = schema→authn→authz(resource)→allowlisted command→UC→safe sink. Attack class closed by gate+oracle — не «будь осторожен».*
+
+**Min tier:** PRIME+ · **When:** exposed op / auth / PII / money / multi-tenant / file upload / HTML UI  
+**Enforced by:** `trust-pipeline-gate` · `idor-ownership-gate` · `mass-assign-gate` · `path-escape-gate` · `session-token-gate`  
+**Aligns:** [A02](#prime-a02--zero-trust) · [A18](#prime-a18--owasp-input-hygiene) · [A29](#prime-a29--zta-matrix) · [A39](#prime-a39--behavior-ssot) · [A40](#prime-a40--secure-continuum) · [A08](#prime-a08--anti-fork--policy-facades)
+
+**Outcome (Engine):** for every protected/state-changing operation, trust is reduced in a **fixed order**; classic exploit classes closed by owners + gates.  
+**Form (Skin):** Nest guards · FastAPI Depends · Axum layers · Spring filters — **not** mandatory IdP/WAF brand. Skin may merge steps into one middleware; **Engine order preserved**.
+
+### Pipeline (MUST order)
+
+| Step | Outcome | Typical Skin |
+|------|---------|--------------|
+| 1 Schema | untrusted bytes → typed DTO; unknown/privileged fields rejected | zod / pydantic / jsonschema |
+| 2 Authn | principal established or deny | JWT / session / mTLS |
+| 3 Authz | principal **may** act on **this resource** (IDOR closed) | one `authorize(op, principal, resource)` ([A39](#prime-a39--behavior-ssot)) |
+| 4 Command | only allowlisted fields enter UC | explicit Command / patch DTO |
+| 5 UC | business only; no raw body; no client id as ownership proof | thin orchestration |
+| 6 Sink | parameterized SQL · path under root · HTML encoded · no shell+user | adapters ([A18](#prime-a18--owasp-input-hygiene)) |
+
+### Attack → closure (FAIL table)
+
+| Attack | Enough (PASS) | Too much / FAIL |
+|--------|---------------|-----------------|
+| IDOR | authz loads resource + ownership/tenant; cross-user oracle | client `user_id` / only «logged in?» |
+| Mass assignment | Command / allowlist patch | `update(**body)` / bind full entity from request |
+| Injection | parameterized / no shell / encode + fuzz | f-string SQL · raw `innerHTML` · `os.system(user)` |
+| Path traversal | resolve under allowlisted root; reject `..` | concat user path to uploads |
+| Session/token | httpOnly+Secure+SameSite **or** bearer header; no token in query/logs | token in localStorage w/o ADR · token in URL · homemade crypto |
+| CSRF | [A40](#prime-a40--secure-continuum) `cors-csrf-gate` When cookies | cookies + no CSRF |
+| Privilege escalate | role only from server claims/session | `body.role = admin` applied |
+| SSRF | existing `ssrf-gate` | user URL → metadata IP |
+
+### MUST / MUST NOT
+
+- **MUST:** fill `trust_pipeline_map` in PHASE 1 for touched protected ops.
+- **MUST:** authz **before** mutation/side-effect; schema **before** UC.
+- **MUST:** When multi-user resources — IDOR oracle tests (principal A ↛ B's resource).
+- **MUST:** authorize / validate / safe_path = one owner When N≥2 ([A39](#prime-a39--behavior-ssot)).
+- **MUST:** privileged fields stripped from client DTOs (config denylist) unless admin op + authz.
+- **MUST NOT:** treat «has token» as resource authorization.
+- **MUST NOT:** request-bag → entity; client-owned id as proof of rights.
+- **MUST NOT:** token in query/logs; reinvent JWT verify when stack has standard lib.
+- **MUST NOT:** absolute «unhackable» claims — language is **attack class closed by gate+oracle**.
+- **MUST NOT:** god-`SecurityService` on N=1; unused SecurityPort ([A36](#prime-a36--live-surface), [B07](#prime-b07--yagni)).
+- **MUST NOT:** weaken [A40](#prime-a40--secure-continuum) — continuum = channels; this law = **inside the process**.
+
+**LITE offline:** N/A with Anti-N/A reasons. CLI/desktop may N/A CSRF/cookies; IDOR/mass-assign/injection still When resources exist.
+
+**PHASE 1:** `trust_pipeline_map` — ops, idor_cases, privileged_fields_stripped, session_model.
+
+---
+
 # Part B — Platform patterns
 
 ## PRIME-B01 — CQRS
@@ -2362,10 +2401,10 @@ AC1: process does not create a visible overlapped window
 
 **GRASP:**
 
-- **Information Expert** — behavior on entity that owns data (**Anti-Anemic** — [A05](#prime-a05--layer-law)); shared algorithm → one Expert/owner, N callers ([A39](#prime-a39--behavior-ssot)).
+- **Information Expert** — behavior on entity that owns data (**Anti-Anemic** — [A05](#prime-a05--layer-law)); shared algorithm → one Expert/owner, N callers ([A39](#prime-a39--behavior-ssot)); **ownership/authz rules** near the resource type or one authorize facade ([A41](#prime-a41--trust-pipeline)).
 - **Creator / Low Coupling** — factories in DI; domain does not `new PostgresRepo()`; depends on Port.
 - **High Cohesion** — files that change together live together (capability slice), not only «one class one job».
-- **Controller** — one UC per story; ~10–15 orchestration lines; **does not** mutate entity fields directly; **does not** re-implement policy owned elsewhere.
+- **Controller** — one UC per story; ~10–15 orchestration lines; **does not** mutate entity fields directly; **does not** re-implement policy owned elsewhere; **does not** embed authz copies.
 - **Pure Fabrication** — infra helpers only — not smuggling business rules out of domain; **not** a kitchen-sink util of unrelated policies.
 
 - **MUST NOT:** «Service» classes accumulating unrelated static methods.
@@ -2373,6 +2412,7 @@ AC1: process does not create a visible overlapped window
 - **MUST NOT:** god-port `IUnitOfWorkEverything` — split by capability ([A35](#prime-a35--contract-surface)).
 - **MUST NOT:** anemic entity + fat service that owns all invariants.
 - **MUST NOT:** clone a method for a new mode when OCP says extend the owner ([A39](#prime-a39--behavior-ssot)).
+- **MUST NOT:** Controller/handler that trusts client ids for ownership ([A41](#prime-a41--trust-pipeline)).
 
 ## PRIME-B03 — SRE, observability & events
 
@@ -2454,24 +2494,26 @@ Assume external world **will** break.
 - **MUST NOT:** YAGNI exempts security ([A16](#prime-a16--secure-by-design)).
 - **MUST NOT:** YAGNI exempts taxonomy / Anti-N/A / **oracles** / cohesion / **rich domain when status entity** — это Engine.
 - **MUST NOT:** YAGNI «одна impl → без порта» при I/O из UC ([A35](#prime-a35--contract-surface)).
-- **MUST NOT:** YAGNI наоборот — **плодить** порты и `test_err_*` имена «при сомнении». Порт без вызова = dead abstraction ([A36](#prime-a36--live-surface), как `*_v2`).
+- **MUST NOT:** YAGNI наоборот — **плодить** порты/`test_err_*` «при сомнении» ([Conflict Matrix](#conflict-matrix-при-сомнении--читать-это-не-конкурирующие-абзацы)). Порт без вызова = dead abstraction ([A36](#prime-a36--live-surface)).
 - **MUST NOT:** YAGNI as license to **keep the second/third copy** of the same algorithm ([A39](#prime-a39--behavior-ssot)).
-- **MUST NOT:** YAGNI-extract a kitchen-sink util / god-`helpers` on **first** use (N=1 local OK).
-- **MUST NOT:** new Port solely to share **pure** logic ([A35](#prime-a35--contract-surface) Enough vs too much FAIL).
-- **MUST NOT:** YAGNI as license to rewrite Skin into textbook Clean folders.
-- **MUST NOT:** раздувать Part B новыми философиями без Law→Gate — лучше 1 law + weave, чем 20 SHOULD.
+- **MUST NOT:** YAGNI-extract a kitchen-sink util on **first** use (N=1 local OK).
+- **MUST NOT:** new Port solely to share **pure** logic ([A35](#prime-a35--contract-surface) Enough vs too much).
+- **MUST NOT:** YAGNI skip CSRF When cookie session / `ci-harden` When workflows ([A40](#prime-a40--secure-continuum)); skip IDOR/allowlist When multi-user/PATCH ([A41](#prime-a41--trust-pipeline)).
+- **MUST NOT:** YAGNI rewrite Skin into textbook Clean folders · раздувать Part B без Law→Gate.
 
 ## PRIME-B08 — Agent self-review
 
 **Min tier:** all
 
 1. Risk Tier + [AGENT-1](#agent-1--task-router) sections applied.
-2. Grep diff: swallowed `let _ =` / `.ok()` / empty catch on I/O; unused ports; `#[ignore]`; identity `impl`; unread config fields; `HTTPException` in domain, `Date.now`, secrets, f-string SQL, `.status =` outside entity, bare `except Exception` in UC; **duplicated blocks** (two `on_mouse_*`, two retry loops, two error mappers, two money-rounds).
+2. Grep diff: swallowed `let _ =` / `.ok()` / empty catch on I/O; unused ports; `#[ignore]`; identity `impl`; unread config fields; `HTTPException` in domain, `Date.now`, secrets, f-string SQL, `.status =` outside entity, bare `except Exception` in UC; **duplicated blocks**; **workflow `permissions` / CORS `*` / secrets in md/evidence**; **`update(**` / `Object.assign` / `req.body.role` / path join / `localStorage` token**.
 3. **Taxonomy + behavior-lock + blast:** families APPLIED with oracles? AC oracle in test body? Anti-N/A? one skip = one trigger?
 4. **Live surface + honest errors:** every listed port called? err-variant provokes producer? toast/log on mapped failure?
 5. **Behavior SSOT:** second copy of an algorithm? owner listed in `behavior_owners` or extracted this PR? ([A39](#prime-a39--behavior-ssot))
-6. **Checker:** no existence-only steps; `checker-integrity-gate` would pass on this repo's `prime_check`.
-7. [AGENT-2](#agent-2--pre-commit-checklist).
+6. **Secure Continuum:** CI least privilege? no secret in evidence/chat? headers/CORS/CSRF or honest N/A? IaC when present? ([A40](#prime-a40--secure-continuum))
+7. **Trust Pipeline:** schema before UC? authz before mutation? IDOR oracle When multi-user? no mass-assign? path jail? session-token hygiene? ([A41](#prime-a41--trust-pipeline))
+8. **Checker:** no existence-only steps; `checker-integrity-gate` would pass on this repo's `prime_check`.
+9. [AGENT-2](#agent-2--pre-commit-checklist).
 
 ## PRIME-B09 — ADR
 
@@ -2510,7 +2552,8 @@ Assume external world **will** break.
 - **MAY (desktop PRIME):** one dispatcher for input/commands **IF** that Skin fits — as **example** of [A39](#prime-a39--behavior-ssot), not a separate UI constitution. HTTP/CLI/jobs follow A39 the same way.
 - **MUST:** settings, которые нельзя изменить в UI, **не** считаются настройками в AC ([A34](#prime-a34--intent-lock), [A36](#prime-a36--live-surface)).
 - **MUST:** lint + format + typecheck before done.
-- **MUST NOT:** `dangerouslySetInnerHTML`, `eval`, secrets in `localStorage` ([A18](#prime-a18--owasp-input-hygiene)).
+- **MUST NOT:** `dangerouslySetInnerHTML`, `eval`, secrets in `localStorage` ([A18](#prime-a18--owasp-input-hygiene)) — without ADR; prefer httpOnly cookies or bearer ([A41](#prime-a41--trust-pipeline)).
+- **MUST:** desktop/IPC commands follow Trust Pipeline When privileged ops ([A41](#prime-a41--trust-pipeline)).
 - **MUST NOT:** three identical hit-test / paint / retry bodies across widgets — one owner ([A39](#prime-a39--behavior-ssot)).
 - **MAY:** 20-line component — no DI; 200-line component with business logic — **violation**.
 
@@ -2534,14 +2577,19 @@ Assume external world **will** break.
 - **SHOULD:** graceful shutdown handler tested or documented in ADR.
 - **SHOULD:** rollback steps in ADR for deploy-touching changes.
 - **MUST:** 12-factor config — secrets env/vault only.
+- **MUST:** runbook includes **revoke + rotate** on suspected secret leak (git/CI/chat) ([A40](#prime-a40--secure-continuum), [A19](#prime-a19--supply-chain--secrets)).
 
 ## PRIME-B14 — Human handoff
 
 **Min tier:** PRIME+
 
-- **MUST:** evidence block ([A26](#prime-a26--evidence-block)) is the handoff artifact.
+- **MUST:** evidence block ([A26](#prime-a26--evidence-block)) is the handoff artifact — **no raw secrets**.
+- **MUST:** list Secure Continuum status (`secure_continuum:` APPLIED|N/A) ([A40](#prime-a40--secure-continuum)).
+- **MUST:** list Trust Pipeline status (`trust_pipeline:` APPLIED|N/A) ([A41](#prime-a41--trust-pipeline)).
+- **MUST:** if leak suspected in session — handoff includes rotate/revoke steps ([B13](#prime-b13--ops--runbook)).
 - **SHOULD:** list `risks`, `rollback`, `tests_added` for human reviewer.
 - **MUST NOT:** hide failing steps or partial coverage in summary.
+- **MUST NOT:** paste `.env` / keys into chat «для ревью».
 
 ---
 
@@ -2561,6 +2609,8 @@ Gates проверяют Engine, не заставляют одну колонк
 | Live surface | Port constructed + called from UC | Fake as second impl; identity/todo impl = FAIL — [A36](#prime-a36--live-surface) |
 | Honest errors | named Err **provoked**; no `let _ =` | toast/balloon on GUI; dump-bucket = FAIL — [A37](#prime-a37--honest-errors--no-swallow) |
 | Behavior SSOT | one facade / one fn / entity method / dispatcher of the same kind of work | Nest injectable policy · Go func in package · Rust inherent method · FP shared pipeline — **NEVER** mandatory UI Router class — [A39](#prime-a39--behavior-ssot) |
+| Secure Continuum | least CI permissions · registered headers · CORS allowlist · vault refs · one authorize owner | GHA `permissions:` · GitLab least · Helmet/Tower middleware · Vault/Doppler/GH Secrets — **NEVER** mandatory WAF product — [A40](#prime-a40--secure-continuum) |
+| Trust Pipeline | schema→authn→authz(resource)→allowlisted command→UC→safe sink | Nest guards · FastAPI Depends · Axum layers · Spring filters — **NEVER** mandatory IdP brand — [A41](#prime-a41--trust-pipeline) |
 | Minimal blast | one capability PR | stacked PRs; Nx affected; CODEOWNERS scope |
 | Application entry | `*UseCase.execute()` | `*Handler`, `*Command`, `*Service.method`, MediatR, plain `fn`, Redux thunk, Effect |
 | Explicit errors | `Result<Ok,Err>` | Rust `Result`, Go `(T,error)`, sealed exceptions, `Either`, discriminated union |
@@ -2577,9 +2627,9 @@ Gates проверяют Engine, не заставляют одну колонк
 | Quality gate | `python -m scripts.prime_check` | `npm run prime:check`, `make prime-check`, `cargo xtask prime`, CI job contract |
 | Safety-critical predictability | MISRA subset / CERT rules | `clang-tidy` profile · Rust deny `unsafe` w/o ADR · Go race detector in CI |
 | Structural defect scan | CISQ / ISO 5055 automated measure | AST Prosecutor 7 gates + cohesion + **port-surface** + **anemic-mutation** + **behavior-ssot** + security static |
-| OWASP verification | ASVS checklist per tier | `zta-matrix-gate` · `injection-fuzz` · Threat Model in design artifact |
+| OWASP verification | ASVS checklist per tier | `zta-matrix-gate` · `injection-fuzz` · Threat Model · **continuum gates** ([A40](#prime-a40--secure-continuum)) |
 
-**Agent algorithm:** detect Project Skin in repo → extend it (**including** existing capability packaging **and** port forms) → run **full Empire Engine** for tier → map gates to scopes → ADR only when introducing **new** Skin pattern. **Never** downgrade Engine because Skin is informal. **Never** treat flat layer dump as Skin if the Engine outcome is cohesion. **Never** skip Port because «framework DI / one impl» when UC calls I/O. **Never** add a port that is not called. **Never** treat AC-name lock as behavior-lock. **Never** treat existence-only checker as Law→Gate. **Never** keep a second copy of the same algorithm to avoid touching shared. **Never** treat «InputRouter in every app» as Engine.
+**Agent:** detect Skin → extend it → full Engine for tier → ADR only for **new** Skin pattern. Never: downgrade Engine · flat dump as «Skin» · skip Port for one-impl I/O · unused port · AC-name lock · existence-only checker · clone to avoid shared · mandatory InputRouter · framework/`security.md` as continuum · `write-all` · secrets in evidence/chat · logged-in as IDOR closed · `update(**body)` · client id as ownership.
 
 ---
 
@@ -2588,7 +2638,8 @@ Gates проверяют Engine, не заставляют одну колонк
 | Term | Meaning |
 |------|---------|
 | Skin / Engine | форма репо / tier-дисциплина Empire |
-| Anti-N/A | N/A только с absent-When reason ([A12a](#prime-a12a--test-taxonomy), [A35](#prime-a35--contract-surface)) |
+| Anti-N/A | N/A только с absent-When reason ([SSOT](#anti-na-ssot--один-раз)); «при сомнении» → [Conflict Matrix](#conflict-matrix-при-сомнении--читать-это-не-конкурирующие-абзацы) |
+| Conflict Matrix | единая таблица напряжений (When vs YAGNI vs blast vs A40/A41) — Doctrine |
 | test_taxonomy_map | family → tests \| N/A(reason) |
 | contract_surface_map | contract family → ports/schemas \| N/A(reason) ([A35](#prime-a35--contract-surface)) |
 | Contract surface | core/app → contracts only; concrete in adapters/composition root |
@@ -2605,6 +2656,15 @@ Gates проверяют Engine, не заставляют одну колонк
 | Clone | near-duplicate body of the same algorithm (renames OK) without a shared call |
 | Owner | canonical symbol (fn / method / facade / strategy / dispatcher) that callers invoke |
 | Compress vs split | extract owner then shrink leftovers ≠ clone into a second file ([A11](#prime-a11--decomposition)) |
+| Secure Continuum | secret/trust gated on app · CI · chat · ops — not code-only OWASP ([A40](#prime-a40--secure-continuum)) |
+| Channel secret | secret in any durable text channel (git, CI log, chat, evidence, image layer) without vault/ref |
+| CI least privilege | explicit minimal workflow permissions; no write-all / fork-PR secret trust |
+| Security theatre | checklist/`security.md`/Helmet-in-package.json without Enforced-by gate |
+| Trust Pipeline | ordered trust cut schema→authn→authz→command→UC→safe sink ([A41](#prime-a41--trust-pipeline)) |
+| IDOR | access another user's resource by guessing/changing id |
+| Mass assignment | binding full request onto entity including privileged fields |
+| Allowlisted command | explicit fields/Command DTO — only those enter UC |
+| Resource-scoped authz | principal may act on **this** resource — not merely authenticated |
 | Oracle | observable fact the test must break if production lies |
 | skipped_steps | one skip = one trigger + ADR + sunset — never one ADR for 15 N/A |
 | Blast radius | min capabilities/files ([A33](#prime-a33--blast-radius)) |
@@ -2618,6 +2678,6 @@ Gates проверяют Engine, не заставляют одну колонк
 
 ---
 
-*Ни одного зелёного `prime_check` без правды исхода. Ни одного AC без оракула. Ни одного порта без вызова. Ни одного `let _ =` на I/O. Ни одного театрального step. Ни одного exclude composition на greenfield. Ни одного второго экземпляра того же алгоритма без вызова owner.*
+*Ни одного зелёного `prime_check` без правды исхода. Ни одного AC без оракула. Ни одного порта без вызова. Ни одного `let _ =` на I/O. Ни одного театрального step. Ни одного exclude composition на greenfield. Ни одного второго экземпляра того же алгоритма без вызова owner. Ни одного секрета вне vault/ref. Ни одного `write-all` ради удобства. Ни одного client-owned id как доказательства прав. Ни одного request-bag → entity.*
 
 *End of MAWYXX PRIME v5.7 — Build for Billions. Code for Vibe. Rule with Logic.*
