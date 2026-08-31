@@ -18,6 +18,7 @@
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | Паттерны · ~220 строк | **MIT** |
 | `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A41** · **B01–B14** | **Открыт в репо** · корп = платно |
+| `Mawyxx-Security.md` | Отдельный mega-prompt для security-аудита (опционально; не часть Prime) | **Открыт в репо** |
 | `scripts/prime_check/` | Агент создаёт FULL по **AGENT-5** | **Не в репо** — агент bootstrap |
 
 Норматив — **только** в `Mawyxx Prime V5.7.md`. Этот README = карта, не второй SSOT.
@@ -102,6 +103,8 @@ Project Skin + Empire Engine. Читай `Mawyxx Prime V5.7.md` для архи�
 Нет checker? Агент строит FULL по AGENT-5. Не проси пользователя гонять тесты.
 На RED: fix-until-green. Anti-N/A · Conflict Matrix · Default-secure 5Q · A34–A41 — coverage ≠ done.
 ```
+
+**Опционально — промпт для аудита:** [`Mawyxx-Security.md`](Mawyxx-Security.md) — отдельный standalone-файл для полного security-ревью (`@Mawyxx-Security.md` или project rule). Для Prime не обязателен; не заменяет A18/A41 в обычной разработке.
 
 ---
 

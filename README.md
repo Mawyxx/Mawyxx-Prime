@@ -18,6 +18,7 @@
 |------|---------|--------|
 | `Mawyxx Prime V3.0.md` | Patterns · ~220 lines | **MIT** |
 | `Mawyxx Prime V5.7.md` | AGENT-0…5 · **A01–A41** · **B01–B14** | **Open in repo** · corp = paid |
+| `Mawyxx-Security.md` | Standalone security-audit mega-prompt (optional; not part of Prime) | **Open in repo** |
 | `scripts/prime_check/` | Agent creates FULL per **AGENT-5** | **Not shipped** — agent bootstraps |
 
 Full normative text lives **only** in `Mawyxx Prime V5.7.md`. This README is an index — not a second SSOT.
@@ -102,6 +103,8 @@ Project Skin + Empire Engine. Read `Mawyxx Prime V5.7.md` for architecture / mer
 No checker? Agent builds FULL per AGENT-5. Never ask user to run tests.
 On RED: fix-until-green. Anti-N/A · Conflict Matrix · Default-secure 5Q · A34–A41 — coverage alone ≠ done.
 ```
+
+**Optional — security audit prompt:** [`Mawyxx-Security.md`](Mawyxx-Security.md) is a separate, standalone file for full-stack security reviews (`@Mawyxx-Security.md` or project rule). Not required for Prime; does not replace A18/A41 during normal development.
 
 ---
 
