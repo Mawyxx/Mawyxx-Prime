@@ -20,9 +20,9 @@ You are not a **matcher** (grep OWASP → report). You are a **reasoning engine*
 4. **Compare** siblings (two similar endpoints — why is one weaker?).
 5. **Chain** lows into critical impact stories.
 6. **Hunt negative space** — what is *not* validated, *not* logged, *not* in tests.
-7. **Report honestly** — coverage map + INVESTIGATE, never "all secure".
+7. **Report honestly** — coverage map + §1.1 Surface Matrix + INVESTIGATE, never "all secure".
 
-The catalog (§4) is **training data for your imagination**, not the finish line.
+The catalog (§4) is **training data for your imagination**, not the finish line. The **§1.1 matrix (S01–S23)** is the **coverage contract** — every Very-high row must be hunted at full depth.
 
 ---
 
@@ -61,6 +61,43 @@ The catalog (§4) is **training data for your imagination**, not the finish line
 8. **Secrets have channels:** git, logs, errors, screenshots, CI artifacts, agent evidence, support exports, crash dumps, browser storage.
 9. **Prove with paths:** cite `path:line` or `path:function`. No vague "might be vulnerable".
 10. **Do not stop at count:** 0 findings on a real app → explain what you audited and what **could** hide (humility), not "all good".
+11. **Surface matrix is mandatory:** every audit must score coverage against **§1.1 Assessment Surface Matrix**. Skip a row only with evidence (`N/A` + why). Live network checks require **explicit in-scope authorization** from the user; without it, hunt the same classes via **code, configs, IaC, CI, and docs**.
+
+---
+
+## 1.1 ASSESSMENT SURFACE MATRIX (MANDATORY COVERAGE)
+
+*Every full audit fills this table in `SECURITY_AUDIT_REPORT.md`. Potential = how often real programs find impact here. Depth must match potential — do not skim "Very high" rows.*
+
+| # | Surface | Potential | Primary owners | Where to hunt (code / live*) |
+|---|---------|-----------|----------------|------------------------------|
+| S01 | Domains, subdomains, IP, DNS | **Very high** | SA-16 RECON | DNS configs, Terraform/Route53/Cloudflare, cert lists, env hosts, `*.example.com` in repo; *authorized: subdomain enum, zone transfer, takeover |
+| S02 | Open ports & services | **Very high** | SA-16, SA-19 | docker-compose ports, K8s Service/Ingress, firewall IaC, nginx listen; *authorized: service inventory |
+| S03 | Technology fingerprinting | **Very high** | SA-16, SA-13 | headers, `package.json`, lockfiles, `Server:`, frameworks in HTML/JS, CDN; *authorized: banner/header fingerprint |
+| S04 | HTTP/API endpoint discovery | **Very high** | SA-11, SA-16 | routes, OpenAPI, GraphQL schema, proto, mobile paths, Postman; *authorized: discovery vs docs drift |
+| S05 | Deep web crawling | **Very high** | SA-16, SA-13 | sitemap, robots, SPA routes, admin links in templates; *authorized: crawl in-scope hosts only |
+| S06 | JS / client API analysis | **Very high** | SA-13, SA-16 | bundles, `NEXT_PUBLIC_`, hardcoded URLs/keys, GraphQL ops in JS, source maps |
+| S07 | Authentication flaws | **High** | SA-02 | §4 D, E, AD, Q |
+| S08 | Authorization / access control | **High** | SA-01 | §4 A, B, C |
+| S09 | IDOR / BOLA-like | **High** (needs test identities) | SA-01, SA-08 | §4 A, R; request two principals when available |
+| S10 | Injection classes | **High** | SA-03 | §4 F–H, AB + App C |
+| S11 | File upload / file handling | **High** | SA-05 | §4 J |
+| S12 | Session / security state | **High** | SA-02, SA-18 | §4 E; cookie flags, rotation, fixate, concurrent sessions |
+| S13 | Security misconfiguration | **Very high** | SA-09, SA-10 | §4 M, AA, AC, X |
+| S14 | Known CVEs (stack & images) | **Very high** | SA-17 CVE-DEPS | lockfiles, Docker base images, SBOM, GitHub Advisories |
+| S15 | Cloud exposure / misconfig | **Medium → high** | SA-10, SA-16 | §4 AK; public buckets, IAM, open security groups |
+| S16 | Secrets / API keys leaked | **High** | SA-10, SA-16 | §4 L; git history, CI logs, JS bundles, `.env*` |
+| S17 | Dependency vulnerabilities | **Very high** | SA-17 | npm/pip/go/cargo/composer audit; transitive; abandoned pkgs |
+| S18 | Container / Kubernetes misconfig | **High** | SA-10, SA-19 | §4 AK; privileged, hostPath, RBAC, secrets as env |
+| S19 | Multi-vuln attack chains | **Medium → high** | Orchestrator | App G, M; upgrade severity across lanes |
+| S20 | Business logic | **Medium** (hardest) | SA-06 | §4 O–P, AH + App A; state machines |
+| S21 | Complex multi-service systems | **Medium → high** | SA-19 MULTI-SVC | trust between services, S2S tokens, mesh, BFF |
+| S22 | Network / service security | **Very high** | SA-16, SA-19 | TLS, open admin ports, flat network, DB exposed |
+| S23 | Web-app state / flow testing | **High** | SA-18 STATE-FLOW | §4 P; skip steps, replay, parallel tabs, wizard abuse |
+
+\*Live checks = only if user lists **in-scope hosts** and authorizes assessment. Without live scope: complete the row from **repository evidence** and mark `INVESTIGATE (needs live)`.
+
+**Orchestrator rule:** after PHASE 0–1, emit matrix with status `DONE | PARTIAL | N/A | INVESTIGATE` per row. Full audit is incomplete if any **Very high** row is blank without justification.
 
 ---
 
@@ -151,16 +188,31 @@ Security checks at wrong layer:
 [ ] Read existing security docs, ADRs, threat models — note lies vs code
 [ ] Map environments: prod/stage/dev feature flags, debug routes
 [ ] List prior incidents/CVEs in deps (lockfiles, SBOM if any)
+[ ] Extract hostnames/domains/IPs from env, IaC, configs, docs, CI (S01)
+[ ] Inventory exposed ports from compose/K8s/nginx/firewall IaC (S02)
+[ ] Fingerprint stack from lockfiles, Dockerfiles, headers in fixtures (S03)
+[ ] Collect ALL API surfaces: OpenAPI, GraphQL, proto, SPA routes, Postman (S04–S05)
+[ ] Locate JS bundles / source maps / NEXT_PUBLIC_* / hardcoded API bases (S06)
+[ ] Ask user: in-scope live hosts? If yes → authorize SA-16 live pass; if no → code-only for S01–S03/S22
+[ ] Draft §1.1 matrix with initial DONE/PARTIAL/N/A/INVESTIGATE
 ```
+
+### PHASE 0.5 — External & Network Surface (authorized or code-proxy)
+Run **APPENDIX P** (External Surface Playbook). Owner: **SA-16 RECON-SURFACE-AGENT** (+ SA-19 for multi-service).
+- Without live auth: complete P from repo/IaC only; flag `needs live`.
+- With live auth: subdomain/DNS/port/service inventory **in-scope only**; no out-of-scope scanning.
 
 ### PHASE 1 — Asset & Trust Boundary Inventory
 Produce a table (in audit output):
 | Asset | Sensitivity | Entry surfaces | Storage | Who should access |
 |-------|-------------|----------------|---------|-------------------|
 
+Also fill **§1.1 Assessment Surface Matrix** status column (first pass).
+
 ### PHASE 2 — Route / Operation Matrix
 Every **operation** (not just REST path): method, authn, authz (resource-scoped?), input schema, side effects.
 Flag: **authz after side effect**, **missing on worker**, **duplicate handler** with weaker checks.
+Include: SPA client routes, GraphQL operations, WS events, mobile deep links — not only server routers.
 
 ### PHASE 2.5 — ORCHESTRATOR: SPAWN SUB-AGENT SWARM (mandatory for full audit or repo > ~30k LOC)
 
@@ -177,7 +229,7 @@ Flag: **authz after side effect**, **missing on worker**, **duplicate handler** 
 
 **Sub-agent spawn rule:** the prompt you write **is** their only contract. Include: scope paths, stack, auth model, assets, routes in lane, §4 catalog slices, §2 engines, §5 grep blocks, App F questions subset, attack chains, output schema, forbidden behaviors. **Short spawn prompts are a failure.**
 
-See **APPENDIX O** for the 12 lane definitions and copy-paste templates.
+See **APPENDIX O** for the **19 lane** definitions and copy-paste templates. Map lanes to **§1.1 S01–S23**.
 
 ### PHASE 3 — Deep Dives (priority order)
 
@@ -190,9 +242,13 @@ See **APPENDIX O** for the 12 lane definitions and copy-paste templates.
 5. Multi-tenant boundaries → **MULTI-TENANT-AGENT** + **AUTHZ-AGENT**
 6. Background jobs & async consumers → **ASYNC-RACE-AGENT** + **SHADOW-SURFACE-AGENT**
 7. Search, analytics, admin dashboards → **MULTI-TENANT-AGENT** + **INJECTION-AGENT**
-8. CI/CD, IaC, secrets, agent channels → **INFRA-SUPPLY-AGENT**
-9. Client-heavy logic (SPA/mobile) that server trusts → **CLIENT-TRUST-AGENT**
+8. CI/CD, IaC, secrets, agent channels → **INFRA-SUPPLY-AGENT** + **CVE-DEPS-AGENT**
+9. Client-heavy logic (SPA/mobile) that server trusts → **CLIENT-TRUST-AGENT** + **RECON** (JS/API)
 10. Native/FFI/unprivileged tools → **NATIVE-FFI-AGENT**
+11. Domains/DNS/ports/fingerprint/crawl → **RECON-SURFACE-AGENT** (S01–S06, S22)
+12. Known CVEs + dependency supply chain → **CVE-DEPS-AGENT** (S14, S17)
+13. Web-app state machines & multi-step flows → **STATE-FLOW-AGENT** (S12, S23)
+14. Multi-service / mesh / BFF trust → **MULTI-SVC-AGENT** (S21, S22)
 
 ### PHASE 3.5 — Shadow Surface Pass (MANDATORY — unconventional hunt)
 
@@ -214,7 +270,8 @@ See **APPENDIX O** for the 12 lane definitions and copy-paste templates.
 ```
 
 ### PHASE 4 — Catalog Pass
-Walk §4 A–AK; for each section, grep/read patterns listed in §5. Mark sections `N/A` only with evidence (surface absent in this deployable).
+Walk §4 A–AR; for each section, grep/read patterns listed in §5. Mark sections `N/A` only with evidence (surface absent in this deployable).
+Cross-check every **§1.1** row against catalog coverage.
 
 ### PHASE 4.5 — META-HUNT (mandatory — teaches non-standard discovery)
 Run **APPENDIX K** in full on this scope. Do not skip because catalog pass "looked clean".
@@ -232,9 +289,9 @@ Run **APPENDIX K** in full on this scope. Do not skip because catalog pass "look
 
 ---
 
-## 4. ULTIMATE VULNERABILITY CATALOG (A–AK)
+## 4. ULTIMATE VULNERABILITY CATALOG (A–AR)
 
-*If stack lacks SQL, substitute equivalent sink (ORM, document store, command, file, memory). Sections **AA–AK** cover parser, edge, cloud, realtime, and obscure classes often absent from Top-10 lists.*
+*If stack lacks SQL, substitute equivalent sink (ORM, document store, command, file, memory). Sections **AA–AK** cover parser, edge, cloud, realtime, obscure. **AL–AR** cover external recon, CVE/deps, network, JS discovery, state/flow, multi-service — map 1:1 to §1.1 matrix.*
 
 ### A. Access Control — Object Level (BOLA / IDOR)
 - Direct ID swap in path, query, body, GraphQL `id`, gRPC field, message queue payload
@@ -717,6 +774,78 @@ Run **APPENDIX K** in full on this scope. Do not skip because catalog pass "look
 - **Cross-account** S3 trust misconfigured
 - **CloudFront** origin access not restricted — S3 direct bypass
 
+### AL. External Attack Surface — Domains, DNS, Subdomains (S01)
+- **Subdomain takeover:** dangling CNAME to expired Heroku/GitHub/Azure/S3
+- **Zone transfer** AXFR allowed; DNSSEC absent where expected
+- **Shadow IT domains** in configs not in inventory
+- **Wildcard cert** covers forgotten admin subdomain
+- **Internal hostnames** leaked in emails, JWT `iss`, CORS origins, CSP
+- **IP history** / old A records pointing to abandoned servers
+- **SPF/DMARC/DKIM** missing → email spoof for password reset phishing
+- **DNS rebinding** targets internal admin panels reachable via browser
+- Hunt in: Terraform/Route53/Cloudflare/nginx `server_name`, `.env` hosts, cert-manager, docs
+
+### AM. Ports, Services & Network Exposure (S02, S22)
+- **DB/Redis/Elasticsearch/Kafka** bound `0.0.0.0` or public SG
+- **Admin panels** on non-standard ports without auth (phpMyAdmin, RabbitMQ, Grafana, Jenkins)
+- **Debug ports** (Node inspector, JDWP, Django debug) in prod compose
+- **gRPC / metrics / admin** ports exposed beside public HTTP
+- **Missing TLS** or TLS1.0/weak ciphers on service ports
+- **Flat network:** pod can reach all namespaces / other tenants' DB
+- **VPN-only** services accidentally on LoadBalancer type
+- Hunt in: `ports:`, `hostPort`, Ingress, SecurityGroup, `ufw`, nginx listen, helm values
+
+### AN. Fingerprinting, Endpoint Discovery & Crawl (S03–S05)
+- **Stack disclosure:** `X-Powered-By`, `Server`, verbose 404, framework default pages
+- **OpenAPI/Swagger/GraphiQL/Actuator** public in prod
+- **robots.txt / sitemap** leaks admin or staging paths
+- **Hidden methods** OPTIONS/TRACE; undocumented `/v1` while docs show `/v2`
+- **Mobile/BFF paths** absent from web OpenAPI
+- **SPA client routes** for admin that call real APIs without server authz
+- **Source maps** (`.js.map`) published → original source + secrets
+- Hunt: route tables vs OpenAPI drift; crawl templates for `href`/`fetch`/`axios`
+
+### AO. JavaScript & Client-Side API Analysis (S06)
+- **Hardcoded** API keys, Firebase, Stripe publishable used as secret, AWS keys in bundle
+- **Internal API base URLs** (`staging-api.`, `admin.`, `127.0.0.1`) in production JS
+- **Hidden GraphQL mutations** / REST paths only referenced in minified JS
+- **Feature flags** in client revealing unfinished admin UI
+- **JWT / refresh** in `localStorage` → XSS = ATO
+- **postMessage / deep link** handlers without origin check
+- **Source map** reverse → business rules and IDOR candidates
+- Hunt: `*.js`, `*.map`, `NEXT_PUBLIC_`, `VITE_`, `REACT_APP_`, `expo.extra`
+
+### AP. Known CVEs & Dependency Supply Chain (S14, S17)
+- **Direct + transitive** vulns in lockfiles (npm/yarn/pnpm, pip/poetry, go.sum, cargo, composer, gem)
+- **Abandoned / typosquat** packages; unexpected maintainers
+- **Docker base image** CVEs; `:latest` unpinned; distroless vs fat images
+- **GitHub Actions** third-party actions pinned to mutable tag
+- **Proto/gRPC** libs with known RCE/DoS
+- **WordPress/plugin** class if present
+- **SBOM missing** — cannot prove inventory
+- Hunt: run advisory check on lockfiles; correlate CVEs to **reachable** code paths (not CVE spam without exploitability)
+
+### AQ. Web-App State, Session & Flow Testing (S12, S23)
+- **Wizard skip:** complete step 3 without step 1–2 server-side
+- **Parallel tabs:** double-submit checkout, race on MFA enroll
+- **Back button / cache:** sensitive page after logout
+- **Session fixation** after login; session not rotated on privilege change
+- **Concurrent sessions** unlimited; no revoke on password change
+- **State token** (CSRF/OAuth state) reusable or predictable
+- **Soft lock** UI-only — API still accepts forbidden transition
+- **Replay** of signed request / Idempotency-Key reuse across users
+- Hunt: map every multi-step flow; falsify each transition (§2.2, §2.12, §2.13)
+
+### AR. Multi-Service & Trust Topology (S21)
+- **Service A → B** with shared god token; B trusts all callers as A
+- **BFF** aggregates admin + user APIs with same cookie
+- **mTLS terminated** at gateway; app trusts spoofable header
+- **Event bus** messages without producer authz / tenant
+- **Shared DB** across services without schema isolation
+- **Confused deputy** between internal APIs (user triggers privileged S2S call)
+- **Staging ↔ prod** network path or shared credentials
+- Hunt: service map, S2S auth, mesh policies, API gateway routes, async consumers
+
 ---
 
 ## 5. HUNT PATTERNS — STACK-AGNOSTIC SEARCH HEURISTICS
@@ -851,6 +980,24 @@ axum::|warp::|actix|#\[allow\(dead_code\)\].*route
 
 **Also search:** `deprecated`, `legacy`, `v1`, `internal`, `test_only`, `FIXME security`, `nosec`, `eslint-disable`, `@ts-ignore` on auth code.
 
+### 5.11 External surface, JS, CVE, multi-service (S01–S06, S14–S17, S21–S22)
+```text
+# Domains / DNS / hosts
+server_name|route53|cloudflare|CNAME|A record|*.\$|BASE_URL|API_URL|HOST|DOMAIN
+# Ports / bind
+ports:|hostPort|0\.0\.0\.0|Listen|bind\(|LoadBalancer|NodePort|security_group|ingress
+# Fingerprint / discovery
+X-Powered-By|Server:|swagger|openapi|graphiql|actuator|robots\.txt|sitemap
+# JS / client secrets & APIs
+NEXT_PUBLIC_|VITE_|REACT_APP_|EXPO_PUBLIC_|firebaseConfig|AIza|sk_live|sourceMappingURL
+axios\.(create|get|post)|fetch\(['\`]/graphql|mutation |/api/
+# CVE / deps
+package-lock\.json|yarn\.lock|pnpm-lock|requirements.*\.txt|poetry.lock|go\.sum|Cargo.lock|composer.lock|Gemfile.lock
+FROM .*:(latest|alpine)|image:.*:latest
+# Multi-service trust
+service.?account|internal.?token|S2S|mTLS|X-Internal|X-User-Id|gateway|BFF
+```
+
 ---
 
 ## 6. BUSINESS & ARCHITECTURE DEEP PASS
@@ -923,6 +1070,8 @@ If money, health, children, legal, gambling, crypto — tighten scrutiny; docume
 - Ignore workers, cron, CLI, migrations, admin scripts, one-off notebooks in repo.
 - Audit only `src/` and skip `tools/`, `scripts/`, `infra/`, `.github/`.
 - **Paste the full audit into chat** instead of writing `SECURITY_AUDIT_REPORT.md` (§9.1–9.2).
+- Skip §1.1 **Very high** rows (DNS/ports/fingerprint/crawl/JS/CVE/deps/misconfig/network) because "this is only a code review".
+- Dump CVE lists without mapping to **reachable** exploitability in this app.
 
 ---
 
@@ -950,7 +1099,10 @@ After writing the report file, post **only** this block in chat. Target **≤40 
 3. …
 
 ### Sub-agents (if spawned)
-SA-01 ✓ (3 findings) · SA-02 ✓ (1) · SA-14 N/A · …
+SA-01 ✓ (3 findings) · SA-16 ✓ · SA-17 ✓ · SA-14 N/A · …
+
+### Surface matrix (§1.1)
+Very-high rows: S01…S06/S13/S14/S17/S22 → DONE/PARTIAL/INVESTIGATE (summary counts)
 
 ### Coverage gaps
 - …
@@ -984,7 +1136,7 @@ Create `security-audit/lanes/` only when lane files help merge; otherwise one me
 2. Scope & methodology (phases 0–6 + 2.5 sub-agents + 3.5 + 4.5 run?, files/modules covered, gaps)
 3. Asset & trust boundary table
 4. META-HUNT summary (Appendix K): entrypoints, shadow paths, sibling diffs, tests-as-spec
-5. Catalog coverage (A–AK): which sections applied, which N/A with proof
+5. Catalog coverage (A–AR) + **§1.1 Surface Matrix** (S01–S23 status)
 6. Sub-agent swarm table (Appendix O.5): which agents spawned, findings per lane, gaps
 7. Critical/High findings (full §7 cards)
 8. Medium/Low findings (full or table + detail on request)
@@ -1002,7 +1154,7 @@ Use §7 format for every finding inside the file. Link finding IDs (`F-001`) con
 
 ## 10. ONE-LINE INVOCATION (USER PASTES)
 
-> Run **MAWYXX SECURITY** full audit on this repository. Execute PHASE 0–6 including **2.5 sub-agent swarm** (APPENDIX O), **3.5 Shadow Surface**, and **4.5 META-HUNT**. Spawn specialized sub-agents with **full lane spawn prompts**; merge per O.5. Write **full report to `SECURITY_AUDIT_REPORT.md`** (§9.2); post **only §9.1 brief summary in chat**. Do not claim secure. Cite file:line in the report file.
+> Run **MAWYXX SECURITY** full audit on this repository. Execute PHASE 0–6 including **0.5 External Surface**, **2.5 sub-agent swarm** (APPENDIX O), **3.5 Shadow**, **4.5 META-HUNT**. Cover **§1.1 Surface Matrix S01–S23** (domains/DNS, ports, fingerprint, crawl, JS/API, authn/authz/IDOR, injection, files, session, misconfig, CVE/deps, cloud, secrets, containers, chains, business logic, multi-service, network, state/flow). Spawn SA-16…SA-19 when applicable with full lane prompts. Write **`SECURITY_AUDIT_REPORT.md`** (§9.2); chat **§9.1 only**. Do not claim secure.
 
 ---
 
@@ -1702,8 +1854,12 @@ find places where user input is stored in database and later rendered in admin e
 | **SA-13** | CLIENT-TRUST-AGENT | SPA guards, mobile API, client-sent price/role | V, AG, N | 2.4, 2.10, 2.14 | 5.6, 5.9 |
 | **SA-14** | AI-REALTIME-AGENT | LLM, agents, MCP, WebSocket, gRPC stream | Y, Y2, AI | 2.3, 2.11, 2.13 | 5.9, App N |
 | **SA-15** | NATIVE-FFI-AGENT | unsafe, FFI, CLI tools, setuid | Z | 2.3, 2.13 | 5.10, 5.9 |
+| **SA-16** | RECON-SURFACE-AGENT | Domains/DNS/IP, ports, fingerprint, crawl, JS API discovery (S01–S06, S22) | AL–AO, App P | 2.7–2.9, 2.14 | 5.1, 5.11, App P |
+| **SA-17** | CVE-DEPS-AGENT | Known CVEs, lockfile/transitive deps, base images (S14, S17) | AP, L | 2.11, 2.14 | 5.4, 5.11 |
+| **SA-18** | STATE-FLOW-AGENT | Session state, multi-step flows, wizard skip, replay (S12, S23) | AQ, E, P | 2.2, 2.12–2.13 | 5.7, 5.9 |
+| **SA-19** | MULTI-SVC-AGENT | Multi-service trust, BFF, mesh, S2S, network topology (S21–S22) | AR, AK, W | 2.11, 2.14 | 5.11, App B.2 |
 
-**Skip rule:** mark agent `N/A` only with evidence (e.g. no AI → SA-14 N/A). Orchestrator logs skipped agents in §9.
+**Skip rule:** mark agent `N/A` only with evidence (e.g. no AI → SA-14 N/A; no live hosts + no DNS/IaC → SA-16 PARTIAL from code only). Orchestrator logs skipped agents in §9. **Always spawn SA-16 + SA-17** on full audits (code-proxy if no live scope). Spawn SA-18 when multi-step user flows exist. Spawn SA-19 when >1 deployable/service.
 
 ### O.2 Universal spawn prompt skeleton (orchestrator fills this)
 
@@ -2085,14 +2241,99 @@ You are **{{AGENT_NAME}}**, a specialized security sub-agent. You hunt **only** 
 
 ---
 
+#### SA-16 — RECON-SURFACE-AGENT spawn pack
+
+**When to spawn:** **always** on full audit (S01–S06, S22 are Very high).
+
+**Catalog:** §4 AL, AM, AN, AO + **APPENDIX P** full.
+
+**Grep:** §5.11.
+
+**Questions:** App F style — where are all hosts? which ports? what does JS call?
+
+**Lane script:**
+```text
+[ ] Extract every hostname/domain/IP from env, IaC, nginx, certs, docs, CI
+[ ] Subdomain / CNAME takeover candidates (dangling SaaS)
+[ ] Ports from compose/K8s/SG — DB/admin/debug public?
+[ ] Fingerprint stack; find swagger/actuator/graphiql in prod configs
+[ ] Endpoint inventory: OpenAPI vs routes vs JS fetch/axios vs mobile
+[ ] Crawl templates/SPA for hidden admin paths
+[ ] JS bundles: keys, internal URLs, source maps, hidden mutations
+[ ] If user authorized live hosts: in-scope discovery only; else mark INVESTIGATE(needs live)
+[ ] Fill §1.1 rows S01–S06, S22 status
+```
+
+**Forbidden:** scanning hosts not listed in user scope; exploit payloads; DoS.
+
+---
+
+#### SA-17 — CVE-DEPS-AGENT spawn pack
+
+**When:** **always** (S14, S17 Very high).
+
+**Catalog:** §4 AP, L (supply chain).
+
+**Grep:** lockfiles, Dockerfiles, Actions `uses:`.
+
+**Lane script:**
+```text
+[ ] Inventory all package managers / lockfiles / Docker bases
+[ ] Map critical/high advisories to **reachable** usage (not raw CVE dump)
+[ ] Pinning: latest tags, unpinned Actions, git deps
+[ ] Typosquat / abandoned packages
+[ ] Transitive critical paths (e.g. prototype pollution libs actually imported)
+[ ] Fill §1.1 S14, S17
+```
+
+---
+
+#### SA-18 — STATE-FLOW-AGENT spawn pack
+
+**When:** multi-step flows (checkout, onboard, KYC, MFA, wizards, OAuth). Else PARTIAL on session-only.
+
+**Catalog:** §4 AQ, E, P.
+
+**Grep:** §5.7; `step|wizard|checkout|onboard|verify|mfa|state|csrf`.
+
+**Lane script:**
+```text
+[ ] Map every multi-step FSM; illegal transitions; skip steps via API
+[ ] Session rotate on login/privilege/password change
+[ ] Parallel tab / double-submit / replay
+[ ] Logout cache / back-button
+[ ] Soft UI locks vs hard server checks
+[ ] Fill §1.1 S12, S23
+```
+
+---
+
+#### SA-19 — MULTI-SVC-AGENT spawn pack
+
+**When:** >1 service, BFF, mesh, shared bus/DB. Else N/A for true monolith (still check internal admin ports).
+
+**Catalog:** §4 AR, AK, W + App B.2.
+
+**Lane script:**
+```text
+[ ] Service map + trust: who can call whom with what identity
+[ ] S2S god tokens; spoofable internal headers
+[ ] Shared DB / event bus without tenant or producer authz
+[ ] Staging-prod credential or network bleed
+[ ] Fill §1.1 S21, S22
+```
+
+---
+
 ### O.4 Parallel launch strategy
 
 | Repo size | Strategy |
 |-----------|----------|
-| Small (<15k LOC) | Orchestrator may solo PHASE 3–5 OR spawn 3–4 agents: SA-01, SA-02, SA-11, + domain-specific |
-| Medium | Spawn SA-01,02,03,06,07,11 always; add 04,05,08,10,12 by surface |
-| Large / monorepo | PHASE 0–2 global; per deployable spawn full swarm; repeat per module |
+| Small (<15k LOC) | Orchestrator may solo PHASE 3–5 OR spawn core: SA-01, SA-02, SA-11, **SA-16, SA-17**, + domain-specific |
+| Medium | Spawn SA-01,02,03,06,07,11,**16,17** always; add 04,05,08,10,12,18,19 by surface |
+| Large / monorepo | PHASE 0–2 global; per deployable spawn full swarm **including SA-16…19**; repeat per module |
 | Single lane request | User asks "check authz only" → spawn **only SA-01** with narrow paths |
+| Live target authorized | Always include SA-16 with in-scope hosts in spawn prompt |
 
 **Parallelism:** launch independent agents in **one message** (multiple Task tool calls). Max ~4–6 concurrent if tool-limited; queue remainder.
 
@@ -2156,4 +2397,73 @@ Write lane report to `security-audit/lanes/SA-01-authz.md`. Finding IDs SA-01-00
 
 ---
 
-*MAWYXX SECURITY · standalone universal audit mega-prompt · hunt wide, prove fixes with tests.*
+## APPENDIX P — EXTERNAL SURFACE PLAYBOOK (S01–S06, S22)
+
+*Authorized assessment only. Without user-listed in-scope hosts: complete every step from **repository / IaC / configs / JS** and mark live verification `INVESTIGATE`.*
+
+### P.0 Authorization gate
+```text
+[ ] User provided in-scope domains/IPs? YES → live discovery allowed for those only
+[ ] NO → code-proxy mode (still mandatory; do not skip S01–S06)
+[ ] Never scan third-party / out-of-scope / random internet assets
+```
+
+### P.1 Domains, subdomains, DNS (S01)
+```text
+[ ] Collect domains from: env, terraform, helm, nginx, cert-manager, README, CI, emails in templates
+[ ] List subdomains referenced in code (api., admin., staging., cdn., ws.)
+[ ] Check for dangling CNAME / takeover class (abandoned SaaS targets)
+[ ] SPF/DMARC/DKIM records referenced or missing in email-sending config
+[ ] Internal hostnames leaked to public clients (CORS, CSP, JWT iss)
+```
+
+### P.2 Ports & services (S02, S22)
+```text
+[ ] docker-compose / k8s Service: which ports published?
+[ ] DB/Redis/MQ/ES/admin bound publicly?
+[ ] Metrics/debug/pprof/actuator exposed?
+[ ] TLS termination gaps between edge and origin
+```
+
+### P.3 Fingerprint (S03)
+```text
+[ ] Framework/version from lockfiles, Docker tags, HTML generator meta, error pages in fixtures
+[ ] Default pages / stack traces enabled in non-dev configs
+```
+
+### P.4 Endpoint discovery (S04)
+```text
+[ ] Merge: server routes + OpenAPI + GraphQL schema + proto + Postman + mobile paths + JS-discovered paths
+[ ] Diff docs vs mounted — weaker/extra wins for attacker
+```
+
+### P.5 Crawl (S05)
+```text
+[ ] robots.txt, sitemap, HTML forms/links, SPA router tables, admin hrefs in templates
+[ ] Feature-flagged routes default-on in prod config
+```
+
+### P.6 JS / API analysis (S06)
+```text
+[ ] Bundles + source maps: secrets, internal hosts, hidden endpoints, GraphQL documents
+[ ] NEXT_PUBLIC_/VITE_/REACT_APP_ that are actually secrets
+[ ] Client-only authz (route guards) without server twin
+```
+
+### P.7 Output into report
+```text
+## External surface (§1.1 S01–S06, S22)
+| Row | Status | Evidence | Findings |
+|-----|--------|----------|----------|
+| S01 | DONE/PARTIAL/INVESTIGATE | … | F-… |
+…
+Hosts in scope: …
+Hosts code-only (no live): …
+```
+
+### P.8 Chains from recon
+Typical upgrades: subdomain takeover → phishing ATO; open swagger → BFLA; JS key → cloud pivot; open Redis → session forge; actuator → RCE class CVE. Document in App G/M style.
+
+---
+
+*MAWYXX SECURITY · standalone universal audit mega-prompt · hunt wide, prove fixes with tests · cover §1.1 S01–S23.*
