@@ -1,13 +1,11 @@
-description: MAWYXX PRIME boot — always load the standard and work by it
+description: MAWYXX PRIME boot — always load the standard, simulate every point, work by it
 alwaysApply: true
 
 # MAWYXX PRIME — MANDATORY BOOT
 
 You operate in **PRIME mode** for every task. The MAWYXX PRIME standard is the
 single source of truth. If your habits or guesses conflict with the standard —
-**the standard wins**.
-
-Never write code before steps 1–3 are done.
+**the standard wins**. Never write code before steps 1–3 are done.
 
 ---
 
@@ -21,14 +19,12 @@ If it is NOT present — copy it into the repository root:
 ```
 https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
 ```
-
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md" -o "Mawyxx Prime V6.5.md"
 ```
 ```powershell
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md" -OutFile "Mawyxx Prime V6.5.md"
 ```
-
 Confirm the file exists. Keep it in the repo from now on.
 
 ## STEP 2 — Read it (don't guess)
@@ -47,21 +43,39 @@ your task; re-read when the task changes.
 | Architecture decision | §4.13 · §4.14 · §4.7 |
 | Sub-agents | §1.11 (all packs) |
 
-## STEP 3 — Simulate it in your head, then write the result (MANDATORY)
+## STEP 3 — SIMULATE every point on the REAL task (mandatory)
 
-Before coding, run this pass and put a short, visible summary in your answer:
+This is **not a checklist**. For every point below, mentally run it **on this
+exact task** and write a short, concrete trace. One-word answers ("yes", "ok",
+"n/a") are rejected. If you cannot simulate a point concretely → mark
+`INVESTIGATE(reason)` and resolve it (repo / tests / data) — do not guess.
 
-1. **Tier** (§0.4) + `adoption_mode`.
-2. **Default-secure 5Q** (§0.5) — answer all five.
-3. **Applicable laws** — list `A-ids` from the §2.0 groups.
-4. **Maps** (§1.3): `test_taxonomy_map` · `contract_surface_map` ·
-   `trust_pipeline_map` · `secure_continuum_map` · AC oracles · `blast_radius`.
-5. **Gates** you will be checked by (§3.0 groups).
-6. **Conflict Matrix** (§1.5) + uncertainty table if anything is unclear.
-7. **Reasoning 8 steps** (§1.10) — PRIME+.
-8. **Adversarial 8 questions** (§4.14 / §4.10).
+**3.1 Tier** — why THIS tier for THIS task (which triggers fire, why not lower/higher); what follows (coverage, mutation, test families).
 
-If you cannot answer a step — that is an `INVESTIGATE`, not a guess.
+**3.2 Default-secure 5Q** — for each of the five, describe a **concrete hostile input** to the actual operation and what stops it (name the real field / route / resource).
+
+**3.3 Laws** — for each applicable `A-xx`: say what it changes **here** — where the port goes, where the transaction boundary is, the exact `Err` variant, the index, the authz owner. Not applicable → give the absent When-trigger.
+
+**3.4 Maps** — actually draft them: real port names; taxonomy families with **real test names**; trust pipeline steps for **real ops**; AC with **observable oracles**; concrete `blast_radius` files.
+
+**3.5 Gates** — for each gate you will be checked by: what it will parse in **your** files and **what it would flag**. Do not just list gate names.
+
+**3.6 Conflict Matrix / uncertainty** — name the exact tension for THIS task (when-trigger vs YAGNI vs blast vs A40/A41) and the side you choose.
+
+**3.7 Reasoning 8 steps (§1.10)** — fill with real content: **FIT** (why the rule's premises hold here), **ALT** (a real alternative you rejected and why).
+
+**3.8 Adversarial 8 questions (§4.14)** — for EACH question, simulate the concrete scenario and name the **test or gate** that closes it (never "covered"):
+`×1000 input` → which test · `double call` → which idempotency test · `parallel` → which concurrency test · `dep down` → which fallback test · `empty/null` → which test · `hostile user` → cross-user/IDOR test · `prod` → which guard · `if I'm wrong` → which gate proves it.
+
+**3.9 End-to-end trace** — walk ONE real request/flow through the layers: source → schema → authn → authz(resource) → command → UC → sink → response. Then walk the **failure / retry / concurrency** variant of the same flow.
+
+**3.10 Data & volume** — simulate 0, 1, 100, 1 000 000 rows/items; N+1; index hit/miss; cold cache; oversized payload.
+
+**3.11 Failure** — simulate DB down, Redis down, third-party slow/timeout, queue backlog, crash between steps.
+
+**3.12 Time & concurrency** — simulate two parallel calls, retry with the same key, out-of-order/duplicate webhook, clock/TZ edge.
+
+Output the result as a compact **Simulation trace** (bullets) **before writing code**. Re-simulate whenever the task changes.
 
 ## STEP 4 — Work the phases
 
@@ -86,8 +100,8 @@ Sub-agents per §1.11 when applicable (Writer ≠ Verifier).
 
 ## STEP 6 — Never
 
-- Code before the standard is loaded and simulated.
-- Skip the mental simulation.
+- Code before the standard is loaded **and** every point simulated.
+- Tick the simulation without concretely running it.
 - Claim done while `prime_check` is red or without evidence.
 - Invent rules — if the standard is unclear, use the Conflict Matrix, then the stricter reading.
 
