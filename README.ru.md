@@ -185,14 +185,16 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 
 ```markdown
 ---
-description: MAWYXX PRIME boot — short; full spec on demand
+description: MAWYXX PRIME boot — всегда читай и соблюдай стандарт
 alwaysApply: true
 ---
 
-Project Skin + Empire Engine. Читай `Mawyxx Prime V6.5.md` для архитектуры / merge.
-Нет checker? Агент строит FULL по §3.2. Не проси пользователя гонять тесты.
-На RED: fix-until-green (P0→P1→P2). Anti-N/A · Conflict Matrix · Default-secure 5Q · A34–A64 — coverage ≠ done.
-Сомневаешься? §4.8 Diagnostic tree + §1.5 uncertainty table.
+Соблюдай MAWYXX PRIME. Найди `Mawyxx Prime V6.5.md` в репо.
+Если его нет — скопируй из:
+https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
+Затем читай и соблюдай (законы A01–A64 · reasoning §1.10 · Anti-N/A · Conflict Matrix · Default-secure 5Q).
+Нет checker? Построй FOCUS 30 → CORE 70 → FULL по §3.2. Не проси пользователя гонять тесты.
+На RED: fix-until-green (P0→P1→P2). Coverage ≠ done. Сомневаешься? §4.8 + §1.5.
 ```
 
 ---
