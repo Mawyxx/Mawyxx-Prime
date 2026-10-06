@@ -179,8 +179,8 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 
 ## ⚡ Quick Start
 
-1. Положи **`Mawyxx Prime V6.5.md`** в репо (или подключи как project rule Cursor/Windsurf/Copilot).
-2. Сошлись на него в конфиге агента / project rules, чтобы он читался по требованию.
+1. Положи **`Mawyxx Prime V6.5.md`** в репо.
+2. Скопируй **`.cursorrules`** или **`.cursor/rules/prime.mdc`** в проект (оба есть в этом репо).
 3. Дай агенту построить quality gate (`FOCUS` → `CORE` → `FULL`) и работать fix-until-green.
 
 ```markdown

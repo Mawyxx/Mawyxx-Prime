@@ -1,0 +1,7 @@
+description: MAWYXX PRIME boot — AI coding standard; full spec on demand
+alwaysApply: true
+
+Project Skin + Empire Engine. Read `Mawyxx Prime V6.5.md` for architecture / merge.
+No checker? Agent builds FULL per section 3.2. Never ask user to run tests.
+On RED: fix-until-green (P0 -> P1 -> P2). Anti-N/A / Conflict Matrix / Default-secure 5Q / A34-A64 — coverage alone is not done.
+Unsure? section 4.8 Diagnostic tree + section 1.5 uncertainty table.

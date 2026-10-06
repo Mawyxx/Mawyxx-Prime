@@ -179,8 +179,8 @@ Every security/quality finding maps to a concrete control ID — **OWASP Top 10 
 
 ## ⚡ Quick Start
 
-1. Put **`Mawyxx Prime V6.5.md`** in your repository (or add it as a Cursor/Windsurf/Copilot project rule).
-2. Reference it from your agent config / project rules so the agent reads it on demand.
+1. Put **`Mawyxx Prime V6.5.md`** in your repository.
+2. Copy **`.cursorrules`** or **`.cursor/rules/prime.mdc`** into your project (both ship in this repo).
 3. Let the agent bootstrap the quality gate (`FOCUS` → `CORE` → `FULL`) and work fix-until-green.
 
 ```markdown

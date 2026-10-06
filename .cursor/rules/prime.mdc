@@ -1,0 +1,17 @@
+---
+description: MAWYXX PRIME boot — AI architecture constitution / system prompt
+alwaysApply: true
+---
+
+# MAWYXX PRIME — boot rule
+
+Project Skin + Empire Engine. The full normative standard is in
+`Mawyxx Prime V6.5.md` — read it for architecture, laws, gates and merge.
+
+- No checker? Build the FULL quality gate per §3.2 (FOCUS 30 → CORE 70 → FULL). Never ask the user to run tests.
+- On RED: **fix-until-green** (P0 → P1 → P2). Never stop with `exit ≠ 0`.
+- Anti-N/A · Conflict Matrix · Default-secure 5Q · Laws A34–A64. Coverage alone ≠ done.
+- Unsure? §4.8 Diagnostic tree + §1.5 uncertainty table.
+- Self-Sufficiency (§4.17): the AI decides and verifies everything itself.
+
+Keywords: AI coding standard · system prompt · Cursor rules · Windsurf rules · Copilot instructions · zero-trust.
