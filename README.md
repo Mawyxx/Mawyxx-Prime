@@ -183,21 +183,6 @@ Every security/quality finding maps to a concrete control ID — **OWASP Top 10 
 2. Copy **`.cursorrules`** or **`.cursor/rules/prime.mdc`** into your project (both ship in this repo).
 3. Let the agent bootstrap the quality gate (`FOCUS` → `CORE` → `FULL`) and work fix-until-green.
 
-```markdown
----
-description: MAWYXX PRIME boot — always load and follow the standard
-alwaysApply: true
----
-
-Follow MAWYXX PRIME. Find `Mawyxx Prime V6.5.md` in this repo.
-If missing — copy it in from:
-https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
-Then read it and obey it (laws A01–A64 · reasoning §1.10 · Anti-N/A · Conflict Matrix · Default-secure 5Q).
-Simulate EVERY point concretely before coding (tier · 5Q · laws · maps · gates · reasoning §1.10 · adversarial §4.14 · end-to-end trace · data/failure/concurrency) — not a checklist.
-No checker? Bootstrap FOCUS 30 → CORE 70 → FULL per §3.2. Never ask the user to run tests.
-On RED: fix-until-green (P0→P1→P2). Coverage alone ≠ done. Unsure? §4.8 + §1.5.
-```
-
 ---
 
 ## 📁 Files

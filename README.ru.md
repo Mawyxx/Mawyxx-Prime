@@ -183,21 +183,6 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 2. Скопируй **`.cursorrules`** или **`.cursor/rules/prime.mdc`** в проект (оба есть в этом репо).
 3. Дай агенту построить quality gate (`FOCUS` → `CORE` → `FULL`) и работать fix-until-green.
 
-```markdown
----
-description: MAWYXX PRIME boot — всегда читай и соблюдай стандарт
-alwaysApply: true
----
-
-Соблюдай MAWYXX PRIME. Найди `Mawyxx Prime V6.5.md` в репо.
-Если его нет — скопируй из:
-https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
-Затем читай и соблюдай (законы A01–A64 · reasoning §1.10 · Anti-N/A · Conflict Matrix · Default-secure 5Q).
-Симулируй КАЖДЫЙ пункт конкретно до кода (tier · 5Q · законы · maps · gates · reasoning §1.10 · adversarial §4.14 · end-to-end trace · данные/сбои/конкурентность) — не чеклист.
-Нет checker? Построй FOCUS 30 → CORE 70 → FULL по §3.2. Не проси пользователя гонять тесты.
-На RED: fix-until-green (P0→P1→P2). Coverage ≠ done. Сомневаешься? §4.8 + §1.5.
-```
-
 ---
 
 ## 📁 Файлы
