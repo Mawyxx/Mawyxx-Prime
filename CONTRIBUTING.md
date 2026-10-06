@@ -24,7 +24,3 @@ contributions are mostly about correctness, clarity and coverage.
 ```
 docs: short imperative summary
 ```
-
----
-
-*Build for Billions. Code for Vibe. Rule with Logic.*

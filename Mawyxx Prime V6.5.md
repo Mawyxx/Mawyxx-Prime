@@ -3162,4 +3162,4 @@ A44 ловит **только ошибки внешнего слоя**; конк
 
 ---
 
-*End of MAWYXX PRIME v6.5 — Build for Billions. Code for Vibe. Rule with Logic.*
+*End of MAWYXX PRIME v6.5*

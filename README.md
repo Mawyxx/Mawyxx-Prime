@@ -2,8 +2,6 @@
 
 ### For Cursor · Windsurf · Copilot · AI Agents · Zero-Trust
 
-*Build for Billions. Code for Vibe. Rule with Logic.*
-
 [![Stars](https://img.shields.io/github/stars/Mawyxx/Mawyxx-Prime?style=social)](https://github.com/Mawyxx/Mawyxx-Prime/stargazers)
 [![Forks](https://img.shields.io/github/forks/Mawyxx/Mawyxx-Prime?style=social)](https://github.com/Mawyxx/Mawyxx-Prime/network/members)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/Mawyxx/Mawyxx-Prime/pulls)

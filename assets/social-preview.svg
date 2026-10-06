@@ -15,6 +15,4 @@
   <text x="80" y="360" font-family="Segoe UI, Arial, sans-serif" font-size="30" fill="#c7d2fe">Cursor · Windsurf · Copilot · AI Agents · Zero-Trust</text>
   <text x="80" y="470" font-family="Segoe UI, Arial, sans-serif" font-size="28" fill="#94a3b8">FOCUS 30 → CORE 70 → 138 gates · A01–A64 · Law→Gate</text>
   <text x="80" y="520" font-family="Segoe UI, Arial, sans-serif" font-size="28" fill="#94a3b8">OWASP · CWE · ASVS · ISO 25010/5055 · CERT · MISRA</text>
-  <rect x="80" y="560" width="420" height="6" rx="3" fill="url(#accent)"/>
-  <text x="80" y="600" font-family="Segoe UI, Arial, sans-serif" font-size="24" fill="#64748b">Build for Billions. Code for Vibe. Rule with Logic.</text>
 </svg>
