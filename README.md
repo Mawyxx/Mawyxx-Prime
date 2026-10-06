@@ -10,26 +10,28 @@
 
 ![MAWYXX PRIME — AI Agent Architecture Pipeline](assets/social-preview.svg)
 
+⭐ **If you stand for pristine code and ultimate logic — leave a Star to support the Empire.**
+
 **Keywords:** AI coding standard · system prompt · Cursor rules · Windsurf rules · Copilot instructions · AI agents · prompt engineering · zero-trust · software architecture · clean code · MCP · production-ready.
 
 ---
 
 ## Contents
 
-- [What is MAWYXX PRIME](#what-is-mawyxx-prime)
-- [Why AI Agents Fail](#why-ai-agents-fail)
-- [Layers: RUNTIME + LAW](#layers-runtime--law)
-- [Law Layer — A01–A64](#law-layer--a01a64)
-- [Honesty Pillars](#honesty-pillars)
-- [Rule Map](#rule-map)
-- [Checker = Agent Job](#checker--agent-job)
-- [Standards Traceability](#standards-traceability)
-- [Quick Start](#quick-start)
-- [Files](#files)
+- [What is MAWYXX PRIME](#-what-is-mawyxx-prime)
+- [Why AI Agents Fail](#-why-ai-agents-fail)
+- [Architecture Layers RUNTIME and LAW](#-architecture-layers-runtime-and-law)
+- [LAW LAYER Strict AI Coding Restrictions A01 to A64](#-law-layer-strict-ai-coding-restrictions-a01-to-a64)
+- [Honesty Pillars](#-honesty-pillars)
+- [Prompt Engineering Rule Map](#-prompt-engineering-rule-map)
+- [Automated Quality Gate Checker](#-automated-quality-gate-checker)
+- [Standards Traceability](#-standards-traceability)
+- [Quick Start](#-quick-start)
+- [Files](#-files)
 
 ---
 
-## What is MAWYXX PRIME
+## 🚀 What is MAWYXX PRIME
 
 **v3.0** = patterns (MIT). **v6.5** = Unified Constitution: **one file**, two layers (RUNTIME + LAW), one SSOT per topic, no duplicates, **tier-aware depth over width**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
@@ -45,7 +47,7 @@
 
 ---
 
-## Why AI Agents Fail
+## 🧠 Why AI Agents Fail
 
 AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 
@@ -60,7 +62,7 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 
 ---
 
-## Layers: RUNTIME + LAW
+## 🏗️ Architecture Layers RUNTIME and LAW
 
 | Layer | Purpose |
 |-------|---------|
@@ -69,7 +71,7 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 
 ---
 
-## Law Layer — A01–A64
+## ⚖️ LAW LAYER Strict AI Coding Restrictions A01 to A64
 
 | Group | Laws |
 |-------|------|
@@ -88,7 +90,7 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 
 ---
 
-## Honesty Pillars
+## 🛡️ Honesty Pillars
 
 | Pillar | Rule · gates | Kills |
 |--------|--------------|-------|
@@ -110,7 +112,7 @@ Also: **A05a** cohesion · **A12a** taxonomy (24 families) · Anti-N/A · **A25*
 
 ---
 
-## Rule Map
+## 🧭 Prompt Engineering Rule Map
 
 ```text
 §0 IDENTITY & ROUTER   0.3 Task router · 0.4 Tier · 0.5 Default-secure 5Q · 0.6 Principles · 0.7 Depth
@@ -148,7 +150,7 @@ International maps (ISO 25010 · CISQ · OWASP ASVS · CERT/MISRA): **Quality Co
 
 ---
 
-## Checker = Agent Job
+## 🤖 Automated Quality Gate Checker
 
 **Roles run as sub-agents (§1.11):** the Orchestrator delegates **Analyst · Builder · Guardian · Verifier** via Task tool, each with a self-contained spawn prompt (role, tier, sections to read, handoff IN, gates, output contract). Writer ≠ Verifier — adversarial review runs in a fresh session. Sub-agents return structured `[OUTPUT]`; the Orchestrator merges, dedupes, chains, and returns fixes (fix-until-green).
 
@@ -169,13 +171,13 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 
 ---
 
-## Standards Traceability
+## 📦 Standards Traceability
 
 Every security/quality finding maps to a concrete control ID — **OWASP Top 10 / API Top 10 · CWE Top 25 · OWASP ASVS 4.0 · ISO/IEC 25010 · ISO/IEC 5055 (CISQ) · SEI CERT · MISRA** — enforced **bidirectionally** by `standards-map-gate` (inline `standards.yaml` in §5.7.8). Full mapping: **§5.7**.
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
 1. Put **`Mawyxx Prime V6.5.md`** in your repository (or add it as a Cursor/Windsurf/Copilot project rule).
 2. Reference it from your agent config / project rules so the agent reads it on demand.
@@ -195,7 +197,7 @@ Unsure? §4.8 Diagnostic tree + §1.5 uncertainty table.
 
 ---
 
-## Files
+## 📁 Files
 
 | File | Content | Access |
 |------|---------|--------|

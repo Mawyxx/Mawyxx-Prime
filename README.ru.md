@@ -10,26 +10,28 @@
 
 ![MAWYXX PRIME — AI Agent Architecture Pipeline](assets/social-preview.svg)
 
+⭐ **Если ты за чистый код и железную логику — поставь Star в поддержку Империи.**
+
 **Ключевые слова:** стандарт AI-кодинга · system prompt · cursor rules · windsurf rules · copilot instructions · AI-агенты · prompt engineering · zero-trust · архитектура ПО · чистый код · MCP · production-ready.
 
 ---
 
 ## Содержание
 
-- [Что такое MAWYXX PRIME](#что-такое-mawyxx-prime)
-- [Почему AI-агенты проваливаются](#почему-ai-агенты-проваливаются)
-- [Слои: RUNTIME + LAW](#слои-runtime--law)
-- [Law Layer — A01–A64](#law-layer--a01a64)
-- [Столпы честности](#столпы-честности)
-- [Карта правил](#карта-правил)
-- [Checker = работа агента](#checker--работа-агента)
-- [Standards Traceability](#standards-traceability)
-- [Quick Start](#quick-start)
-- [Файлы](#файлы)
+- [Что такое MAWYXX PRIME](#-что-такое-mawyxx-prime)
+- [Почему AI-агенты проваливаются](#-почему-ai-агенты-проваливаются)
+- [Архитектурные слои RUNTIME и LAW](#-архитектурные-слои-runtime-и-law)
+- [LAW LAYER Строгие ограничения AI-кодинга A01 to A64](#-law-layer-строгие-ограничения-ai-кодинга-a01-to-a64)
+- [Столпы честности](#-столпы-честности)
+- [Карта правил для prompt engineering](#-карта-правил-для-prompt-engineering)
+- [Автоматический quality gate checker](#-автоматический-quality-gate-checker)
+- [Standards Traceability](#-standards-traceability)
+- [Quick Start](#-quick-start)
+- [Файлы](#-файлы)
 
 ---
 
-## Что такое MAWYXX PRIME
+## 🚀 Что такое MAWYXX PRIME
 
 **v3.0** = паттерны (MIT). **v6.5** = Unified Constitution: **один файл**, два слоя (RUNTIME + LAW), один SSOT на тему, без дублей, **tier-aware глубина важнее ширины**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
@@ -45,7 +47,7 @@
 
 ---
 
-## Почему AI-агенты проваливаются
+## 🧠 Почему AI-агенты проваливаются
 
 AI-агенты сдают «зелёный» код, который врёт. MAWYXX PRIME убирает эти уловки:
 
@@ -60,7 +62,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 
 ---
 
-## Слои: RUNTIME + LAW
+## 🏗️ Архитектурные слои RUNTIME и LAW
 
 | Слой | Назначение |
 |------|------------|
@@ -69,7 +71,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 
 ---
 
-## Law Layer — A01–A64
+## ⚖️ LAW LAYER Строгие ограничения AI-кодинга A01 to A64
 
 | Группа | Законы |
 |--------|--------|
@@ -88,7 +90,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 
 ---
 
-## Столпы честности
+## 🛡️ Столпы честности
 
 | Столп | Правило · gates | Убивает |
 |-------|-----------------|---------|
@@ -110,7 +112,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 
 ---
 
-## Карта правил
+## 🧭 Карта правил для prompt engineering
 
 ```text
 §0 IDENTITY & ROUTER   0.3 Task router · 0.4 Tier · 0.5 Default-secure 5Q · 0.6 Principles · 0.7 Depth
@@ -148,7 +150,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 
 ---
 
-## Checker = работа агента
+## 🤖 Автоматический quality gate checker
 
 **Роли — суб-агенты (§1.11):** Orchestrator делегирует **Analyst · Builder · Guardian · Verifier** через Task tool, каждому — самодостаточный spawn-промпт (роль, tier, секции, handoff IN, гейты, output-контракт). Writer ≠ Verifier — adversarial в свежей сессии. Суб-агенты возвращают `[OUTPUT]`; Orchestrator мержит, дедупит, строит chains и возвращает фиксы (fix-until-green).
 
@@ -175,7 +177,7 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
 1. Положи **`Mawyxx Prime V6.5.md`** в репо (или подключи как project rule Cursor/Windsurf/Copilot).
 2. Сошлись на него в конфиге агента / project rules, чтобы он читался по требованию.
@@ -195,7 +197,7 @@ Project Skin + Empire Engine. Читай `Mawyxx Prime V6.5.md` для архи�
 
 ---
 
-## Файлы
+## 📁 Файлы
 
 | Файл | Содержание | Доступ |
 |------|------------|--------|
