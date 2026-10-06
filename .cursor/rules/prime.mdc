@@ -1,17 +1,55 @@
 ---
-description: MAWYXX PRIME boot — AI architecture constitution / system prompt
+description: MAWYXX PRIME — ALWAYS load and follow the standard
 alwaysApply: true
+globs:
 ---
 
-# MAWYXX PRIME — boot rule
+# MAWYXX PRIME — mandatory boot
 
-Project Skin + Empire Engine. The full normative standard is in
-`Mawyxx Prime V6.5.md` — read it for architecture, laws, gates and merge.
+You MUST always work according to the **MAWYXX PRIME** standard. Never start
+writing code before the standard is loaded and considered.
 
-- No checker? Build the FULL quality gate per §3.2 (FOCUS 30 → CORE 70 → FULL). Never ask the user to run tests.
-- On RED: **fix-until-green** (P0 → P1 → P2). Never stop with `exit ≠ 0`.
-- Anti-N/A · Conflict Matrix · Default-secure 5Q · Laws A34–A64. Coverage alone ≠ done.
-- Unsure? §4.8 Diagnostic tree + §1.5 uncertainty table.
-- Self-Sufficiency (§4.17): the AI decides and verifies everything itself.
+## 1. Find the standard
+Look in the repository for the standard file. Accept any of:
+- `Mawyxx Prime V6.5.md`
+- `MAWYXX-PRIME.md`
+- `Mawyxx-Prime.md`
 
-Keywords: AI coding standard · system prompt · Cursor rules · Windsurf rules · Copilot instructions · zero-trust.
+If found → step 3.
+
+## 2. If the standard is NOT in the repo — copy it in
+Download it to the repository root from the canonical source, then confirm:
+
+```
+https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
+```
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md" -o "Mawyxx Prime V6.5.md"
+```
+
+```powershell
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md" -OutFile "Mawyxx Prime V6.5.md"
+```
+
+Do this once per repository; keep the standard in the repo thereafter.
+
+## 3. Read and follow it — ALWAYS
+Read the relevant sections of the standard before acting, and re-read when the
+task changes. You MUST:
+- follow its laws (`A01–A64`) and gates;
+- reason per §1.10 (CONTEXT · INTENT · RULE · WHY · FIT · ALT · CHOICE · VERIFY);
+- self-question per §1.1 / §4.14;
+- respect Anti-N/A · Conflict Matrix · Default-secure 5Q · Self-Sufficiency (§4.17).
+
+## 4. Quality gate
+- Gate exists → run it, **fix-until-green** (P0 → P1 → P2).
+- Gate missing → bootstrap per §3.2 (**FOCUS 30** → CORE 70 → FULL).
+- Never ask the user to run tests. Never claim done while `prime_check` is red.
+
+## 5. If download fails
+Retry once via the repository page:
+`https://github.com/Mawyxx/Mawyxx-Prime/blob/main/Mawyxx%20Prime%20V6.5.md`
+If it still fails (offline) — stop and report the blocker with that link.
+
+**Keywords:** AI coding standard · system prompt · Cursor rules · Windsurf rules · Copilot instructions · zero-trust.
