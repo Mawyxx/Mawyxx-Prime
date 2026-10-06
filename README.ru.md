@@ -6,7 +6,6 @@
 
 [![Stars](https://img.shields.io/github/stars/Mawyxx/Mawyxx-Prime?style=social)](https://github.com/Mawyxx/Mawyxx-Prime/stargazers)
 [![Forks](https://img.shields.io/github/forks/Mawyxx/Mawyxx-Prime?style=social)](https://github.com/Mawyxx/Mawyxx-Prime/network/members)
-[![License: MIT + Commercial](https://img.shields.io/badge/license-MIT%20%2B%20Commercial-blue)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/Mawyxx/Mawyxx-Prime/pulls)
 
 [English version →](README.md)
@@ -29,7 +28,6 @@
 - [Standards Traceability](#standards-traceability)
 - [Quick Start](#quick-start)
 - [Файлы](#файлы)
-- [Лицензия](#лицензия)
 
 ---
 
@@ -45,7 +43,7 @@
 
 **Senior-протоколы по всему файлу:** Doctrine **Ask first** · self-вопросы у ролей · **questions block** у суб-агентов · **Domain Elicitation** (§1.12) · **Senior Debugging** 12 шагов (§4.12) · **Architecture Decision** 7 шагов (§4.13) · **Senior Thinking Checklist** (§4.14) · **Cross-Service** (§4.15) · **Feedback Loop** post-mortem→gate (§4.16) · **Self-Sufficiency** (§4.17 — AI решает всё сам, без человека).
 
-**v6.5 открыт в репо** для чтения/форка/личного использования. **Корп / команда / клиентский прод** → разовая лицензия ($50/сотрудник) → [@ExcitedSkam](https://t.me/ExcitedSkam).
+**v6.5 открыт в репо** — читай, форкай, используй.
 
 ---
 
@@ -204,23 +202,11 @@ Project Skin + Empire Engine. Читай `Mawyxx Prime V6.5.md` для архи�
 | Файл | Содержание | Доступ |
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | Паттерны · ~220 строк | **MIT** |
-| `Mawyxx Prime V6.5.md` | **Один файл** · Unified Constitution · **§0–§5** · **A01–A64** · **B01–B14** · §5.7 standards mapping (inline) | **Открыт в репо** · корп = платно |
+| `Mawyxx Prime V6.5.md` | **Один файл** · Unified Constitution · **§0–§5** · **A01–A64** · **B01–B14** · §5.7 standards mapping (inline) | **Открыт в репо** |
 | `Mawyxx-Security.md` | Отдельный security-аудит mega-prompt (§1.1 Surface Matrix S01–S23 · 19 сабагентов) | **Открыт в репо** |
 | `scripts/prime_check/` | Агент создаёт FOCUS→CORE→FULL по §3.2 | **Не в репо** — агент bootstrap |
 
 Норматив — **только** в `Mawyxx Prime V6.5.md`. Этот README = карта, не второй SSOT.
-
----
-
-## Лицензия
-
-| Использование | v3.0 | v6.5 |
-|---------------|------|------|
-| Читать / форк / учиться | MIT | Открыт в репо |
-| Личное / hobby | Бесплатно | Бесплатно |
-| Компания / команда / клиентский прод | MIT (v3) | **$50 / сотрудник · разово** → [@ExcitedSkam](https://t.me/ExcitedSkam) |
-
-См. [`LICENSE`](LICENSE) (MIT) и [`LICENSE-COMMERCIAL.md`](LICENSE-COMMERCIAL.md).
 
 ---
 

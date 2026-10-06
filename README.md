@@ -6,7 +6,6 @@
 
 [![Stars](https://img.shields.io/github/stars/Mawyxx/Mawyxx-Prime?style=social)](https://github.com/Mawyxx/Mawyxx-Prime/stargazers)
 [![Forks](https://img.shields.io/github/forks/Mawyxx/Mawyxx-Prime?style=social)](https://github.com/Mawyxx/Mawyxx-Prime/network/members)
-[![License: MIT + Commercial](https://img.shields.io/badge/license-MIT%20%2B%20Commercial-blue)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/Mawyxx/Mawyxx-Prime/pulls)
 
 [Русская версия →](README.ru.md)
@@ -29,7 +28,6 @@
 - [Standards Traceability](#standards-traceability)
 - [Quick Start](#quick-start)
 - [Files](#files)
-- [License](#license)
 
 ---
 
@@ -45,7 +43,7 @@
 
 **Senior protocols woven throughout:** Doctrine **Ask first** · per-role **self-questions** · sub-agent **questions block** · **Domain Elicitation** (§1.12) · **Senior Debugging** 12 steps (§4.12) · **Architecture Decision** 7 steps (§4.13) · **Senior Thinking Checklist** (§4.14) · **Cross-Service** (§4.15) · **Feedback Loop** post-mortem→gate (§4.16) · **Self-Sufficiency** (§4.17 — the AI decides everything itself, no human in the loop).
 
-**v6.5 is open in this repo** for read/fork/personal use. **Corporate / team / client production** → one-time license ($50/employee) → [@ExcitedSkam](https://t.me/ExcitedSkam).
+**v6.5 is open in this repo** — read, fork, use.
 
 ---
 
@@ -204,23 +202,11 @@ Unsure? §4.8 Diagnostic tree + §1.5 uncertainty table.
 | File | Content | Access |
 |------|---------|--------|
 | `Mawyxx Prime V3.0.md` | Patterns · ~220 lines | **MIT** |
-| `Mawyxx Prime V6.5.md` | **Single file** · Unified Constitution · **§0–§5** · **A01–A64** · **B01–B14** · §5.7 standards mapping (inline) | **Open in repo** · corp = paid |
+| `Mawyxx Prime V6.5.md` | **Single file** · Unified Constitution · **§0–§5** · **A01–A64** · **B01–B14** · §5.7 standards mapping (inline) | **Open in repo** |
 | `Mawyxx-Security.md` | Standalone security-audit mega-prompt (§1.1 Surface Matrix S01–S23 · 19 sub-agents) | **Open in repo** |
 | `scripts/prime_check/` | Agent creates FOCUS→CORE→FULL per §3.2 | **Not shipped** — agent bootstraps |
 
 Full normative text lives **only** in `Mawyxx Prime V6.5.md`. This README is an index — not a second SSOT.
-
----
-
-## License
-
-| Use | v3.0 | v6.5 |
-|-----|------|------|
-| Read / fork / study | MIT | Open in repo |
-| Personal / hobby | Free | Free |
-| Company / team / client prod | MIT (v3) | **$50 / employee · one-time** → [@ExcitedSkam](https://t.me/ExcitedSkam) |
-
-See [`LICENSE`](LICENSE) (MIT) and [`LICENSE-COMMERCIAL.md`](LICENSE-COMMERCIAL.md).
 
 ---
 

@@ -25,12 +25,6 @@ contributions are mostly about correctness, clarity and coverage.
 docs: short imperative summary
 ```
 
-## License of contributions
-
-By contributing you agree your changes may be distributed under the project's
-licensing model (MIT for v3.0; open + commercial for v6.5). See [`LICENSE`](LICENSE)
-and [`LICENSE-COMMERCIAL.md`](LICENSE-COMMERCIAL.md).
-
 ---
 
 *Build for Billions. Code for Vibe. Rule with Logic.*
