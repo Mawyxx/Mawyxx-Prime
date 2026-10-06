@@ -1,0 +1,29 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+*.sublime-*
+
+# Secrets / env
+.env
+.env.*
+*.pem
+*.key
+secrets/
+credentials.*
+
+# Generated checker / reports (agent-created, not shipped)
+scripts/prime_check/
+reports/
+.coverage
+coverage.xml
+htmlcov/
+
+# Logs / temp
+*.log
+tmp/
+temp/

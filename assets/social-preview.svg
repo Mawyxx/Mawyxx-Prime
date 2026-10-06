@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-label="MAWYXX PRIME — AI Agent Architecture Pipeline">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1020"/>
+      <stop offset="100%" stop-color="#1a0b2e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <text x="80" y="220" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="800" fill="#ffffff">MAWYXX PRIME</text>
+  <text x="80" y="290" font-family="Segoe UI, Arial, sans-serif" font-size="40" font-weight="600" fill="url(#accent)">AI Architecture Constitution &amp; System Prompt</text>
+  <text x="80" y="360" font-family="Segoe UI, Arial, sans-serif" font-size="30" fill="#c7d2fe">Cursor · Windsurf · Copilot · AI Agents · Zero-Trust</text>
+  <text x="80" y="470" font-family="Segoe UI, Arial, sans-serif" font-size="28" fill="#94a3b8">FOCUS 30 → CORE 70 → 138 gates · A01–A64 · Law→Gate</text>
+  <text x="80" y="520" font-family="Segoe UI, Arial, sans-serif" font-size="28" fill="#94a3b8">OWASP · CWE · ASVS · ISO 25010/5055 · CERT · MISRA</text>
+  <rect x="80" y="560" width="420" height="6" rx="3" fill="url(#accent)"/>
+  <text x="80" y="600" font-family="Segoe UI, Arial, sans-serif" font-size="24" fill="#64748b">Build for Billions. Code for Vibe. Rule with Logic.</text>
+</svg>
