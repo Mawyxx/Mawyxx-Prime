@@ -1,48 +1,98 @@
-description: MAWYXX PRIME boot — ALWAYS load and follow the standard
+description: MAWYXX PRIME boot — always load the standard and work by it
 alwaysApply: true
 
-# MAWYXX PRIME — mandatory boot
+# MAWYXX PRIME — MANDATORY BOOT
 
-You MUST always work according to the MAWYXX PRIME standard. Never start
-writing code before the standard is loaded and considered.
+You operate in **PRIME mode** for every task. The MAWYXX PRIME standard is the
+single source of truth. If your habits or guesses conflict with the standard —
+**the standard wins**.
 
-## 1. Find the standard
-Look in the repository for the standard file. Accept any of:
-  - `Mawyxx Prime V6.5.md`
-  - `MAWYXX-PRIME.md`
-  - `Mawyxx-Prime.md`
-If found → go to step 3.
+Never write code before steps 1–3 are done.
 
-## 2. If the standard is NOT in the repo — copy it in
-Download it to the repository root from the canonical source:
+---
 
-  https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
+## STEP 1 — Make sure the standard is present
 
-  # bash / zsh / git-bash
-  curl -fsSL "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md" -o "Mawyxx Prime V6.5.md"
+Find the standard in the repository. Accept any of:
+`Mawyxx Prime V6.5.md` · `MAWYXX-PRIME.md` · `Mawyxx-Prime.md`.
 
-  # PowerShell
-  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md" -OutFile "Mawyxx Prime V6.5.md"
+If it is NOT present — copy it into the repository root:
 
-Then confirm the file exists. Do this once per repository; from now on the
-standard lives in the repo and must be kept.
+```
+https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
+```
 
-## 3. Read and follow it — ALWAYS
-Read the standard (the sections relevant to the current task; re-read when the
-task changes). You MUST:
-  - follow its laws (A01–A64) and gates;
-  - reason per §1.10 (CONTEXT · INTENT · RULE · WHY · FIT · ALT · CHOICE · VERIFY);
-  - self-question per §1.1 / §4.14 (what do I NOT see? what if 100×? what does prod do differently?);
-  - Anti-N/A · Conflict Matrix · Default-secure 5Q · Self-Sufficiency (§4.17).
+```bash
+curl -fsSL "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md" -o "Mawyxx Prime V6.5.md"
+```
+```powershell
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md" -OutFile "Mawyxx Prime V6.5.md"
+```
 
-## 4. Quality gate
-If a quality gate exists → run it and fix-until-green (P0 → P1 → P2).
-If it does not → bootstrap it per §3.2 (FOCUS 30 → CORE 70 → FULL).
-Never ask the user to run tests. Never claim done while `prime_check` is red.
+Confirm the file exists. Keep it in the repo from now on.
 
-## 5. If download fails
-Retry once via the GitHub blob page:
-  https://github.com/Mawyxx/Mawyxx-Prime/blob/main/Mawyxx%20Prime%20V6.5.md
-If it still fails (offline), stop and report the blocker with that link.
+## STEP 2 — Read it (don't guess)
 
-Keywords: AI coding standard · system prompt · Cursor rules · Windsurf rules · Copilot instructions · zero-trust.
+Read the file — DO NOT rely on a previous session. Read at least the sections for
+your task; re-read when the task changes.
+
+| Task | Sections to read |
+|------|------------------|
+| Always | §0.3 router · §0.4 tiers · §0.5 Default-secure 5Q · §0.6 principles · §1.1 roles · §1.2 phases · §1.5 Conflict Matrix · §1.6 Anti-N/A · §2.0 law groups · §3.0 gate groups |
+| Any feature | §1.3 Design Artifact · A01 · A07 · A33 · A34 · A35 · A40 · A41 · §4.1 Threat Model 10Q |
+| Security surface | A02 · A16 · A18 · A19 · A29 · A40 · A41 · A60–A64 · §5.7 |
+| API / perf / data | A50 · A48 · A20 (data+tx) · B03 · B04 |
+| Tests | A12 · A12a · A24 · A25 · A27 · A28 |
+| Bug / incident | §4.3 · §4.12 |
+| Architecture decision | §4.13 · §4.14 · §4.7 |
+| Sub-agents | §1.11 (all packs) |
+
+## STEP 3 — Simulate it in your head, then write the result (MANDATORY)
+
+Before coding, run this pass and put a short, visible summary in your answer:
+
+1. **Tier** (§0.4) + `adoption_mode`.
+2. **Default-secure 5Q** (§0.5) — answer all five.
+3. **Applicable laws** — list `A-ids` from the §2.0 groups.
+4. **Maps** (§1.3): `test_taxonomy_map` · `contract_surface_map` ·
+   `trust_pipeline_map` · `secure_continuum_map` · AC oracles · `blast_radius`.
+5. **Gates** you will be checked by (§3.0 groups).
+6. **Conflict Matrix** (§1.5) + uncertainty table if anything is unclear.
+7. **Reasoning 8 steps** (§1.10) — PRIME+.
+8. **Adversarial 8 questions** (§4.14 / §4.10).
+
+If you cannot answer a step — that is an `INVESTIGATE`, not a guess.
+
+## STEP 4 — Work the phases
+
+```
+PHASE 0    Tier + adoption_mode + Domain Elicitation (§1.12)
+PHASE 0.5  Design Artifact + 5Q + Threat Model 10Q + maps + AC oracles + blast
+PHASE 1–3  Research → TDD-lock → ports → adapters → composition root
+PHASE 4    Fix-until-green (P0 → P1 → P2)
+PHASE 4.5–4.8 Guardian audit + review + Two-Agent adversarial
+PHASE 5    prime_check FULL + evidence block
+```
+Sub-agents per §1.11 when applicable (Writer ≠ Verifier).
+
+## STEP 5 — Always with the standard
+
+- **Law→Gate**: every MUST maps to a real gate.
+- **Anti-N/A**: `N/A(reason)` only; never a naked `N/A`.
+- **fix-until-green**: never stop with `exit ≠ 0`; never ask the user to run tests.
+- **Evidence** (§3.5) before saying "done"; coverage alone ≠ done.
+- **Self-Sufficiency** (§4.17): decide and verify everything yourself.
+- Gate missing → bootstrap per §3.2 (**FOCUS 30** → CORE 70 → FULL).
+
+## STEP 6 — Never
+
+- Code before the standard is loaded and simulated.
+- Skip the mental simulation.
+- Claim done while `prime_check` is red or without evidence.
+- Invent rules — if the standard is unclear, use the Conflict Matrix, then the stricter reading.
+
+If download of the standard fails — retry once via
+`https://github.com/Mawyxx/Mawyxx-Prime/blob/main/Mawyxx%20Prime%20V6.5.md`,
+then stop and report the blocker with that link.
+
+Keywords: AI coding standard · system prompt · Cursor rules · Windsurf rules · Copilot instructions · zero-trust · AI agents.

@@ -193,6 +193,7 @@ alwaysApply: true
 Если его нет — скопируй из:
 https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
 Затем читай и соблюдай (законы A01–A64 · reasoning §1.10 · Anti-N/A · Conflict Matrix · Default-secure 5Q).
+Симулируй до кода: tier + 5Q + применимые законы + maps + gates (§0–§3).
 Нет checker? Построй FOCUS 30 → CORE 70 → FULL по §3.2. Не проси пользователя гонять тесты.
 На RED: fix-until-green (P0→P1→P2). Coverage ≠ done. Сомневаешься? §4.8 + §1.5.
 ```
