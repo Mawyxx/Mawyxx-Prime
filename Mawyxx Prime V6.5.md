@@ -179,7 +179,7 @@ PHASE 0.5  — Analyst:    Design Artifact + Default-secure 5Q + Threat Model 10
                          + trust_pipeline_map + secure_continuum_map
                          + behavior_owners + AC с оракулами + blast_radius
 PHASE 1    — Builder:    Research deps (parallel, zero-trust)
-PHASE 2    — Builder:    TDD-Lock (failing tests: family + AC)
+PHASE 2    — Builder:    Execute frozen TDD-LOCK — each locked test first, fail for the right reason, then code
 PHASE 3    — Builder:    Implementation (ports → adapters → composition root)
 PHASE 4    — Builder ↔ Guardian: Fix-Until-Green loop
 PHASE 4.5  — Guardian:   Security audit + 10Q → gates + Bug→Gate
@@ -211,7 +211,7 @@ new_operations
 fsm_transitions (When)
 acceptance_criteria: [{id, statement, oracle.kind, oracle.assert, test}]
 blast_radius
-test_matrix
+test_matrix: design/TDD-LOCK-<task>.md        # full locked test plan (see §1.3a) — not a vague field
 test_taxonomy_map: [families → APPLIED | N/A(reason)]
 contract_surface_map: [outbound | inbound | dto_acl | api | events | strategies | composition_root]
 behavior_owners: [{id, owner_symbol, callers[]}]
@@ -220,7 +220,55 @@ trust_pipeline_map: [ops, idor_cases, privileged_fields_stripped, session_model]
 ```
 
 **MUST NOT:** пустой `acceptance_criteria` на PRIME+ feature → STOP.  
-**MUST NOT:** имя теста без оракула → FAIL.
+**MUST NOT:** имя теста без оракула → FAIL.  
+**MUST:** на PRIME+ `test_matrix` ссылается на **`design/TDD-LOCK-<task>.md`** (§1.3a); нет файла → STOP.
+
+### 1.3a TDD-LOCK artifact & derivation (MUST, PHASE 0.5 → PHASE 2)
+
+**Why:** a complete, frozen test plan written during design is the difference between tests that prove behavior and tests that merely mirror code.
+
+**MUST** at PHASE 0.5, before any production code, write `design/TDD-LOCK-<task>.md`:
+
+```
+# TDD-LOCK — <task_id>
+# behavior × input × oracle × expected ; one entry per test
+
+- id: T-001
+  family: unit | boundary | negative | access_control | state_transition | contract |
+          concurrency | idempotency | injection | observability | property | ...
+  behavior/op: <public entry / method / route>
+  input: {class, concrete value}
+  action: <call>
+  oracle: {kind: http_status|json_body|db_row|error_id|toast|state|fs|pixels, assert: "<observable fact>"}
+  expected: <outcome>
+  priority: P0 | P1
+  links: AC<n> (A34) · <law-id>
+  fails_first: "<what fails while behavior is missing>"
+```
+
+**Derivation algorithm (MUST per public behavior)** — enumerate, then write test or `N/A(absent-trigger)`:
+
+| # | Axis | What to enumerate |
+|---|------|-------------------|
+| 1 | Behaviors | one per public entry / operation |
+| 2 | Input classes | valid · invalid · missing · null · empty · duplicate · type-confusion |
+| 3 | Boundaries | 0 · 1 · max · max±1 |
+| 4 | FSM | legal · illegal · terminal re-entry |
+| 5 | Errors | every named `Err` variant provoked via production path |
+| 6 | Security | authz matrix (anon/bad/wrong/valid) · IDOR cross-user · mass-assign · injection · path · token |
+| 7 | Concurrency/atomicity | 2 parallel → 1 side-effect; atomic claim |
+| 8 | Idempotency | replay → same result; crash-after-claim → not blocked |
+| 9 | External deps | timeout · down · fallback |
+| 10 | Volume | 0 · 1 · 100 · 1 000 000 |
+| 11 | Observability | failure carries invariant_id + correlation_id |
+
+**Freeze & execute (PHASE 2):**
+- Lock is **frozen** when code starts. Weakening/renaming/deleting a locked test → **ADR + reason**; adding tests is free.
+- Execute locked tests **first**; each must **fail for the right reason** (missing behavior, not import/syntax) — record the run.
+- Then implement until green. A test edited "to pass" = FAIL (A38 spirit).
+
+**Completeness:** every changed production symbol · protected op · `Err` · FSM edge ← ≥1 locked test.  
+**Enforced by:** `tdd-lock-gate` (§3.1) · `test-matrix-gate` · `test-taxonomy-gate` · `intent-lock-gate`.
 
 ### 1.4 Handoff protocol
 
@@ -1016,7 +1064,7 @@ R-plat    → A55, A56, A57, A58, A59
 ### A22 — Checker (merge gate) — SSOT (former A38 merged here)
 **Min tier:** PRIME+ · **Enforced by:** §3.2 prime_check contract  
 **Why:** a checker the agent can fake is worse than none — it buys false confidence.
-- [ ] gate exists + config + CI, else bootstrap **FOCUS 30** first; ratchet to CORE/EXTENDED (§3.2.1)
+- [ ] gate exists + config + CI, else bootstrap **FOCUS 31** first; ratchet to CORE/EXTENDED (§3.2.1)
 - [ ] Law→Gate: every MUST with Enforced by → real step (not `return []`)
 - [ ] **no theatre:** semantic gate that cannot be implemented correctly → `SKIPPED(ADR{reason, sunset})`, never `return GREEN`
 - [ ] FULL matrix + `--diff` + evidence before done; CI ≡ local
@@ -1029,7 +1077,7 @@ R-plat    → A55, A56, A57, A58, A59
 
 | Задача | Достаточно (PASS) | Слишком (FAIL) |
 |--------|-------------------|----------------|
-| PRIME+ greenfield | FOCUS 30 → green → ratchet | 138 гейтов сразу |
+| PRIME+ greenfield | FOCUS 31 → green → ratchet | 139 гейтов сразу |
 | Deterministic check | lint · type · coverage · secrets | AST-эвристика «на глаз» |
 | Semantic gate | narrow AST + explicit allowlist | fake-green `return GREEN` |
 
@@ -1053,14 +1101,18 @@ R-plat    → A55, A56, A57, A58, A59
 - [ ] NOT `latest` in prod without pin digest ADR
 - **FAIL:** Dockerfile non-root, Helm privileged.
 
-### A24 — TDD-Lock
-**Min tier:** PRIME+ · **Enforced by:** `test-matrix-gate` · `test-taxonomy-gate`  
-**Why:** tests written after code encode what code does, not what it should do.
-- [ ] greenfield: failing test before production code, for each family + AC
-- [ ] legacy: tests in same PR
-- [ ] test_matrix covers behaviors/errors/operations + AC (GWT)
-- [ ] NOT «тесты потом» / «в следующем PR» / «сначала happy path» / naked N/A
-- **FAIL:** PR с кодом без тестов.
+### A24 — TDD-LOCK (frozen test plan before code)
+**Min tier:** PRIME+ · **When:** greenfield (legacy: same PR) · **Enforced by:** `tdd-lock-gate` · `test-matrix-gate` · `test-taxonomy-gate`  
+**Why:** tests written after code encode what the code does, not what it should do.
+- [ ] **Artifact first:** at PHASE 0.5 write `design/TDD-LOCK-<task>.md` — the **full test plan for the ENTIRE feature**, before any production code. Missing on PRIME+ → **STOP**.
+- [ ] **Every test is a blueprint:** `id · family (A12a) · behavior/op · input (class + concrete) · action · oracle (observable) · expected · priority · links (AC A34 / law) · fails_first`.
+- [ ] **Derivation (MUST):** for each public behavior enumerate — behaviors · input classes (valid/invalid/missing/null/empty/dup/type) · boundaries (0/1/max/±1) · FSM (legal/illegal/terminal) · every `Err` variant · security (authz matrix · IDOR cross-user · mass-assign · injection · path · token) · concurrency/atomicity · idempotency (replay/crash) · external deps (timeout/down/fallback) · volume (0/1/100/1M) · observability. Each → test **or** `N/A(absent-trigger)`.
+- [ ] **Freeze:** once code starts the lock is **frozen** — weakening / renaming / deleting a locked test requires **ADR + reason**; **adding** tests is free.
+- [ ] **Fails for the right reason:** each locked test first fails because the behavior is missing — not import/syntax; run artifact recorded.
+- [ ] **Completeness:** every changed production symbol · protected op · `Err` · FSM edge ← mapped to ≥1 locked test.
+- [ ] `test_matrix` = a **reference to the TDD-LOCK** (not a vague field).
+- [ ] NOT «тесты потом» / «в следующем PR» / «сначала happy path» / naked N/A / **editing a locked test to pass**.
+- **FAIL:** PR с кодом без locked-теста; lock missing; test weakened/renamed after code without ADR.
 
 ### A25 — Coverage by Risk (not vanity)
 **Min tier:** PRIME+ · **Enforced by:** `coverage-*`  
@@ -1734,7 +1786,7 @@ error_budget:
 G-auth   → route-matrix, zta-matrix, trust-pipeline, idor-ownership, mass-assign, path-escape, session-token
 G-sec    → injection-fuzz, ssrf, ci-harden, channel-secret, security-headers, cors-csrf, iac-scan, gitleaks-history, dependency-audit
 G-core   → import-graph, package-cohesion, port-surface, composition-root, port-test-double, behavior-ssot, anemic-mutation, di-purity, context-leak
-G-tests  → test-taxonomy, intent-lock, live-surface, no-swallow, checker-integrity, err-variant, ignored-test, test-quality
+G-tests  → test-taxonomy, intent-lock, tdd-lock, live-surface, no-swallow, checker-integrity, err-variant, ignored-test, test-quality
 G-data   → migration-path-only, no-ddl-in-app, schema-drift, api-contract-drift, snapshot-contract, tx-isolation, lock-order, backfill
 G-api    → api-hygiene, rate-limit, route-matrix
 G-perf   → perf-budget, query-hygiene, pagination, cache-policy, resource-bounds
@@ -1769,6 +1821,19 @@ G-output → coverage-line-100, coverage-branch-100, coverage-diff-100, coverage
 3. FAIL if oracle missing OR test body has no assert matching oracle.assert tokens
 4. FAIL if lock only: AC id in test name / "AC{i}" in docstring / inventory.yaml exists
 5. Hint: write the observable fact first; name test after the fact, not AC1
+```
+
+**`tdd-lock-gate` (A24 · FOCUS + CORE)**
+```
+1. When: PRIME+ → design/TDD-LOCK-<task>.md MUST exist BEFORE code; else FAIL STOP
+2. Every entry: id · family · behavior · input(class+concrete) · oracle(observable) · expected · links · fails_first
+   — empty oracle / no link → FAIL
+3. Completeness: each changed production symbol · protected op · Err variant · FSM edge ← ≥1 locked test
+4. Fails-first: first run of each locked test recorded, and it failed for the RIGHT reason (behavior missing,
+   not import/syntax) → FAIL if missing
+5. Freeze: locked test weakened/renamed/deleted after code start without ADR{reason} → FAIL (adding tests OK)
+6. test_matrix (design artifact) MUST reference the TDD-LOCK file → FAIL if vague/absent
+7. Cross-check coverage/mutation: green coverage + red lock = honesty FAIL
 ```
 
 **`test-taxonomy-gate` (A12a)**
@@ -2182,7 +2247,7 @@ python -m scripts.prime_check
 ```yaml
 project_tier: PRIME
 adoption_mode: greenfield          # greenfield | legacy
-checker_maturity: focus            # focus (30, mandatory) | core (70) | full (138); ratchet up
+checker_maturity: focus            # focus (31, mandatory) | core (71) | full (139); ratchet up
 stack: auto
 runtime_scope: [src/**, lib/**, app/**]
 tests_scope: [tests/**, __tests__/**]
@@ -2249,25 +2314,25 @@ data/contract gates → docker/ops gates →
 [mutation-critical if CRITICAL or PRIME greenfield] → evidence-block
 ```
 
-**Canonical step list — 138 = CORE 70 (FOCUS 30 mandatory) + EXTENDED 68:**
+**Canonical step list — 139 = CORE 71 (FOCUS 31 mandatory) + EXTENDED 68:**
 
 ```
-FOCUS — 30 (MANDATORY at PRIME+; honest MVP — implement FIRST, then feature work)
+FOCUS — 31 (MANDATORY at PRIME+; honest MVP — implement FIRST, then feature work)
  PREFLIGHT (3)   1 stack-detect · 2 config-valid · 3 ci-parity
  STATIC (3)      4 lint · 5 typecheck · 6 format-check
  ARCH (3)        7 import-graph-gate · 8 port-surface-gate · 9 package-cohesion-gate
- TESTS (5)      10 test-taxonomy-gate · 11 intent-lock-gate · 12 test-quality-gate (merged no-empty + no-trivial) · 13 regression-lock · 14 pytest-unit
- SECURITY (9)   15 gitleaks-history · 16 no-secrets · 17 dependency-audit · 18 no-debug-bypass
-                19 zta-matrix-gate · 20 trust-pipeline-gate · 21 idor-ownership-gate · 22 mass-assign-gate · 23 path-escape-gate
- COVERAGE (2)   24 coverage-diff-100 · 25 coverage-ratchet
- DATA (1)       26 migration-path-only
- HARDENING (2)  27 param-bounds-gate · 28 atomicity-gate
- TRACE (1)      29 standards-map-gate (§5.7)
- OUTPUT (1)     30 evidence-block
+ TESTS (6)      10 test-taxonomy-gate · 11 intent-lock-gate · 12 tdd-lock-gate · 13 test-quality-gate (merged no-empty + no-trivial) · 14 regression-lock · 15 pytest-unit
+ SECURITY (9)   16 gitleaks-history · 17 no-secrets · 18 dependency-audit · 19 no-debug-bypass
+                20 zta-matrix-gate · 21 trust-pipeline-gate · 22 idor-ownership-gate · 23 mass-assign-gate · 24 path-escape-gate
+ COVERAGE (2)   25 coverage-diff-100 · 26 coverage-ratchet
+ DATA (1)       27 migration-path-only
+ HARDENING (2)  28 param-bounds-gate · 29 atomicity-gate
+ TRACE (1)      30 standards-map-gate (§5.7)
+ OUTPUT (1)     31 evidence-block
 ```
 
 ```
-CORE — 70 (always-on set; FOCUS ⊂ CORE). Non-FOCUS part enables as the repo grows.
+CORE — 71 (always-on set; FOCUS ⊂ CORE). Non-FOCUS part enables as the repo grows.
  STATIC (3)      dead-code-gate · file-size-guard · cyclomatic-gate
  ARCH (8)        import-boundaries · deterministic-runtime · anti-null-gate · anemic-mutation-gate · di-purity
                  composition-root-gate · no-string-sql · no-ddl-in-app
@@ -2307,14 +2372,14 @@ EXTENDED — 68 (enable by trigger/tier; skip honestly, never fake)
  OUTPUT (1)         mutation-critical (CRITICAL / invariant scope)
 ```
 
-Registered = **138** = CORE 70 (FOCUS 30 mandatory) + EXTENDED 68. `standards-map-gate` — **CORE + FOCUS** (обязателен). Conditional steps (`iac-scan`, `ffi-safety`, `cert-forbidden`, `e2e-ui`, `prod-config`, `docker-*`, `webhook-*`, `upload-*`, `load-test`, `pii-*`, `retention`, `notification-*`, `graphql-*`, `websocket-*`, `search-*`, `i18n`, `pci`) register as `SKIPPED(ADR/N-A)` when trigger absent.
+Registered = **139** = CORE 71 (FOCUS 31 mandatory) + EXTENDED 68. `standards-map-gate` — **CORE + FOCUS** (обязателен). Conditional steps (`iac-scan`, `ffi-safety`, `cert-forbidden`, `e2e-ui`, `prod-config`, `docker-*`, `webhook-*`, `upload-*`, `load-test`, `pii-*`, `retention`, `notification-*`, `graphql-*`, `websocket-*`, `search-*`, `i18n`, `pci`) register as `SKIPPED(ADR/N-A)` when trigger absent.
 
 **3.2.1 Checker maturity & the no-theatre rule**
 
-**Problem:** implementing 138 gates at once takes weeks; a weak gate goes green but lies (A22). AI writes checker instead of product. **70 обязательных гейтов честно сделать нельзя** — поэтому обязателен только FOCUS.
+**Problem:** implementing 139 gates at once takes weeks; a weak gate goes green but lies (A22). AI writes checker instead of product. **70 обязательных гейтов честно сделать нельзя** — поэтому обязателен только FOCUS.
 
 **Model** (`checker_maturity: focus | core | full` in config):
-- **Bootstrap = FOCUS (30):** implement **FOCUS 30** → green → **only then** feature work.
+- **Bootstrap = FOCUS (31):** implement **FOCUS 31** → green → **only then** feature work.
 - **Ratchet:** `focus → core` (as repo grows) → `full` (EXTENDED by trigger/tier), one family at a time.
 - **No theatre (MUST):** a semantic gate you cannot implement correctly → `SKIPPED(ADR{reason, sunset})`, **never** `return GREEN`. Fake green is worse than an absent gate.
 
@@ -2325,11 +2390,11 @@ Semantic gates that must NOT be rushed: `behavior-ssot` · `live-surface` · `tr
 MVP bootstrap (REQUIRED before first feature):
 [ ] Detect stack → pick adapter row (lint, types, unit, coverage, security)
 [ ] Scaffold orchestrator + reporter + finding + evidence + steps/
-[ ] Implement ALL 30 FOCUS steps first (then ratchet CORE/EXT; conditional → SKIPPED with reason)
+[ ] Implement ALL 31 FOCUS steps first (then ratchet CORE/EXT; conditional → SKIPPED with reason)
 [ ] Law→Gate: core laws → real step; extended laws → SKIPPED(ADR) until enabled
 [ ] Write prime_check.config.yaml (checker_maturity: focus; scopes; ports; composition_root)
 [ ] Wire CI job — identical command to local; add dev-deps
-[ ] Run --list → 30 focus registered; Run FULL → exit 0
+[ ] Run --list → 31 focus registered; Run FULL → exit 0
 [ ] THEN feature work (A01/A22)
 
 Extended ratchet (per trigger/tier — NOT all at once):
@@ -2393,7 +2458,7 @@ adoption_mode: greenfield
 stack: python
 prime_check: exit 0
 checker_maturity: full
-steps_registered: 138
+steps_registered: 139
 steps_green: 47
 steps_skipped: 91
 skip_reasons:
@@ -2983,6 +3048,7 @@ PHASE 3 — FIX (правильно)
 | **v6.4** | Code-quality pass: A48 Performance · A49 Data & Transactions · A50 API Hygiene · A51 Observability+ · A52 Retry & Backoff · A53 Concurrency (+16 gates) · FOCUS 30 mandatory (`checker_maturity: focus\|core\|full`) · merged no-empty-test+no-trivial-assert→test-quality-gate · coverage by risk · mutation on invariants · A19 external-secret shape · ASVS must/should · per-stack external errors |
 | **v6.5** | Backend pass: A60 Webhook · A61 Upload · A62 Load/Soak · A63 Privacy/Retention · A64 Notifications · A54 Budgets · A55–A59 GraphQL/WS/Search/i18n/PCI · per-language concurrency · flaky N · failure modes 30 · §2.0.1 Enough index · 138 gates. **Holes P0–P2:** file-based depth enforcement (docs/reasoning · docs/reviews · docs/adr) · steps_registered/green/skipped + skip_reasons · merge conflict rules · §5.7 inline (single file) + `standards.yaml` (§5.7.8) · §3.3 merged into §0.7 · flaky N=10/20 · `critical_scope` defined · aliases A49→A20, A51→B03, A52→B04, A53→A14 · router/groups updated · evidence trimmed |
 | **v6.5+ (senior pass)** | **Senior protocols woven throughout (single file):** Doctrine **Ask first** (§0.6) · per-role **self-questions** (§1.1) · sub-agent **questions block** (§1.11.10) · **§1.12 Domain Elicitation** · **§4.12 Senior Debugging (12)** · **§4.13 Architecture Decision (7)** · **§4.14 Senior Thinking Checklist** · **§4.15 Cross-Service** · **§4.16 Feedback Loop** · **§4.17 Self-Sufficiency** (AI решает всё сам, без человека) · woven into §1.2, §4.3, B08 |
+| **v6.5+ (TDD-LOCK deep pass)** | **A24 rewritten** → frozen test plan; **§1.3a TDD-LOCK artifact + derivation** (11 axes, blueprint format, freeze, fails-first); **PHASE 2** = execute frozen lock; new **`tdd-lock-gate`** (FOCUS → FOCUS 31 / CORE 71 / **139**); `test_matrix` = reference to `design/TDD-LOCK-<task>.md` |
 
 ### 5.7 Standards Traceability (concrete IDs)
 

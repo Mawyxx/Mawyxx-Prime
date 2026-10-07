@@ -35,7 +35,7 @@
 
 **v3.0** = паттерны (MIT). **v6.5** = Unified Constitution: **один файл**, два слоя (RUNTIME + LAW), один SSOT на тему, без дублей, **tier-aware глубина важнее ширины**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
-**Законы A01–A64 + B01–B14** · 5 ролей (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** под каждым законом · **12 GOOD/BAD паттернов (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3** · **Diagnostic tree** · **Testing recipes** · канонический checker map (**FOCUS 30 обязательны** → CORE 70 → **138** всего, ratchet) с depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), проверяется **двусторонне** (inline `standards.yaml`).
+**Законы A01–A64 + B01–B14** · 5 ролей (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** под каждым законом · **12 GOOD/BAD паттернов (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3** · **Diagnostic tree** · **Testing recipes** · канонический checker map (**FOCUS 31 обязательны** → CORE 71 → **139** всего, ratchet) с depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), проверяется **двусторонне** (inline `standards.yaml`).
 
 **Project Skin · Empire Engine:** пиши в стиле проекта — с дисциплиной Empire. Зелёный `prime_check` из имён AC, мёртвых портов, ignored e2e или exclude composition — **не** done.
 
@@ -134,7 +134,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
    A12 Tests             A12a Taxonomy         A40 Secure Continuum    A63 Privacy/retention
    A13 DoD               A25 Coverage          A26 Evidence            A64 Notifications
    B01 CQRS … B14 Handoff Artifact
-§3 GATES               3.0 groups · 3.1 algorithms · 3.2 prime_check (FOCUS 30 → CORE 70 → 138) ·
+§3 GATES               3.0 groups · 3.1 algorithms · 3.2 prime_check (FOCUS 31 → CORE 71 → 139) ·
                        3.4 P0–P3 priorities · 3.5 evidence
 §4 PROTOCOLS           4.1 Threat Model 10Q · 4.2 Two-Agent · 4.3 Bug→Gate · 4.4 Pre-Flight
                        4.5 Fix-until-green · 4.6 3-strike · 4.7 Decision Log · 4.8 Diagnostic tree
@@ -154,7 +154,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 
 **Роли — суб-агенты (§1.11):** Orchestrator делегирует **Analyst · Builder · Guardian · Verifier** через Task tool, каждому — самодостаточный spawn-промпт (роль, tier, секции, handoff IN, гейты, output-контракт). Writer ≠ Verifier — adversarial в свежей сессии. Суб-агенты возвращают `[OUTPUT]`; Orchestrator мержит, дедупит, строит chains и возвращает фиксы (fix-until-green).
 
-На ≥PRIME агент создаёт `scripts/prime_check/`, реализует **FOCUS 30 (обязательный честный MVP)** первым → green → **затем** фича, и **ratchet** до CORE 70 / EXTENDED (138 всего) по trigger/tier. `standards-map-gate` — **FOCUS+CORE**, проверяет **ID↔gate в обе стороны**. Семантический гейт, который нельзя реализовать корректно — `SKIPPED(ADR)`, **никогда не fake-green**. Гоняет `--diff` → FULL до `exit 0`, печатает `PRIME-VERIFY-EVIDENCE`. Пользователь не ставит и не запускает checker.
+На ≥PRIME агент создаёт `scripts/prime_check/`, реализует **FOCUS 31 (обязательный честный MVP)** первым → green → **затем** фича, и **ratchet** до CORE 71 / EXTENDED (139 всего) по trigger/tier. `standards-map-gate` — **FOCUS+CORE**, проверяет **ID↔gate в обе стороны**. Семантический гейт, который нельзя реализовать корректно — `SKIPPED(ADR)`, **никогда не fake-green**. Гоняет `--diff` → FULL до `exit 0`, печатает `PRIME-VERIFY-EVIDENCE`. Пользователь не ставит и не запускает checker.
 
 ```text
 PHASE 0    Analyst   Tier + adoption_mode

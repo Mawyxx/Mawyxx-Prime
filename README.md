@@ -35,7 +35,7 @@
 
 **v3.0** = patterns (MIT). **v6.5** = Unified Constitution: **one file**, two layers (RUNTIME + LAW), one SSOT per topic, no duplicates, **tier-aware depth over width**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
-**Laws A01–A64 + B01–B14** · 5 roles (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** under every law · **12 GOOD/BAD patterns (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3 priorities** · **Diagnostic tree** · **Testing recipes** · canonical checker map (**FOCUS 30 mandatory** → CORE 70 → **138** total, ratcheted) with depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), enforced **bidirectionally** (inline `standards.yaml`).
+**Laws A01–A64 + B01–B14** · 5 roles (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** under every law · **12 GOOD/BAD patterns (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3 priorities** · **Diagnostic tree** · **Testing recipes** · canonical checker map (**FOCUS 31 mandatory** → CORE 71 → **139** total, ratcheted) with depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), enforced **bidirectionally** (inline `standards.yaml`).
 
 **Project Skin · Empire Engine:** write in the project's style — with Empire discipline. Green `prime_check` from AC-names, unused ports, ignored e2e, or excluded composition is **not** done.
 
@@ -134,7 +134,7 @@ Also: **A05a** cohesion · **A12a** taxonomy (24 families) · Anti-N/A · **A25*
    A12 Tests             A12a Taxonomy         A40 Secure Continuum    A63 Privacy/retention
    A13 DoD               A25 Coverage          A26 Evidence            A64 Notifications
    B01 CQRS … B14 Handoff Artifact
-§3 GATES               3.0 groups · 3.1 algorithms · 3.2 prime_check (FOCUS 30 → CORE 70 → 138) ·
+§3 GATES               3.0 groups · 3.1 algorithms · 3.2 prime_check (FOCUS 31 → CORE 71 → 139) ·
                        3.4 P0–P3 priorities · 3.5 evidence
 §4 PROTOCOLS           4.1 Threat Model 10Q · 4.2 Two-Agent · 4.3 Bug→Gate · 4.4 Pre-Flight
                        4.5 Fix-until-green · 4.6 3-strike · 4.7 Decision Log · 4.8 Diagnostic tree
@@ -154,7 +154,7 @@ International maps (ISO 25010 · CISQ · OWASP ASVS · CERT/MISRA): **Quality Co
 
 **Roles run as sub-agents (§1.11):** the Orchestrator delegates **Analyst · Builder · Guardian · Verifier** via Task tool, each with a self-contained spawn prompt (role, tier, sections to read, handoff IN, gates, output contract). Writer ≠ Verifier — adversarial review runs in a fresh session. Sub-agents return structured `[OUTPUT]`; the Orchestrator merges, dedupes, chains, and returns fixes (fix-until-green).
 
-On ≥PRIME the agent scaffolds `scripts/prime_check/`, implements the **FOCUS 30 (mandatory honest MVP)** first → green → **then** feature work, and **ratchets** to CORE 70 / EXTENDED (138 total) by trigger/tier. `standards-map-gate` is **FOCUS+CORE** and checks **ID↔gate both ways** (ID claimed ⇒ its gate green; security gate ⇒ has an ID). A semantic gate that cannot be implemented correctly is `SKIPPED(ADR)`, **never fake-green**. Runs `--diff` → FULL until `exit 0`, prints `PRIME-VERIFY-EVIDENCE`. You do not install or run the checker.
+On ≥PRIME the agent scaffolds `scripts/prime_check/`, implements the **FOCUS 31 (mandatory honest MVP)** first → green → **then** feature work, and **ratchets** to CORE 71 / EXTENDED (139 total) by trigger/tier. `standards-map-gate` is **FOCUS+CORE** and checks **ID↔gate both ways** (ID claimed ⇒ its gate green; security gate ⇒ has an ID). A semantic gate that cannot be implemented correctly is `SKIPPED(ADR)`, **never fake-green**. Runs `--diff` → FULL until `exit 0`, prints `PRIME-VERIFY-EVIDENCE`. You do not install or run the checker.
 
 ```text
 PHASE 0    Analyst   Tier + adoption_mode
