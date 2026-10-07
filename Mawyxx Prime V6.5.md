@@ -425,18 +425,20 @@ N. {{…}}
 ## Gates you must run / pass
 {{G-ids}}
 
-## Output contract — return EXACTLY this
+## Output contract — return EXACTLY this (machine-readable JSON; orchestrator merges by schema)
+```json
+{
+  "role": "{{ROLE}}",
+  "task_id": "{{task_id}}",
+  "status": "PASS | FAIL | BLOCKED",
+  "artifact": "{{path/ref or inline}}",
+  "design_updates": ["{{maps changed}}"],
+  "gate_results": [{"gate": "string", "result": "PASS | FAIL | SKIPPED(ADR)", "findings": [{"file":"p:line","rule":"Axx","severity":"P0..P3","issue":"string","hint":"string"}]}],
+  "handoff_notes": "{{next role + what to verify}}",
+  "open_items": [{"kind": "INVESTIGATE | P0..P3", "detail": "string"}]
+}
 ```
-[OUTPUT]
-role: {{ROLE}}
-task_id: {{task_id}}
-status: PASS | FAIL | BLOCKED
-artifact: {{path/ref or inline}}
-design_updates: {{maps changed}}
-gate_results: [{gate, result, findings[]}]
-handoff_notes: {{next role + what to verify}}
-open_items: [{INVESTIGATE | P0..P3}]
-```
+**Merge contract:** dedupe by key `(file, rule, gate)`; keep highest severity; union `sources`; chain-upgrade to P0; a `PASS` without `artifact` + `gate_results` is rejected.
 
 ## Forbidden
 - reading the whole skill / whole session
@@ -582,8 +584,9 @@ Never: loop forever, fake PASS, hide BLOCKED, or escalate to a person.
 **Формат:** `Min tier · When · Enforced by` → **Why** → чеклист (`[ ]` MUST, `[ ] NOT` MUST NOT) → `FAIL` / `PASS`.  
 Лейблы MUST/MUST NOT/Aligns убраны — они видны из чеклиста. **Why** обязателен: правило без причины модель не адаптирует.
 
-### 2.0 Law groups (для §0.3)
+### 2.0 Law groups, index & alias map (для §0.3)
 
+**Groups:**
 ```
 R-auth    → A02, A03, A18, A29, A40, A41
 R-sec     → A16, A18, A19, A40, A41
@@ -599,6 +602,30 @@ R-resil   → A14, A44, B04
 R-conc    → A05, A14
 R-web     → A60, A61, A63, A64
 R-plat    → A55, A56, A57, A58, A59
+```
+
+**Law index (читка по id):**
+```
+A01 Context/tier · A02 Zero Trust · A03 API contract · A04 Plugin boundary · A05 Layer law ·
+A05a Cohesion · A06 DI & ports · A07 Design-first · A08 Anti-fork · A09 alias→A08 · A10 Errors ·
+A11 Decomposition · A12 Tests/coverage · A12a Test taxonomy · A13 DoD · A14 Idempotency+Atomicity+Concurrency ·
+A15 Deterministic time · A16 Secure-by-design · A17 Clean code · A18 OWASP · A19 Secrets/supply ·
+A20 Migrations+Data+Transactions · A21 Contracts+Spec parity · A22 Checker · A23 Docker/IaC ·
+A24 TDD-LOCK · A25 Coverage by risk · A26 Evidence · A27 Test quality · A28 Mutation · A29 ZTA matrix ·
+A30 Anti-slack · A31 Legacy · A32 Monorepo · A33 Blast · A34 Intent lock · A35 Contract Surface ·
+A36 Live Surface · A37 alias→A10 · A38 alias→A22 · A39 Behavior SSOT · A40 Secure Continuum ·
+A41 Trust Pipeline · A42 Bounds · A43 alias→A14 · A44 Dep isolation · A45 alias→A14 · A46 Config guard ·
+A47 alias→A21 · A48 Performance · A49 alias→A20 · A50 API hygiene · A51 alias→B03 · A52 alias→B04 ·
+A53 alias→A14 · A54 Budgets · A55 GraphQL · A56 WebSocket · A57 Search · A58 i18n · A59 PCI ·
+A60 Webhooks · A61 Upload · A62 Load/soak · A63 Privacy · A64 Notifications ·
+B01 CQRS · B02 SOLID/GRASP · B03 SRE/Obs/Logs · B04 Resilience/Retry · B05 Inter-service · B06 FSM ·
+B07 YAGNI · B08 Self-review · B09 ADR · B10 Performance · B11 Client apps · B12 Fuzz/property ·
+B13 Ops/runbook · B14 Handoff
+```
+
+**Alias map — используй ЦЕЛЕВОЙ id в новом тексте (alias только для back-compat):**
+```
+A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A49→A20 · A51→B03 · A52→B04 · A53→A14
 ```
 
 ### 2.0.1 Enough-vs-too-much index (остальные законы — против over-engineering)
@@ -644,7 +671,8 @@ R-plat    → A55, A56, A57, A58, A59
 
 ### A02 — Zero Trust
 **Min tier:** PRIME+ · **When:** exposed op requires auth · **Enforced by:** `zta-matrix-gate` · `idor-ownership-gate`  
-**Why:** any endpoint reachable without a resource-scoped check is an open door; «internal» is not a boundary.
+**Why:** any endpoint reachable without a resource-scoped check is an open door; «internal» is not a boundary.  
+**SSOT split:** authn/authz policy here · channels (CI/chat/ops) → A40 · in-process order (schema→authn→authz→command) → A41.
 - [ ] authn+authz on every protected op **before** application logic
 - [ ] localhost/docker/internal/`/debug` — same rules as public internet
 - [ ] CI identity / deploy token / chat-bot ≠ authz substitute
@@ -660,11 +688,13 @@ R-plat    → A55, A56, A57, A58, A59
 ### A03 — API Response Contract
 **Min tier:** PRIME+ · **When:** exposed HTTP/RPC/GraphQL/CLI op · **Enforced by:** `route-matrix-gate` · `api-contract-drift`  
 **Why:** inconsistent shapes force clients to guess and let contract tests miss drift.
-- [ ] consistent envelope/status/error shape per surface
-- [ ] real status codes; documented error shapes
+- [ ] **Artifact:** one response/error schema per surface (`api-contracts` in design artifact): success envelope + error envelope, with every field typed.
+- [ ] **Status table per op** (in the artifact): `2xx` success · `4xx` client (400 schema · 401 no authn · 403 no authz · 404 missing · 409 conflict · 422 validation · 429 rate) · `5xx` unexpected only.
+- [ ] **Error body** = RFC 7807 (`type · title · status · detail · instance` + `invariant_id`); no stack traces, no PII.
+- [ ] consistent envelope shape across all endpoints of the same surface
 - [ ] health/metrics endpoints (B03)
 - [ ] NOT mix formats across endpoints of same surface
-- **FAIL:** 200 на бизнес-ошибку.
+- **FAIL:** 200 на бизнес-ошибку; error без схемы; 5xx на валидацию.
 
 ### A04 — Integration & Plugin Boundaries
 **Min tier:** PRIME+ · **When:** I/O swap / plugin / multi-module · **Enforced by:** `context-leak-gate` · `port-surface-gate` · `plugin-boundary-gate`  
@@ -828,7 +858,8 @@ R-plat    → A55, A56, A57, A58, A59
 
 ### A12 — Tests & Coverage
 **Min tier:** STANDARD+ (core); full PRIME+ · **Enforced by:** `test-taxonomy-gate` + matrix gates  
-**Why:** coverage proves lines ran; taxonomy proves behavior held — you need both.
+**Why:** coverage proves lines ran; taxonomy proves behavior held — you need both.  
+**SSOT split:** pyramid + tier here · families → A12a · frozen plan → A24 · coverage math → A25 · test quality → A27 · mutation → A28.
 - [ ] coverage by tier (§0.4); scope per §0.4 SSOT
 - [ ] failing test before code (greenfield) / same PR (legacy) (A24)
 - [ ] `test_taxonomy_map` covers behaviors/errors/operations + AC
@@ -1115,10 +1146,10 @@ R-plat    → A55, A56, A57, A58, A59
 - **FAIL:** PR с кодом без locked-теста; lock missing; test weakened/renamed after code without ADR.
 
 ### A25 — Coverage by Risk (not vanity)
-**Min tier:** PRIME+ · **Enforced by:** `coverage-*`  
+**Min tier:** PRIME+ · **Enforced by:** `coverage-critical-100` · `coverage-rest-90` · `coverage-diff-100` · `coverage-ratchet` · `no-pragma-no-cover`  
 **Why:** uncovered failure paths are where incidents live — but 100% on getters is vanity; spend coverage on risk.
-- [ ] **`critical_scope` (money · auth · FSM · parsers · security): 100% line + branch**
-- [ ] **остальной `runtime_scope`: ≥90% line** + branch на ветвях решений
+- [ ] **`coverage-critical-100`:** `critical_scope` → **100% line + branch**
+- [ ] **`coverage-rest-90`:** остальной `runtime_scope` → **≥90% line** + branch на ветвях решений
 - [ ] `coverage-diff-100` на изменённых файлах (любой scope); `coverage-ratchet` never drops
 - [ ] ALLOW exclude: generated/; vendor/; OS glue **with** integration test + ADR + sunset
 - [ ] NOT `# pragma: no cover` / `istanbul ignore` without ADR
@@ -1135,7 +1166,7 @@ R-plat    → A55, A56, A57, A58, A59
 **Min tier:** PRIME+ · **Enforced by:** `evidence-block` step  
 **Why:** evidence is the handoff artifact that proves the outcome without re-running everything.
 - [ ] before done — `prime_check --evidence` → paste block (§3.5)
-- [ ] block contains: tier, mode, stack, exit 0, steps_green, coverage line/branch/delta
+- [ ] block contains: tier, mode, stack, exit 0, steps_green, `coverage_critical` (100%) / `coverage_rest` (≥90%) / delta
 - [ ] `taxonomy_families:` each → `APPLIED:<tests>` \| `N/A:<reason>`
 - [ ] `contract_surface:` each family → APPLIED \| N/A; `rich_domain:` APPLIED \| N/A
 - [ ] `error_split:` expected=named Err · unexpected=presentation handler
@@ -1151,7 +1182,7 @@ R-plat    → A55, A56, A57, A58, A59
 - **FAIL:** «готово» без evidence.
 
 ### A27 — Test Quality
-**Min tier:** PRIME+ · **Enforced by:** `no-empty-test` · `no-trivial-assert` · `flaky-detector` · `ignored-test-gate`  
+**Min tier:** PRIME+ · **Enforced by:** `test-quality-gate` (merged no-empty-test + no-trivial-assert) · `flaky-detector` · `ignored-test-gate`  
 **Why:** tests that cannot fail prove nothing; weak oracles let bugs pass.
 - [ ] every APPLIED test has non-trivial oracle (fails if production lies)
 - [ ] `flaky-detector` = same test ×N across **separate processes** with randomized order + varied clock/seed/data — **not** 3× in one process
@@ -1228,6 +1259,8 @@ R-plat    → A55, A56, A57, A58, A59
 - [ ] each AC: id, statement, `oracle.kind`, `oracle.assert`, test
 - [ ] oracle kinds (canonical, E2): `hwnd | pixels | fs | order | error_id | toast | state | db_row | http_status | json_body`
 - [ ] test **body** asserts the oracle fact
+- [ ] **Falsifiability (MUST):** the assert must **fail if production lies** — prove it by mutating the production path once (or by A28), and note the counter-example in the test.
+- [ ] **No name-lock:** the fact lives in the assert, not the test name / docstring.
 - [ ] empty `acceptance_criteria` on PRIME+ feature → STOP
 - [ ] NOT lock = AC id in test name/docstring / `"AC{i}" in text`
 - [ ] NOT close hwnd/pixels/ui oracles with unit-only while E2E ignored
@@ -1268,6 +1301,7 @@ R-plat    → A55, A56, A57, A58, A59
 - [ ] Settings/DTO field → read by runtime (or removed from AC)
 - [ ] `impl Trait` → not identity / `todo!()` / `Ok(())` without ADR+sunset
 - [ ] adapter name matches actual mechanism (token ⊆ crate/feature used in src)
+- [ ] **Detection (gate method):** for each port — find construction site (**scope:** `composition_root_scope`) + ≥1 call site (**scope:** `application_scope`) via AST; for each field — find a read outside serde/schema; name-token must appear in `src` outside the declaration.
 - [ ] NOT port in yaml without call; unread config field
 - **FAIL:** dead port / unread `notify_on_save`.  
 - **GOOD pattern:** every declared contract is constructed and called.  
@@ -1361,13 +1395,15 @@ R-plat    → A55, A56, A57, A58, A59
 **Min tier:** PRIME+ · **Enforced by:** `param-bounds-gate`  
 **Why:** unbounded parameters overflow, panic, or allocate attacker-controlled memory.  
 **SSOT:** secret length lives in A19 (`secret-validation-gate`); A42 only invokes it.
-- [ ] numeric params: min/max checked up front
-- [ ] array indexing: bounds-checked
-- [ ] string length: min/max checked
-- [ ] regex: full semantics (UUID version, MIME full), not «похоже»
-- [ ] buffer: max size before alloc/parse
+- [ ] **Where:** every untrusted numeric/string/array param is bounded **at the boundary** (schema/DTO), before UC — not deep in logic.
+- [ ] numeric params: explicit `min`/`max` (or clamp) before use; reject out-of-range (not silent wrap)
+- [ ] array indexing: bounds-checked before access (or safe iteration)
+- [ ] string length: `min`/`max` checked before parse
+- [ ] regex: full semantics (UUID **version**, MIME **full**), not «похоже»
+- [ ] buffer: **max size checked before** alloc/parse
+- [ ] realmoney/inventory amounts: bounded + DB `CHECK`/precision (A20)
 - [ ] secret: delegate to A19 (generated ≥32 → panic; external non-empty/shape) — no second definition
-- **FAIL:** `digest[i]` без bounds; difficulty без clamp; regex UUIDv4 без version.
+- **FAIL:** `digest[i]` без bounds; difficulty без clamp; regex UUIDv4 без version; bound только внутри логики.
 
 ### A43 — Atomicity & Cleanup
 *Alias → A14 (claim/PENDING/Redis/TTL/parallel guard live there).*
@@ -1507,6 +1543,7 @@ error_budget:
 **Why:** GraphQL is a DoS surface (depth/alias) and an authz surface (field-level).
 - [ ] depth + complexity + cost limit (anti-DoS)
 - [ ] introspection **off** in prod; persisted-query allowlist When public
+- [ ] query timeout + max aliases; reject unknown/oversized queries
 - [ ] DataLoader/batching (no N+1)
 - [ ] **field-level authz**, not just resolver entry
 - **FAIL:** introspection в prod; unbounded depth; field без authz.
@@ -1516,6 +1553,7 @@ error_budget:
 **Why:** WS bypasses HTTP auth assumptions and has no natural backpressure.
 - [ ] auth on connect (not only HTTP); origin check
 - [ ] heartbeat/ping + idle timeout; **backpressure**; bounded send queue
+- [ ] max message/frame size; per-connection queue cap (explicit drop/close policy)
 - [ ] reconnect + resume; ordering/dedup
 - [ ] per-connection rate limit
 - **FAIL:** WS без auth/heartbeat; unbounded send queue.
@@ -1525,7 +1563,7 @@ error_budget:
 **Why:** search is IDOR-at-scale + injection surface.
 - [ ] no string-built DSL / `query_string` injection
 - [ ] **per-tenant filter** on every search/facet (incl. joins)
-- [ ] bounded page size; scroll/PIT with timeout
+- [ ] bounded page size; scroll/PIT with timeout; no unbounded aggregations
 - [ ] index/alias versioning + reindex plan
 - **FAIL:** search без tenant filter; unbounded `size`.
 
@@ -1533,6 +1571,7 @@ error_budget:
 **Min tier:** STANDARD+ · **Enforced by:** `i18n-gate`  
 **Why:** naive time/locale handling causes off-by-timezone bugs and unusable UI.
 - [ ] timezone-aware datetimes, **store UTC**; no naive local time
+- [ ] API accepts/returns **ISO-8601 UTC**; user locale stored server-side
 - [ ] locale-aware formatting (numbers/dates/currency)
 - [ ] RTL support; plural rules
 - [ ] user-facing strings translated (no hardcoded)
@@ -1542,9 +1581,9 @@ error_budget:
 **Min tier:** CRITICAL · **Enforced by:** `pci-gate`  
 **Why:** card data brings legal scope; tokenize and never store PAN.
 - [ ] **never store PAN/CVV**; tokenize via provider (Stripe/Adyen)
-- [ ] hosted fields / provider SDK; minimize PCI scope
+- [ ] hosted fields / provider SDK; minimize PCI scope; PCI SAQ scope documented
 - [ ] 3DS/SCA When required; webhook signature (A60)
-- [ ] amount/currency **from server**, never client
+- [ ] amount/currency **from server**, never client; token only, no CVV ever
 - **FAIL:** PAN в логах/БД; amount с клиента.
 
 ### A60 — Webhook Intake (When external webhook)
@@ -1573,10 +1612,10 @@ error_budget:
 ### A62 — Load & Soak (When critical API)
 **Min tier:** PRIME+ · **Enforced by:** `load-test-gate` (EXTENDED, nightly)  
 **Why:** gates check code, not behaviour under load; an untested p99 target is theory.
-- [ ] load test critical endpoints (k6/Locust/Gatling) at target rps
-- [ ] **soak ≥1h** → detect leaks (memory/fd/connections)
-- [ ] spike test → graceful degrade, no crash
-- [ ] evidence: `load: p99=…@Nrps · soak: no-leak`
+- [ ] load test critical endpoints (k6/Locust/Gatling) at **target rps from A54**
+- [ ] **soak ≥1h** → detect leaks (memory/fd/connections); steady-state error rate <1%
+- [ ] spike test → graceful degrade, no crash; recovery time recorded
+- [ ] evidence: `load: p99=…@Nrps · soak: no-leak · spike: recovered`
 - [ ] run against staging with prod-like data
 - **FAIL:** perf-budget без load test; soak не гонялся; leak под нагрузкой.
 
@@ -1607,6 +1646,7 @@ error_budget:
 **Min tier:** PRIME+ SHOULD  
 **Why:** read/write models have different shapes; forcing one model bloats both.
 - [ ] split commands/queries when read/write complexity or load differs
+- [ ] read model derived from events/write model — **no dual-write**; projection is idempotent + tested
 - [ ] NOT CQRS for simple CRUD (B07)
 
 ### B02 — SOLID & GRASP
@@ -1725,14 +1765,16 @@ error_budget:
 ### B09 — ADR
 **Min tier:** CRITICAL; SHOULD at PRIME+  
 **Why:** decisions decay from memory; ADRs preserve the «why» for the next engineer.
-- [ ] ADR in `docs/adr/` for non-trivial architecture/contract changes
-- [ ] template: Контекст · Варианты · Решение · Последствия
+- [ ] ADR in `docs/adr/<NNNN>-<slug>.md` for non-trivial architecture/contract changes
+- [ ] template: CONTEXT · OPTIONS(≥2) · CHOICE · REASON · TRADE-OFF · REVISIT-IF · Последствия
+- [ ] ADR index updated; superseded ADR links the successor
 - [ ] any engineer understands *why* in 5 min
 
 ### B10 — Performance
 **Min tier:** PRIME+  
 **Why:** optimizing without data wastes effort and can hurt clarity.
 - [ ] profile before optimizing; correctness/readability first
+- [ ] budget from A54 (p99/rps); benchmark harness recorded
 - [ ] batching/caching/zero-alloc only where metrics prove need
 - [ ] native module / separate service only for proven bottlenecks
 
@@ -1760,10 +1802,10 @@ error_budget:
 ### B13 — Ops & Runbook
 **Min tier:** PRIME+ · **When:** long-running service / container / K8s · **Enforced by:** `health-gate` · `prod-config`  
 **Why:** you cannot operate what you cannot observe or stop.
-- [ ] liveness + readiness probe per deploy model
-- [ ] graceful shutdown tested or ADR; rollback steps in ADR
+- [ ] liveness + readiness probe per deploy model (distinct, both tested)
+- [ ] graceful shutdown tested or ADR; rollback steps in ADR + rollback exercised once
 - [ ] 12-factor config; secrets env/vault only
-- [ ] runbook includes revoke + rotate on suspected secret leak (A40/A19)
+- [ ] runbook includes revoke + rotate on suspected secret leak (A40/A19); runbook index updated
 
 ### B14 — Handoff Artifact (self-produced)
 **Min tier:** PRIME+  
@@ -1796,12 +1838,14 @@ G-conc   → async-safety, lock-order, immutability
 G-web    → webhook-signature, upload-safety, notification-safety, pii-inventory, retention, load-test
 G-plat   → graphql-hygiene, websocket-lifecycle, search-hygiene, i18n, pci
 G-infra  → docker-security, compose-security, prod-config, health, tls-min-version
-G-output → coverage-line-100, coverage-branch-100, coverage-diff-100, coverage-ratchet, evidence-block,
+G-output → coverage-critical-100, coverage-rest-90, coverage-diff-100, coverage-ratchet, evidence-block,
            param-bounds, atomicity, prod-guard, spec-parity, mutation-critical, ffi-safety,
            reasoning, adversarial, decision-log, standards-map
 ```
 
 Гейт называется в `Enforced by` своего закона (§2) — каталог «правило → гейт» не дублируется. Bootstrap реализует **все** гейты канонического списка (§3.2).
+
+**SSOT имён и счётчиков — §3.2 canonical list.** §3.0 = группы · §3.1 = алгоритмы · §3.2 = список и числа. Любое изменение числа гейтов делается только в §3.2, остальные ссылаются.
 
 ### 3.1 Gate algorithms
 
@@ -2230,6 +2274,62 @@ PCI: no PAN/CVV storage · tokenization · 3DS When required · amount from serv
 5. Evidence: `decisions_logged: docs/adr/<…>.md` (paths)
 ```
 
+**Matrix & test gates (algorithms — were previously declared without method):**
+```
+test-matrix-gate (A24/A34): cross-check design/TDD-LOCK ↔ actual tests
+ 1. Every TDD-LOCK entry → a test exists with the same behavior + oracle tokens
+ 2. Every test in scope → maps to a TDD-LOCK entry (no orphan tests)
+ 3. FAIL: lock entry without test | test without lock entry | oracle mismatch
+ 4. FAIL if test-matrix covers only happy path (behavior×input×expected diagonal empty)
+
+route-matrix-gate (A03): for each exposed op × status in the A03 status table → a contract test
+ 1. enumerate ops from routes/OpenAPI; 2. op × {2xx,400,401,403,404,409,422,429} → test
+ 3. FAIL: op without full status row; 5xx asserted as expected outcome
+
+boundary-value-gate (A12a): validators/ranges load 0 · -1 · null/empty · max · max+1
+ 1. detect numeric/string/date validators; 2. require a boundary test per edge
+ 3. FAIL: range check with no max+1 test
+
+negative-path-gate (A12a): state-changing/IO/auth ops must have reject/rollback/invalid tests
+ 1. list state-changing ops; 2. require ≥1 reject + ≥1 rollback test each
+ 3. FAIL: only happy-path for a mutation
+
+fsm-transition-gate (B06): for each entity with status → legal + illegal + terminal-reentry tests
+ 1. read fsm_transitions; 2. each edge → test; 3. each illegal pair → test asserting block
+ 4. FAIL: legal edge untested | illegal edge allowed
+
+regression-lock (A12): every bug fix → test_regression_* that reproduces then passes
+ 1. scan diff for fix + `test_regression_`; 2. test must fail on pre-fix code (recorded)
+ 3. FAIL: bug fix without regression test
+
+concurrency-gate (A12a/A14): state-changing op → 2 parallel calls ⇒ exactly 1 side-effect
+ 1. locate atomic guard; 2. require a parallel test asserting single side-effect
+ 3. FAIL: no guard or no test
+
+crash-recovery-gate (A12a/A14): crash between claim and sink ⇒ next call not blocked
+ 1. require a test injecting failure after claim; 2. assert release/janitor path
+ 3. FAIL: claim without recovery test
+
+ttl-gate (A12a): keys with TTL asserted via fake clock (not sleep)
+ 1. detect TTL SET; 2. require advance-time test asserting expiry path
+ 3. FAIL: TTL untested or sleep-based
+
+crypto-params-gate (A19/A12a): RSA ≥2048, no homemade crypto, unique IV/nonce
+ 1. parse crypto usage; 2. FAIL RSA<2048 / static IV / custom hash
+ 3. require a test asserting rejection of weak params
+
+ignored-test-gate (A12a/A25): each #[ignore]/skip → per-test skipped_steps row {step,test,trigger,adr,sunset}
+ 1. collect ignores; 2. FAIL if no row; 3. e2e family APPLIED only if ≥1 e2e actually runs
+
+exclude-honesty-gate (A25): greenfield canvas must not exclude composition root / I/O adapters / handlers
+ 1. read exclude_coverage; 2. FAIL if it hides composition/adapters (unless ADR+integration test+sunset)
+
+test-quality-gate (A27, merged no-empty + no-trivial-assert):
+ 1. FAIL empty body / tautology (assert True, expect(1).toBe(1))
+ 2. FAIL assert on same-file constant; err-id/Display/enum-name-only without producer call
+ 3. FAIL name-only oracle (!msg.is_empty()) ; each APPLIED test must fail if production lies
+```
+
 ### 3.2 prime_check contract
 
 **Commands:**
@@ -2259,7 +2359,7 @@ ffi_profile: false                 # MUST true When unsafe/JNI/ctypes/Win32 in s
 safety_profile: false              # true When CRITICAL/embedded
 zero_tolerance: true
 agent_evidence_required: true
-coverage: {line: 100.0, branch: 100.0, diff_only_on_pr: true, ratchet: true}
+coverage: {critical_line: 100.0, critical_branch: 100.0, rest_line: 90.0, diff_only_on_pr: true, ratchet: true}
 mutation:
   min_kill_rate_prime: 85
   min_kill_rate_critical: 95
@@ -2324,7 +2424,7 @@ FOCUS — 31 (MANDATORY at PRIME+; honest MVP — implement FIRST, then feature 
  TESTS (6)      10 test-taxonomy-gate · 11 intent-lock-gate · 12 tdd-lock-gate · 13 test-quality-gate (merged no-empty + no-trivial) · 14 regression-lock · 15 pytest-unit
  SECURITY (9)   16 gitleaks-history · 17 no-secrets · 18 dependency-audit · 19 no-debug-bypass
                 20 zta-matrix-gate · 21 trust-pipeline-gate · 22 idor-ownership-gate · 23 mass-assign-gate · 24 path-escape-gate
- COVERAGE (2)   25 coverage-diff-100 · 26 coverage-ratchet
+ COVERAGE (2)   25 coverage-critical-100 · 26 coverage-diff-100
  DATA (1)       27 migration-path-only
  HARDENING (2)  28 param-bounds-gate · 29 atomicity-gate
  TRACE (1)      30 standards-map-gate (§5.7)
@@ -2340,7 +2440,7 @@ CORE — 71 (always-on set; FOCUS ⊂ CORE). Non-FOCUS part enables as the repo 
  TESTS (12)      live-surface-gate · no-swallow-gate · checker-integrity-gate · ignored-test-gate · err-variant-gate
                  pytest-integration · pytest-contract · test-matrix-gate · boundary-value-gate · negative-path-gate
                  route-matrix-gate · fsm-transition-gate
- COVERAGE (3)    coverage-line-100 · coverage-branch-100 · no-pragma-no-cover
+ COVERAGE (3)    coverage-rest-90 · coverage-ratchet · no-pragma-no-cover
  DATA (3)        schema-drift · api-contract-drift · snapshot-contract
  INFRA/OPS (4)   docker-security · compose-security · prod-config · health-gate
  HARDENING (1)   prod-guard-gate
@@ -2451,6 +2551,8 @@ P3 — backlog:
 
 ### 3.5 Evidence block (A26)
 
+**SSOT:** `prime_check --json` output is the machine-readable source; the text block below is its rendering. `evidence-block` validates the **fields** (not their presence-only): required keys, no hidden `N/A`, `steps_green = steps_registered − steps_skipped`. Missing key → invalid.
+
 ```
 PRIME-VERIFY-EVIDENCE
 tier: PRIME
@@ -2476,8 +2578,8 @@ skip_reasons:
   no_search: [search-hygiene-gate]
   no_pci: [pci-gate]
   no_load: [load-test-gate]
-coverage_line: 100.00%
-coverage_branch: 100.00%
+coverage_critical: 100.00% (line+branch)
+coverage_rest: 91.00% (line)
 coverage_delta_vs_main: +1.2%
 taxonomy_families: unit=APPLIED · integration=APPLIED · contract=APPLIED · negative=APPLIED · access_control=N/A(no auth)
 contract_surface: outbound=APPLIED:IOrderRepo · inbound=N/A(single HTTP entry)
@@ -2964,6 +3066,18 @@ PHASE 3 — FIX (правильно)
 | Prime Check | merge gate exit 0 |
 | adoption_mode | greenfield \| legacy |
 | Decision Log | waiver/N/A/redesign record (§4.7) |
+| **critical_scope** | high-risk code (money · auth · FSM · parsers · G-auth/G-sec · idempotency) → 100% line+branch (§A25) |
+| **rest_scope** | остальной `runtime_scope` → ≥90% line (§A25) |
+| **hot-path** | критичный путь запроса/операции (issuance, checkout, auth); не должен зависеть от cold-сервисов (§A44) |
+| **cold-path** | некритичный внешний вызов (email, analytics) → breaker + fallback + timeout (§A44/B04) |
+| **small unit** | ≤120 строк/файл; функция ≤40 строк; cyclomatic ≤10 (§A11) |
+| **rich domain** | lifecycle/status меняется методом сущности с инвариантом, не публичным сеттером (§A05/B06) |
+| **realistic volume** | 0 · 1 · 100 · 1 000 000 элементов; target rps и p99 из §A54 (Domain Elicitation §1.12) |
+| **load / soak / spike** | load — на target rps; soak — ≥1 час без утечек; spike — всплеск, degrade без краха (§A62) |
+| **stop-the-line** | не наращивать новый код на сломанный фундамент; чини до green, потом продолжай (§A30) |
+| **FOCUS / CORE / EXTENDED** | уровни checker (`checker_maturity`): FOCUS 31 mandatory ⊂ CORE 71 + EXTENDED = 139 (§3.2) |
+| **Alias id** | старый номер, указывающий на текущего owner (A49→A20 …); в новом тексте — целевой id (§2.0) |
+| **SSOT** | единственный источник правды по теме; остальные ссылаются, не дублируют |
 
 ### 5.4 Forbidden patterns (SSOT)
 
@@ -3198,7 +3312,7 @@ asvs:
   V7: [pii-log-scan, error-context-gate]
 iso25010:
   Security:    [zta-matrix-gate, trust-pipeline-gate]
-  Reliability: [coverage-line-100, mutation-critical]
+  Reliability: [coverage-critical-100, mutation-critical]
 cisq:
   Maintainability: [import-graph-gate, behavior-ssot-gate, package-cohesion-gate]
 cert: {}   # native only
