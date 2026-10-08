@@ -392,6 +392,26 @@ trust_pipeline_map: [ops, idor_cases, privileged_fields_stripped, session_model]
 
 **Правило:** суб-агенты **не спавнят** других суб-агентов. `explore` — инструмент Orchestrator'а для recon, не роль Analyst.
 
+#### 1.11.0 First duty — load & obey the standard (MUST, before ANY role work)
+
+**Orchestrator MUST** embed the **STEP 0** block below in **every** spawn prompt (all roles, no exceptions).
+**Sub-agent MUST** complete STEP 0 **before** any role work — otherwise the task is invalid.
+
+```
+STEP 0 — LOAD & OBEY THE STANDARD (do first; report standard_loaded=true)
+1. Locate the standard in the repo: Mawyxx Prime V6.5.md (accept MAWYXX-PRIME.md / Mawyxx-Prime.md).
+2. If missing — copy it into the repo root, then confirm:
+   https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
+   curl -fsSL "<url>" -o "Mawyxx Prime V6.5.md"   (PowerShell: Invoke-WebRequest -Uri "<url>" -OutFile "Mawyxx Prime V6.5.md")
+3. Read the listed {{SECTION_LIST}} sections — do NOT rely on memory; re-read for THIS task.
+4. In handoff_notes restate: tier · applicable laws (A-ids) · gates you run · your role boundaries.
+5. If the standard cannot be loaded → status=BLOCKED, reason=STANDARD_UNAVAILABLE — do NOT start work.
+```
+
+**MUST NOT:** begin role work, produce output, or edit files before STEP 0 is done.  
+**Merge rule:** a `[OUTPUT]` with `standard_loaded != true` is **rejected** by the Orchestrator (row 1.11.5).
+
+
 **Универсальный spawn-скелет (Orchestrator заполняет ВСЕ `{{…}}`):**
 
 ````markdown
@@ -401,9 +421,14 @@ trust_pipeline_map: [ops, idor_cases, privileged_fields_stripped, session_model]
 You are {{ROLE}} for MAWYXX PRIME. Execute ONLY this role for this task.
 Do NOT do other roles' work. Do NOT spawn other sub-agents.
 
-**Skill (read ONLY these sections)**
-File: `Mawyxx Prime V6.5.md` (repo root). Read ONLY: {{SECTION_LIST}}.
-Do NOT read the whole file. If you cannot open files, the Orchestrator pastes those sections here.
+**STEP 0 — LOAD & OBEY THE STANDARD (do first, before any role work)**
+1. Locate `Mawyxx Prime V6.5.md` (accept `MAWYXX-PRIME.md` / `Mawyxx-Prime.md`).
+2. If missing — copy from:
+   https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.5.md
+   (`curl -fsSL "<url>" -o "Mawyxx Prime V6.5.md"` · PowerShell `Invoke-WebRequest -Uri "<url>" -OutFile "Mawyxx Prime V6.5.md"`)
+3. Read ONLY: {{SECTION_LIST}} — do NOT rely on memory; do NOT read the whole file.
+4. In `handoff_notes` restate: tier · applicable laws (A-ids) · gates · role boundaries.
+5. Cannot load the standard → `status=BLOCKED` (reason=STANDARD_UNAVAILABLE); do NOT start.
 
 **Repo & tier context**
 - tier: {{LITE|STANDARD|PRIME+|CRITICAL}} · adoption_mode: {{greenfield|legacy}}
@@ -431,6 +456,7 @@ N. {{…}}
   "role": "{{ROLE}}",
   "task_id": "{{task_id}}",
   "status": "PASS | FAIL | BLOCKED",
+  "standard_loaded": true,
   "artifact": "{{path/ref or inline}}",
   "design_updates": ["{{maps changed}}"],
   "gate_results": [{"gate": "string", "result": "PASS | FAIL | SKIPPED(ADR)", "findings": [{"file":"p:line","rule":"Axx","severity":"P0..P3","issue":"string","hint":"string"}]}],
@@ -438,7 +464,7 @@ N. {{…}}
   "open_items": [{"kind": "INVESTIGATE | P0..P3", "detail": "string"}]
 }
 ```
-**Merge contract:** dedupe by key `(file, rule, gate)`; keep highest severity; union `sources`; chain-upgrade to P0; a `PASS` without `artifact` + `gate_results` is rejected.
+**Merge contract:** reject any `[OUTPUT]` with `standard_loaded != true`; dedupe by key `(file, rule, gate)`; keep highest severity; union `sources`; chain-upgrade to P0; a `PASS` without `artifact` + `gate_results` is rejected.
 
 **Forbidden**
 - reading the whole skill / whole session
@@ -449,6 +475,7 @@ N. {{…}}
 **Общее правило:** output любой роли возвращается Orchestrator'у, не в чат. Orchestrator мержит (row 1.11.5).
 
 #### 1.11.1 Analyst pack (PHASE 0–0.5)
+- **First (MUST):** STEP 0 — locate/copy + read the standard, obey it (§1.11.0).
 - **Read:** §0.4 · §0.5 · §0.7 · §1.3 · §1.3a · §1.12 · §2.0 · §4.1 · A01 · A07 · A24 · A33 · A34 · A35 · A40 · A41.
 - **Do:** tier + adoption_mode → Domain Elicitation (§1.12) → Default-secure 5Q → Threat Model 10Q → заполнить **Design Artifact** целиком: `test_matrix` (design/TDD-LOCK-<task>.md) · `test_taxonomy_map` · `contract_surface_map` · `trust_pipeline_map` · `secure_continuum_map` · `behavior_owners` · `AC[]` с оракулами · `blast_radius` · `capability_slices`.
 - **Output:** Design Artifact (artifact).
@@ -461,10 +488,11 @@ N. {{…}}
 **Handoff IN: want to add PATCH /orders/{id} (change quantity)**
 **Your job: produce Design Artifact; answer 5Q + 10Q; AC oracles; trust_pipeline_map; blast**
 **Laws: A01, A34, A35, A40, A41 · Gates: G-auth**
-**Output (JSON, §1.11 contract): {"role":"Analyst","task_id":"T-1042","status":"PASS","artifact":"design/T-1042.yaml","gate_results":[]}**
+**Output (JSON, §1.11 contract): {"role":"Analyst","task_id":"T-1042","status":"PASS","standard_loaded":true,"artifact":"design/T-1042.yaml","gate_results":[]}**
 ```
 
 #### 1.11.2 Builder pack (PHASE 1–4.7)
+- **First (MUST):** STEP 0 — locate/copy + read the standard, obey it (§1.11.0).
 - **Read:** handoff Design Artifact + §0.7 · §1.3a · §1.10 (PRIME+) · A05–A11 · A14–A20 · A39 · A42 · A44 · A46 · A24 · B03 · B09.
 - **Do:** research deps → **execute the frozen TDD-LOCK** (each locked test first, fail for the right reason, §1.3a) → ports → Fakes → adapters → composition root → docs/ADR. **Call owner, не клонируй** (A39). Держись `blast_radius`.
 - **Gates:** `prime_check --only` после правок → `--diff` → FULL перед handoff.
@@ -472,12 +500,14 @@ N. {{…}}
 - **Forbidden:** clone behavior; concrete I/O в core; happy-path-only; правки вне blast.
 
 #### 1.11.3 Guardian pack (PHASE 4.5–4.6)
+- **First (MUST):** STEP 0 — locate/copy + read the standard, obey it (§1.11.0).
 - **Read:** diff + A12 · A16 · A18 · A24 · A25 · A27 · A29 · A36 · A39 · A10 · §3.1 · §4.10.
 - **Do:** taxonomy verify → security audit (ответы Threat Model → гейты) → review (`behavior-ssot` · `live-surface` · `no-swallow`) → **adversarial 8+3 (§4.10)** → findings с приоритетом P0–P3.
 - **Rule:** **отдельная сессия от Builder**; не одобряет свой код. Код не пишет — findings уходят Builder'у.
 - **Output:** findings[] P0–P3 + taxonomy verify + adversarial answers.
 
 #### 1.11.4 Verifier pack — Two-Agent (PHASE 4.8–5)
+- **First (MUST):** STEP 0 — locate/copy + read the standard, obey it (§1.11.0).
 - **When:** PRIME+ обязательно; **свежая сессия/модель**.
 - **Read:** diff + §4.4 Pre-Flight + A42 · A44 · A46 · A14 · A21 · §4.10.
 - **Prompt (verbatim):** *«Ты — adversarial reviewer. НАЙДИ баги, не одобряй. Проверь bounds · atomicity · isolation · config guard · spec parity · IDOR · mass-assign.»*
@@ -487,7 +517,8 @@ N. {{…}}
 #### 1.11.5 Orchestrator launch & merge
 ```
 1. Launch independent sub-agents in ONE message (parallel) — Task tool.
-2. Collect [OUTPUT]s; assign global IDs F-001…
+   Every spawn prompt MUST embed the **STEP 0 — load & obey the standard** block (§1.11.0).
+2. Collect [OUTPUT]s; assign global IDs F-001… **Reject** any output with `standard_loaded != true`.
 3. Dedupe by key `(artifact_id, gate, file:line)` → merge; keep highest severity; union sources.
 4. Chain pass: combine findings → upgrade to P0 if exploit chain (§4.10).
 5. Gap pass: any role/phase uncovered → spawn it.

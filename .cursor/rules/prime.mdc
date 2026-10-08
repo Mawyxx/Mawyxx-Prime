@@ -91,15 +91,17 @@ PHASE 5    prime_check FULL + evidence block
 ```
 Sub-agents per §1.11 when applicable (Writer ≠ Verifier).
 
+**Sub-agents — STEP 0 is mandatory (§1.11.0):** before spawning any sub-agent, the Orchestrator MUST embed in its prompt: *locate the standard (`Mawyxx Prime V6.5.md`), copy it from the raw URL if missing, read the listed sections, obey it, and report `standard_loaded=true`.* A sub-agent MUST do this **before any role work**; the Orchestrator **rejects** any output with `standard_loaded != true`.
+
 ## STEP 5 — Always with the standard
 
 - **Law→Gate**: every MUST maps to a real gate.
 - **TDD-LOCK (A24 / §1.3a)**: `design/TDD-LOCK-<task>.md` is written during design and frozen; **no production code without a locked test**; never edit a locked test to pass.
 - **Anti-N/A**: `N/A(reason)` only; never a naked `N/A`.
 - **fix-until-green**: never stop with `exit ≠ 0`; never ask the user to run tests.
-- **Evidence** (§3.5) before saying "done"; coverage alone ≠ done.
+- **Evidence** (§3.4) before saying "done"; coverage alone ≠ done.
 - **Self-Sufficiency** (§4.17): decide and verify everything yourself.
-- Gate missing → bootstrap per §3.2 (**FOCUS 30** → CORE 70 → FULL).
+- Gate missing → bootstrap per §3.2 (**FOCUS 31** → CORE 71 → FULL).
 
 ## STEP 6 — Never
 
