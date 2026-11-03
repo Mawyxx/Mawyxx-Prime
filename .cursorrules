@@ -29,15 +29,18 @@ Confirm the file exists. Keep it in the repo from now on.
 
 ## STEP 2 — Read it (don't guess)
 
+**Read the kernel first:** §0.0 (Axioms AX1–AX7 · Kernel K1–K6 · normative grammar · No-rule-loss) and §2.1 Policy Index are the spine. Then read only the owner-section for your task. Every law has `Derives → Kx/Ax`; derive, do not guess.
+
 Read the file — DO NOT rely on a previous session. Read at least the sections for
 your task; re-read when the task changes.
 
 | Task | Sections to read |
 |------|------------------|
-| Always | §0.3 router · §0.4 tiers · §0.5 Default-secure 5Q · §0.6 principles · §1.1 roles · §1.2 phases · §1.5 Conflict Matrix · §1.6 Anti-N/A · §2.0 law groups · §3.0 gate groups |
+| Always | §0.0 kernel + axioms · §0.3 router · §0.4 tiers · §0.5 Default-secure 5Q · §0.6 principles · §1.1 roles · §1.2 phases · §1.5 Conflict Matrix · §1.6 Anti-N/A · §2.0 law groups · §2.1 Policy Index · §3.0 gate groups |
 | Any feature | §1.3 Design Artifact · A01 · A07 · A33 · A34 · A35 · A40 · A41 · §4.1 Threat Model 10Q |
 | Security surface | A02 · A16 · A18 · A19 · A29 · A40 · A41 · A60–A64 · §5.7 |
 | API / perf / data | A50 · A48 · A20 (data+tx) · B03 · B04 |
+| Cross-cutting policy | §0.0 · §2.1 · A65 · A41 · A50 · B03 · B04 |
 | Tests | §1.3a · A24 · A12 · A12a · A25 · A27 · A28 |
 | Bug / incident | §4.3 · §4.12 |
 | Architecture decision | §4.13 · §4.14 · §4.7 |
@@ -74,6 +77,8 @@ exact task** and write a short, concrete trace. One-word answers ("yes", "ok",
 **3.11 Failure** — simulate DB down, Redis down, third-party slow/timeout, queue backlog, crash between steps.
 
 **3.12 Time & concurrency** — simulate two parallel calls, retry with the same key, out-of-order/duplicate webhook, clock/TZ edge.
+
+**3.13 Cross-cutting trace** — for each operation list applicable concerns (authn/authz/schema/rate-limit/log/trace/metrics/tx/idempotency/retry/cache/error-map/audit), name owner + application point + bypass test. A second copy of a check → extract an aspect in this change set (A65/K3). Inline policy in a handler → STOP.
 
 Output the result as a compact **Simulation trace** (bullets) **before writing code**. Re-simulate whenever the task changes.
 

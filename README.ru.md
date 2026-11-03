@@ -21,7 +21,7 @@
 - [Что такое MAWYXX PRIME](#-что-такое-mawyxx-prime)
 - [Почему AI-агенты проваливаются](#-почему-ai-агенты-проваливаются)
 - [Архитектурные слои RUNTIME и LAW](#-архитектурные-слои-runtime-и-law)
-- [LAW LAYER Строгие ограничения AI-кодинга A01 to A64](#-law-layer-строгие-ограничения-ai-кодинга-a01-to-a64)
+- [LAW LAYER Строгие ограничения AI-кодинга A01 to A65](#-law-layer-строгие-ограничения-ai-кодинга-a01-to-a65)
 - [Столпы честности](#-столпы-честности)
 - [Карта правил для prompt engineering](#-карта-правил-для-prompt-engineering)
 - [Автоматический quality gate checker](#-автоматический-quality-gate-checker)
@@ -35,7 +35,7 @@
 
 **v3.0** = паттерны (MIT). **v6.5** = Unified Constitution: **один файл**, два слоя (RUNTIME + LAW), один SSOT на тему, без дублей, **tier-aware глубина важнее ширины**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
-**Законы A01–A64 + B01–B14** · 5 ролей (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** под каждым законом · **12 GOOD/BAD паттернов (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3** · **Diagnostic tree** · **Testing recipes** · канонический checker map (**FOCUS 31 обязательны** → CORE 71 → **139** всего, ratchet) с depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), проверяется **двусторонне** (inline `standards.yaml`).
+**Законы A01–A65 + B01–B14** · 5 ролей (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** под каждым законом · **12 GOOD/BAD паттернов (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3** · **Diagnostic tree** · **Testing recipes** · канонический checker map (**FOCUS 31 обязательны** → CORE 71 → **139** всего, ratchet) с depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), проверяется **двусторонне** (inline `standards.yaml`).
 
 **Project Skin · Empire Engine:** пиши в стиле проекта — с дисциплиной Empire. Зелёный `prime_check` из имён AC, мёртвых портов, ignored e2e или exclude composition — **не** done.
 
@@ -67,11 +67,11 @@ AI-агенты сдают «зелёный» код, который врёт. M
 | Слой | Назначение |
 |------|------------|
 | **RUNTIME** (§0–§1) | Как работает агент: router, tier, роли, фазы, суб-агенты, протоколы. |
-| **LAW** (§2) | Что агент обязан/не должен: A01–A64 + B01–B14, каждый с **Why**. |
+| **LAW** (§2) | Что агент обязан/не должен: A01–A65 + B01–B14, каждый с **Why**. |
 
 ---
 
-## ⚖️ LAW LAYER Строгие ограничения AI-кодинга A01 to A64
+## ⚖️ LAW LAYER Строгие ограничения AI-кодинга A01 to A65
 
 | Группа | Законы |
 |--------|--------|
@@ -84,6 +84,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 | **Perf/API/Ops** | A48 Performance · A50 API Hygiene · A51 alias→B03 · A52 alias→B04 · A53 alias→A14 · B03 SRE+Observability · B04 Resilience+Retry |
 | **Backend** | A54 Budgets · A62 Load/soak · A64 Notifications |
 | **Platform** | A55 GraphQL · A56 WebSocket · A57 Search · A58 i18n · A59 PCI |
+| **Cross-cutting** | A65 Cross-Cutting Aspect Law · один owner / одна точка применения |
 | **Aliases** | A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A49→A20 |
 
 > Норматив по ID — в **`Mawyxx Prime V6.5.md`**.
@@ -119,7 +120,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 §1 HOW TO WORK         1.1 Роли · 1.2 Фазы · 1.3 Design Artifact · 1.5 Conflict Matrix
                        1.6 Anti-N/A · 1.7 Failure modes · 1.9 3-strike · 1.10 Reasoning (PRIME+)
                        1.11 Sub-agent execution · 1.12 Domain Elicitation
-§2 LAWS (A01–A64)  —  каждый с Why + чеклист (+ GOOD/BAD на 12 ключевых)
+§2 LAWS (A01–A65)  —  каждый с Why + чеклист (+ GOOD/BAD на 12 ключевых)
    A01 Context/tier      A14 Idempotency+Atom  A27 Test quality        A41 Trust Pipeline
    A02 Zero Trust        A15 Deterministic     A28 Mutation            A42 Param bounds
    A03 API contract      A16 Secure-by-design  A29 ZTA matrix          A44 Dep isolation
@@ -133,6 +134,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
    A11 Decomposition     A24 TDD-LOCK          A39 Behavior SSOT       A62 Load/soak
    A12 Tests             A12a Taxonomy         A40 Secure Continuum    A63 Privacy/retention
    A13 DoD               A25 Coverage          A26 Evidence            A64 Notifications
+   A65 Cross-cutting aspect  (Policy–Intent Separation · K3)
    B01 CQRS … B14 Handoff Artifact
 §3 GATES               3.0 groups · 3.1 algorithms · 3.2 prime_check (FOCUS 31 → CORE 71 → 139) ·
                        3.4 P0–P3 priorities · 3.5 evidence
@@ -190,7 +192,7 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 | Файл | Содержание | Доступ |
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | Паттерны · ~220 строк | **MIT** |
-| `Mawyxx Prime V6.5.md` | **Один файл** · Unified Constitution · **§0–§5** · **A01–A64** · **B01–B14** · §5.7 standards mapping (inline) | **Открыт в репо** |
+| `Mawyxx Prime V6.5.md` | **Один файл** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Открыт в репо** |
 | `Mawyxx-Security.md` | Отдельный security-аудит mega-prompt (§1.1 Surface Matrix S01–S23 · 19 сабагентов) | **Открыт в репо** |
 | `scripts/prime_check/` | Агент создаёт FOCUS→CORE→FULL по §3.2 | **Не в репо** — агент bootstrap |
 

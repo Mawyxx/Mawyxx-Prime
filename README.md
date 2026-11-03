@@ -21,7 +21,7 @@
 - [What is MAWYXX PRIME](#-what-is-mawyxx-prime)
 - [Why AI Agents Fail](#-why-ai-agents-fail)
 - [Architecture Layers RUNTIME and LAW](#-architecture-layers-runtime-and-law)
-- [LAW LAYER Strict AI Coding Restrictions A01 to A64](#-law-layer-strict-ai-coding-restrictions-a01-to-a64)
+- [LAW LAYER Strict AI Coding Restrictions A01 to A65](#-law-layer-strict-ai-coding-restrictions-a01-to-a65)
 - [Honesty Pillars](#-honesty-pillars)
 - [Prompt Engineering Rule Map](#-prompt-engineering-rule-map)
 - [Automated Quality Gate Checker](#-automated-quality-gate-checker)
@@ -35,7 +35,7 @@
 
 **v3.0** = patterns (MIT). **v6.5** = Unified Constitution: **one file**, two layers (RUNTIME + LAW), one SSOT per topic, no duplicates, **tier-aware depth over width**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
-**Laws A01–A64 + B01–B14** · 5 roles (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** under every law · **12 GOOD/BAD patterns (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3 priorities** · **Diagnostic tree** · **Testing recipes** · canonical checker map (**FOCUS 31 mandatory** → CORE 71 → **139** total, ratcheted) with depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), enforced **bidirectionally** (inline `standards.yaml`).
+**Laws A01–A65 + B01–B14** · 5 roles (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** under every law · **12 GOOD/BAD patterns (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3 priorities** · **Diagnostic tree** · **Testing recipes** · canonical checker map (**FOCUS 31 mandatory** → CORE 71 → **139** total, ratcheted) with depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), enforced **bidirectionally** (inline `standards.yaml`).
 
 **Project Skin · Empire Engine:** write in the project's style — with Empire discipline. Green `prime_check` from AC-names, unused ports, ignored e2e, or excluded composition is **not** done.
 
@@ -67,11 +67,11 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 | Layer | Purpose |
 |-------|---------|
 | **RUNTIME** (§0–§1) | How the agent works: router, tiers, roles, phases, sub-agents, protocols. |
-| **LAW** (§2) | What the agent must/must-not do: A01–A64 + B01–B14, each with **Why**. |
+| **LAW** (§2) | What the agent must/must-not do: A01–A65 + B01–B14, each with **Why**. |
 
 ---
 
-## ⚖️ LAW LAYER Strict AI Coding Restrictions A01 to A64
+## ⚖️ LAW LAYER Strict AI Coding Restrictions A01 to A65
 
 | Group | Laws |
 |-------|------|
@@ -84,6 +84,7 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 | **Perf/API/Ops** | A48 Performance · A50 API Hygiene · A51 alias→B03 · A52 alias→B04 · A53 alias→A14 · B03 SRE+Observability · B04 Resilience+Retry |
 | **Backend** | A54 Budgets · A62 Load/soak · A64 Notifications |
 | **Platform** | A55 GraphQL · A56 WebSocket · A57 Search · A58 i18n · A59 PCI |
+| **Cross-cutting** | A65 Cross-Cutting Aspect Law · one owner / one application point |
 | **Aliases** | A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A49→A20 |
 
 > Reference by ID: full normative text is in **`Mawyxx Prime V6.5.md`**.
@@ -119,7 +120,7 @@ Also: **A05a** cohesion · **A12a** taxonomy (24 families) · Anti-N/A · **A25*
 §1 HOW TO WORK         1.1 Roles · 1.2 Phases · 1.3 Design Artifact · 1.5 Conflict Matrix
                        1.6 Anti-N/A · 1.7 Failure modes · 1.9 3-strike · 1.10 Reasoning (PRIME+)
                        1.11 Sub-agent execution · 1.12 Domain Elicitation
-§2 LAWS (A01–A64)  —  each with Why + checklist (+ GOOD/BAD patterns on 12 key rules)
+§2 LAWS (A01–A65)  —  each with Why + checklist (+ GOOD/BAD patterns on 12 key rules)
    A01 Context/tier      A14 Idempotency+Atom  A27 Test quality        A41 Trust Pipeline
    A02 Zero Trust        A15 Deterministic     A28 Mutation            A42 Param bounds
    A03 API contract      A16 Secure-by-design  A29 ZTA matrix          A44 Dep isolation
@@ -133,6 +134,7 @@ Also: **A05a** cohesion · **A12a** taxonomy (24 families) · Anti-N/A · **A25*
    A11 Decomposition     A24 TDD-LOCK          A39 Behavior SSOT       A62 Load/soak
    A12 Tests             A12a Taxonomy         A40 Secure Continuum    A63 Privacy/retention
    A13 DoD               A25 Coverage          A26 Evidence            A64 Notifications
+   A65 Cross-cutting aspect  (Policy–Intent Separation · K3)
    B01 CQRS … B14 Handoff Artifact
 §3 GATES               3.0 groups · 3.1 algorithms · 3.2 prime_check (FOCUS 31 → CORE 71 → 139) ·
                        3.4 P0–P3 priorities · 3.5 evidence
@@ -190,7 +192,7 @@ Every security/quality finding maps to a concrete control ID — **OWASP Top 10 
 | File | Content | Access |
 |------|---------|--------|
 | `Mawyxx Prime V3.0.md` | Patterns · ~220 lines | **MIT** |
-| `Mawyxx Prime V6.5.md` | **Single file** · Unified Constitution · **§0–§5** · **A01–A64** · **B01–B14** · §5.7 standards mapping (inline) | **Open in repo** |
+| `Mawyxx Prime V6.5.md` | **Single file** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Open in repo** |
 | `Mawyxx-Security.md` | Standalone security-audit mega-prompt (§1.1 Surface Matrix S01–S23 · 19 sub-agents) | **Open in repo** |
 | `scripts/prime_check/` | Agent creates FOCUS→CORE→FULL per §3.2 | **Not shipped** — agent bootstraps |
 
