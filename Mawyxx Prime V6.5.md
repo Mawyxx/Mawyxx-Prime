@@ -2,7 +2,7 @@
 
 **Один файл. Два слоя: RUNTIME (как работать) + LAW (как писать). Ссылки по ID. Один SSOT на тему. Никаких дублей. Глубина важнее ширины: Why · PASS/FAIL · Recovery.**
 
-> **Revision:** v6.6.1 — synthesis + structure pass (kernel · policy index · law map). File name kept as V6.5 for boot compatibility.
+> **Revision:** v6.6.2 — synthesis + structure + editorial pass (kernel · policy index · law map · gate registry). File name kept as V6.5 for boot compatibility.
 > **Формула:** §0 Router → §1 Work → §2 Law → §3 Gates → §4 Protocols → §5 Reference.  
 > **Правда исхода:** `prime_check` exit 0 + evidence block.  
 > **Fix-until-green:** red → fix → re-run → exit 0. Никогда не бросать.
@@ -32,7 +32,7 @@ SSOT > Conflict Matrix (§1.5) > строгое чтение > tier. Копия 
 - Одна нормативная мысль = одно предложение; один закон = один owner-раздел.
 - Шаблон закона: `Derives · FIT · NOT-FIT · Min tier/When · Enforced by · Why · checklist · FAIL/PASS · Enough/Too-much → §2.0.1 · Evidence`.
 - Вне owner-раздела допустима только ссылка `→ ID`; полная копия правила запрещена (копия дрейфует).
-- Один нормативный язык: RU-проза, EN-термины. Определения — только §5.3.
+- Язык: нормативные атомы (law title · Min tier · Enforced by · Why · checklist · gate/evidence) — **EN**; объяснения, таблицы и FAIL/PASS-примеры — **RU**. Один атом не смешивает языки. Определения — только §5.3.
 - **No-rule-loss:** правило нельзя удалить; можно слить только его копии в owner, оставив `→ ID`.
 
 **Axioms (7 — immutable):**
@@ -387,7 +387,7 @@ aspect_registry: [{id, concern, owner, kind, order, scope, evidence}]
 ### 1.6 Anti-N/A (SSOT — один раз)
 
 - **MUST:** `N/A` только с reason = **absent When-trigger**: `N/A(no auth)`, `N/A(no I/O)`, `N/A(no FSM)`.
-- **MUST NOT:** `N/A`, `N/A()`, `N/A(потом)`, `N/A(skip)`, `N/A(одна реализация)`, `N/A(framework DI)`.
+- **MUST NOT:** `N/A`, `N/A()`, `N/A(later)`, `N/A(skip)`, `N/A(one implementation)`, `N/A(framework DI)`.
 - **Enforced by:** `test-taxonomy-gate` · `port-surface-gate`.
 
 ### 1.7 Failure modes (30 секунд — читать до кода)
@@ -457,6 +457,8 @@ aspect_registry: [{id, concern, owner, kind, order, scope, evidence}]
 ### 1.11 Sub-agent execution — роли через Task tool
 
 **Модель:** Orchestrator держит фазы и merge. Каждую роль он **делегирует суб-агенту** (Task tool). Суб-агент стартует с **чистого контекста**; его единственный контракт — **spawn-промпт** + перечисленные секции скилла. Правило §1.1: агент **не читает весь контекст сессии**.
+
+**STEP 0 (load & obey) — §1.11.0; обязателен для всех ролей и ниже в паках не повторяется.**
 
 **Почему:** Writer ≠ Verifier · Analyst ≠ Builder · Guardian ≠ Builder. Разные сессии/модели ловят то, что один агент пропускает (adversarial).
 
@@ -555,7 +557,6 @@ N. {{…}}
 **Общее правило:** output любой роли возвращается Orchestrator'у, не в чат. Orchestrator мержит (row 1.11.5).
 
 #### 1.11.1 Analyst pack (PHASE 0–0.5)
-- **First (MUST):** STEP 0 — locate/copy + read the standard, obey it (§1.11.0).
 - **Read:** §0.4 · §0.5 · §0.7 · §1.3 · §1.3a · §1.12 · §2.0 · §4.1 · A01 · A07 · A24 · A33 · A34 · A35 · A40 · A41.
 - **Do:** tier + adoption_mode → Domain Elicitation (§1.12) → Default-secure 5Q → Threat Model 10Q → заполнить **Design Artifact** целиком: `test_matrix` (design/TDD-LOCK-<task>.md) · `test_taxonomy_map` · `contract_surface_map` · `trust_pipeline_map` · `secure_continuum_map` · `behavior_owners` · `AC[]` с оракулами · `blast_radius` · `capability_slices`.
 - **Output:** Design Artifact (artifact).
@@ -572,7 +573,6 @@ N. {{…}}
 ```
 
 #### 1.11.2 Builder pack (PHASE 1–4.7)
-- **First (MUST):** STEP 0 — locate/copy + read the standard, obey it (§1.11.0).
 - **Read:** handoff Design Artifact + §0.7 · §1.3a · §1.10 (PRIME+) · A05–A11 · A14–A20 · A39 · A42 · A44 · A46 · A24 · B03 · B09.
 - **Do:** research deps → **execute the frozen TDD-LOCK** (each locked test first, fail for the right reason, §1.3a) → ports → Fakes → adapters → composition root → docs/ADR. **Call owner, не клонируй** (A39). Держись `blast_radius`.
 - **Gates:** `prime_check --only` после правок → `--diff` → FULL перед handoff.
@@ -580,14 +580,12 @@ N. {{…}}
 - **Forbidden:** clone behavior; concrete I/O в core; happy-path-only; правки вне blast.
 
 #### 1.11.3 Guardian pack (PHASE 4.5–4.6)
-- **First (MUST):** STEP 0 — locate/copy + read the standard, obey it (§1.11.0).
 - **Read:** diff + A12 · A16 · A18 · A24 · A25 · A27 · A29 · A36 · A39 · A10 · §3.1 · §4.10.
 - **Do:** taxonomy verify → security audit (ответы Threat Model → гейты) → review (`behavior-ssot` · `live-surface` · `no-swallow`) → **adversarial 8+3 (§4.10)** → findings с приоритетом P0–P3.
 - **Rule:** **отдельная сессия от Builder**; не одобряет свой код. Код не пишет — findings уходят Builder'у.
 - **Output:** findings[] P0–P3 + taxonomy verify + adversarial answers.
 
 #### 1.11.4 Verifier pack — Two-Agent (PHASE 4.8–5)
-- **First (MUST):** STEP 0 — locate/copy + read the standard, obey it (§1.11.0).
 - **When:** PRIME+ обязательно; **свежая сессия/модель**.
 - **Read:** diff + §4.4 Pre-Flight + A42 · A44 · A46 · A14 · A21 · §4.10.
 - **Prompt (verbatim):** *«Ты — adversarial reviewer. НАЙДИ баги, не одобряй. Проверь bounds · atomicity · isolation · config guard · spec parity · IDOR · mass-assign.»*
@@ -673,7 +671,7 @@ Questions you MUST answer before acting:
 
 ### 1.12 Domain Elicitation (PHASE 0, MUST — спрашивать всегда)
 
-**Why:** без domain-контекста AI лечит симптом; вопросы заставляют пользователя дать домен. Ловит domain-баги (которые иначе = 20%).
+**Why:** without domain context the AI treats the symptom; questions force the user to give the domain. Catches domain bugs (otherwise ~20%).
 
 Перед любой фичей задай (в design artifact; при отсутствии ответа — явный `INVESTIGATE`, не выдумывай):
 
@@ -754,7 +752,7 @@ R-plat    → A55, A56, A57, A58, A59
 A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A49→A20 · A51→B03 · A52→B04 · A53→A14
 ```
 
-### 2.0.1 Enough-vs-too-much index (остальные законы — против over-engineering)
+### 2.0.1 Enough-vs-too-much index (SSOT для точных дублей; inline-таблицы держат только уникальные строки)
 
 | Law | Достаточно (PASS) | Слишком (FAIL) |
 |-----|-------------------|----------------|
@@ -779,6 +777,8 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 | B04 resilience | timeout+breaker+degrade | 6 паттернов на внутренний вызов |
 | B11 client | lint+types+unit+E2E | дизайн-система на 1 экран |
 | A65 aspect | 2+ операции с одной политикой → один аспект | middleware на N=1 · самодельный AOP-движок |
+| A06/A35 pure logic | Pure `calculateTax` → без порта; `N/A(no I/O)` | `ITaxCalculator` ради галочки |
+| A06/A35 HTTP-only CRUD | outbound ports + API contract | UseCase iface + 3 адаптера «на будущее» |
 
 ⚠️ Общее правило: **достаточно = покрыть реальный риск этого tier/триггера; слишком = гипер-защита/спекуляция.** Сомнение → §1.5.
 
@@ -955,8 +955,6 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 | Задача | Достаточно (PASS) | Слишком (FAIL) |
 |--------|-------------------|----------------|
 | PlaceOrder + DB | `IOrderRepo` + Fake + вызов из UC + adapter | 12 портов на private method |
-| Pure `calculateTax` | без порта; `N/A(no I/O)` | `ITaxCalculator` ради галочки |
-| HTTP-only CRUD | outbound ports + API contract | UseCase iface + 3 адаптера «на будущее» |
 
 
 - **FAIL:** `new ConcreteRepo()` в testable core; service locator.
@@ -1040,7 +1038,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] failing test before code (greenfield) / same PR (legacy) (A24)
 - [ ] `test_taxonomy_map` covers behaviors/errors/operations + AC
 - [ ] unit first; regression per bug fix; test quality (A27)
-- [ ] NOT E2E-only; browser E2E on API-only; 99.x%; tests «потом»; happy-path-only
+- [ ] NOT E2E-only; browser E2E on API-only; 99.x%; tests "later"; happy-path-only
 - **FAIL:** coverage green + taxonomy red.
 
 ### A12a Test Taxonomy
@@ -1080,16 +1078,16 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] Negative — PRIME+ · state-changing/IO/auth
 - [ ] Observability — PRIME+ · new Err/failure log
 - [ ] Fuzz (logic) — PRIME+ SHOULD · complex branching
-- [ ] Concurrency — PRIME+ · 2 параллельных вызова
-- [ ] Crash-recovery — PRIME+ · падение между шагами
-- [ ] TTL — PRIME+ · ключ исчезает через TTL
-- [ ] Secret validation — PRIME+ · пустой/короткий секрет → panic
+- [ ] Concurrency — PRIME+ · 2 parallel calls
+- [ ] Crash-recovery — PRIME+ · crash between steps
+- [ ] TTL — PRIME+ · key expires via TTL
+- [ ] Secret validation — PRIME+ · empty/short secret → panic
 - [ ] Crypto params — PRIME+ · RSA < 2048 → reject
 
 - [ ] each family: named tests **or** `N/A(<absent-trigger>)`
 - [ ] APPLIED only with non-trivial oracle
 - [ ] one skip = one trigger
-- [ ] NOT naked N/A; APPLIED без оракула; `#[ignore]` без `skipped_steps`
+- [ ] NOT naked N/A; APPLIED without oracle; `#[ignore]` without `skipped_steps`
 - **FAIL:** 14 `test_err_*` string tests + unused port + ignored e2e.
 
 ### A13 Definition of Done
@@ -1116,9 +1114,9 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 **Derives:** K5 · **FIT:** mutation + retry / parallel / shared state · **NOT-FIT:** N/A(no mutation / parallel).
 **Min tier:** PRIME+ · **When:** state-changing + retry/double-submit risk; shared/parallel/async state · **Enforced by:** `idempotency-matrix-gate` · `atomicity-gate` · `async-safety-gate` · `lock-order-gate` · `immutability-gate`  
 **Why:** retries/double-clicks duplicate side-effects; races and unawaited async fail intermittently. One owner for atomicity+concurrency.
-- [ ] WHEN REQUIRED: повтор вызывает **второй вредный side-effect** — payments/charges, creates (orders/posts), notifications, external calls, state increments
-- [ ] NOT required: idempotent reads; **truly idempotent** delete-by-id; internal batch с exactly-once + ADR
-- [ ] REQUIRED для delete, который **не** идемпотентен: decrement, событие на каждый delete, soft-delete toggle, или повтор меняет исход
+- [ ] WHEN REQUIRED: replay causes a **second harmful side-effect** — payments/charges, creates (orders/posts), notifications, external calls, state increments
+- [ ] NOT required: idempotent reads; **truly idempotent** delete-by-id; internal batch with exactly-once + ADR
+- [ ] REQUIRED for a delete that is **not** idempotent: decrement, event per delete, soft-delete toggle, or replay changes outcome
 - [ ] IMPLEMENTATION (pick one): `Idempotency-Key` + dedup store | unique DB constraint | ledger/WAL | client stable token
 - [ ] stable key per user action across retries (not random per retry)
 - [ ] dedup check **before** irreversible side-effect (or transactional outbox)
@@ -1178,7 +1176,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] validate/sanitize at boundary; one owner When N≥2 (A39)
 - [ ] least privilege for services, users, API keys, CI
 - [ ] every security invariant = test (injection + access_control + negative)
-- [ ] FFI/native When unsafe/JNI/ctypes/Win32 in src: `ffi_profile: true`; каждый `unsafe`/FFI-блок → `// SAFETY:` + инвариант; native handle = RAII/Drop; CRITICAL/embedded → MISRA/CERT denylist + `cert-forbidden-gate` + stack-linter
+- [ ] FFI/native When unsafe/JNI/ctypes/Win32 in src: `ffi_profile: true`; every `unsafe`/FFI block → `// SAFETY:` + invariant; native handle = RAII/Drop; CRITICAL/embedded → MISRA/CERT denylist + `cert-forbidden-gate` + stack-linter
 - [ ] NOT log PII/passwords/tokens/full PAN
 - [ ] NOT ignore high/critical CVE
 - [ ] NOT roll-your-own crypto; debug auth bypass
@@ -1209,7 +1207,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] encode HTML output; CSP When web; allowlist redirects; validate uploads
 - [ ] path traversal blocked When file/upload
 - [ ] close every applicable OWASP Top 10 item (table below)
-- [ ] NOT «framework → OWASP закрыт» без G-auth/G-sec green
+- [ ] NOT "framework → OWASP closed" without G-auth/G-sec green
 
 | OWASP Top 10 | CWE (representative) | PRIME closure | Gate |
 |---|---|---|---|
@@ -1327,7 +1325,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] **Fails for the right reason:** each locked test first fails because the behavior is missing — not import/syntax; run artifact recorded.
 - [ ] **Completeness:** every changed production symbol · protected op · `Err` · FSM edge ← mapped to ≥1 locked test.
 - [ ] `test_matrix` = a **reference to the TDD-LOCK** (not a vague field).
-- [ ] NOT «тесты потом» / «в следующем PR» / «сначала happy path» / naked N/A / **editing a locked test to pass**.
+- [ ] NOT "tests later" / "next PR" / "happy path first" / naked N/A / **editing a locked test to pass**.
 - **FAIL:** PR с кодом без locked-теста; lock missing; test weakened/renamed after code without ADR.
 
 ### A25 Coverage by Risk
@@ -1335,8 +1333,8 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 **Min tier:** PRIME+ · **Enforced by:** `coverage-critical-100` · `coverage-rest-90` · `coverage-diff-100` · `coverage-ratchet` · `no-pragma-no-cover`  
 **Why:** uncovered failure paths are where incidents live — but 100% on getters is vanity; spend coverage on risk.
 - [ ] **`coverage-critical-100`:** `critical_scope` → **100% line + branch**
-- [ ] **`coverage-rest-90`:** остальной `runtime_scope` → **≥90% line** + branch на ветвях решений
-- [ ] `coverage-diff-100` на изменённых файлах (любой scope); `coverage-ratchet` never drops
+- [ ] **`coverage-rest-90`:** the rest of `runtime_scope` → **≥90% line** + branch on decision points
+- [ ] `coverage-diff-100` on changed files (any scope); `coverage-ratchet` never drops
 - [ ] ALLOW exclude: generated/; vendor/; OS glue **with** integration test + ADR + sunset
 - [ ] NOT `# pragma: no cover` / `istanbul ignore` without ADR
 - [ ] NOT exclude composition/adapters/handlers on greenfield (`exclude-honesty-gate`)
@@ -1411,8 +1409,8 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 **Why:** leaving red gates hands the failure to the user and stacks debt.
 - [ ] red gate → fix loop (edit → re-run) until exit 0
 - [ ] 3-strike → redesign + ADR → continue
-- [ ] stop-the-line = don't stack new code on broken base (not «бросить»)
-- [ ] NOT partial PR; delegate verify to user; «готово»/«blocked» while red
+- [ ] stop-the-line = don't stack new code on broken base (not "abandon")
+- [ ] NOT partial PR; delegate verify to user; "done"/"blocked" while red
 - **FAIL:** оставил exit ≠ 0.
 
 ### A31 Legacy Adoption
@@ -1442,7 +1440,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] declare `blast_radius` (capabilities + expected files) in PHASE 0.5
 - [ ] edits stay inside radius; outside → update artifact + reason (or split PR)
 - [ ] touch shared owner + replace copies = **correct** blast
-- [ ] NOT «заодно» рефакторить соседние capabilities
+- [ ] NOT refactor neighbouring capabilities "while at it"
 - [ ] NOT keep blast small by duplicating behavior
 - [ ] NOT confuse with YAGNI on tests
 - **FAIL:** touched orders+billing+auth+DI «на всякий».
@@ -1471,7 +1469,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] port only if I/O from UC + Fake + **call** (A36)
 - [ ] external write input enters as allowlisted Command/DTO (A41)
 - [ ] layer placement → **see A05**
-- [ ] NOT «одна impl → без порта» при I/O
+- [ ] NOT "one impl → no port" for I/O
 - [ ] NOT concrete infra type in core/app signature
 - [ ] NOT 12 ports on a private method / identity mapper
 
@@ -1479,9 +1477,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 
 | Задача | Достаточно (PASS) | Слишком (FAIL) |
 |--------|-------------------|----------------|
-| HTTP-only CRUD | outbound ports + API contract | UseCase iface + 3 адаптера «на будущее» |
 | Multi-entry (HTTP+CLI) | inbound port | фасад фасадов |
-| Pure `calculateTax` | без порта; `N/A(no I/O)` | `ITaxCalculator` ради галочки |
 
 
 - **FAIL:** concrete infra in UC; 12 портов на private method.  
@@ -1565,7 +1561,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 **Min tier:** PRIME+ · **When:** exposed op / auth / PII / money / multi-tenant / upload / HTML UI · **Enforced by:** `trust-pipeline-gate` · `idor-ownership-gate` · `mass-assign-gate` · `path-escape-gate` · `session-token-gate`  
 **Why:** «logged in» is not «authorized for this resource»; ordered trust cuts close whole exploit classes.
 - [ ] fill `trust_pipeline_map` in PHASE 0.5 for touched protected ops
-- [ ] order: **Authn → Schema → Authz(resource) → allowlisted Command → UC → safe Sink** (authn первым — не парсим тело для анонимов)
+- [ ] order: **Authn → Schema → Authz(resource) → allowlisted Command → UC → safe Sink** (authn first — do not parse body for anonymous)
 - [ ] authz **before** mutation/side-effect; schema **before** UC
 - [ ] IDOR oracles When multi-user (principal A ↛ B's resource)
 - [ ] privileged fields stripped from client DTOs (denylist)
@@ -1596,7 +1592,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] numeric params: explicit `min`/`max` (or clamp) before use; reject out-of-range (not silent wrap)
 - [ ] array indexing: bounds-checked before access (or safe iteration)
 - [ ] string length: `min`/`max` checked before parse
-- [ ] regex: full semantics (UUID **version**, MIME **full**), not «похоже»
+- [ ] regex: full semantics (UUID **version**, MIME **full**), not "looks like"
 - [ ] buffer: **max size checked before** alloc/parse
 - [ ] money/inventory amounts: bounded + DB `CHECK`/precision (A20)
 - [ ] secret: delegate to A19 (generated ≥32 → panic; external non-empty/shape) — no second definition
@@ -1866,14 +1862,14 @@ error_budget:
 ### A65 Cross-Cutting Aspect Law
 **Derives:** K3 · AX3,AX4 · **FIT:** concern в ≥2 операциях или защищённый/мутирующий/внешний путь · **NOT-FIT:** N/A(N=1 trivial local guard).
 **Min tier:** STANDARD+ (PRIME+ full) · **When:** concern затрагивает ≥2 операций ИЛИ любой защищённый / мутирующий / внешний путь · **Enforced by:** `trust-pipeline-gate` · `behavior-ssot-gate` · `live-surface-gate` · `handler-purity-gate`
-**Why:** сквозная политика, размазанная по операциям, дрейфует и даёт bypass (одна забытая копия = открытая дверь); один аспект = единое поведение, один тест, обход только явный.
-- [ ] заполни `cross_cutting_map` + `aspect_registry` в Design Artifact до кода
-- [ ] каждый concern (authn · authz · schema · rate limit · log/trace/metrics · tx · idempotency · retry · cache · error-map · audit) → один owner + одна точка применения
-- [ ] inbound: цепочка на границе (A41 — её trust-частный случай); outbound: domain events / decorator над портом (A44 / B03 / B04)
-- [ ] порядок аспектов явный и числовой; регистрация только в composition root (A35)
-- [ ] handler/UC не содержит inline policy; аспект не содержит бизнес-логики
-- [ ] bypass только через явный allowlist ADR + sunset
-- [ ] тесты: аспект применяется ровно один раз · стандартная ошибка · обойти нельзя · порядок верный
+**Why:** cross-cutting policy spread across operations drifts and leaves bypasses (one forgotten copy = an open door); one aspect = one behavior, one test, explicit bypass only.
+- [ ] fill `cross_cutting_map` + `aspect_registry` in the Design Artifact before code
+- [ ] every concern (authn · authz · schema · rate limit · log/trace/metrics · tx · idempotency · retry · cache · error-map · audit) → one owner + one application point
+- [ ] inbound: chain at the boundary (A41 is its trust instance); outbound: domain events / decorator over the port (A44 / B03 / B04)
+- [ ] explicit numeric aspect order; registration only in the composition root (A35)
+- [ ] handler/UC contains no inline policy; aspect contains no business logic
+- [ ] bypass only via explicit allowlist ADR + sunset
+- [ ] tests: aspect applies exactly once · standard error · cannot be bypassed · order correct
 - **FAIL:** `authorize` в каждом контроллере; rate limit в handler; `BEGIN/COMMIT` в UC; retry в каждом adapter call; logging per route.
 - **GOOD pattern:** одна цепочка в реестре, собрана в composition root; операция — 10–15 строк интента.
 
@@ -2002,7 +1998,7 @@ error_budget:
 | Errors | fancy Result everywhere | **no silent null / no swallow at process boundary** (A10) |
 
 **Rule:** YAGNI режет **спекуляцию и гипер-защиту**, никогда — **базовую корректность/безопасность**. LITE = хорошая базовая защита, не гипер.
-- [ ] NOT YAGNI «одна impl → без порта» при I/O (A35)
+- [ ] NOT YAGNI "one impl → no port" for I/O (A35)
 - [ ] NOT YAGNI to **keep** second/third copy of algorithm (A39)
 - [ ] NOT YAGNI skip CSRF When cookie / `ci-harden` When CI / IDOR / allowlist (A40/A41)
 - **FAIL:** god-utils на N=1; спекулятивный порт/слой; гипер-защита на LITE.
@@ -2016,8 +2012,8 @@ error_budget:
 - [ ] taxonomy + behavior-lock + blast; live surface + honest errors
 - [ ] behavior SSOT; secure continuum; trust pipeline; A42/A44/A46 + A14/A21
 - [ ] checker integrity (A22); Pre-Flight §4.4
-- [ ] **Senior Thinking Checklist §4.14** (что я НЕ вижу? что через 6 мес? что prod иначе?)
-- [ ] domain invariants спрошены (§1.12), не выдуманы; debug — по §4.12
+- [ ] **Senior Thinking Checklist §4.14** (what am I NOT seeing? what in 6 months? what does prod do differently?)
+- [ ] domain invariants elicited (§1.12), not invented; debug per §4.12
 - **FAIL:** «готово» без self-review; grep-долги не проверены.
 
 ### B09 ADR
@@ -2045,12 +2041,12 @@ error_budget:
 **Min tier:** STANDARD+ · **desktop PRIME MUST** · **Enforced by:** `frontend-quality` · `e2e-ui` · `live-surface-gate`
 **Why:** UI with business logic cannot be tested or reused; servers must not trust clients.
 - [ ] Presentation UI only; server state on server; invariants in Domain
-- [ ] desktop: composition не глотает ошибки → mapped Err + toast (A10)
+- [ ] desktop: composition does not swallow errors → mapped Err + toast (A10)
 - [ ] desktop: E2E runs or skipped_steps with machine; AC with hwnd/pixels not closed by unit name
-- [ ] settings нельзя изменить в UI ≠ настройки в AC (A34/A36)
+- [ ] settings cannot be changed in UI ≠ settings absent from AC (A34/A36)
 - [ ] desktop/IPC commands follow Trust Pipeline When privileged (A41)
 - [ ] lint + format + typecheck before done
-- [ ] NOT `dangerouslySetInnerHTML`/eval/secrets in `localStorage` без ADR
+- [ ] NOT `dangerouslySetInnerHTML`/eval/secrets in `localStorage` without ADR
 - [ ] NOT three identical hit-test/paint/retry bodies (A39)
 - **FAIL:** бизнес-логика в UI; `dangerouslySetInnerHTML`/eval без ADR; три копии hit-test.
 
@@ -2085,7 +2081,7 @@ error_budget:
 - [ ] if leak suspected — rotate/revoke steps (B13)
 - [ ] list `risks`, `rollback`, `tests_added`
 - [ ] NOT hide failing steps / partial coverage
-- [ ] NOT paste `.env`/keys into chat «для ревью»
+- [ ] NOT paste `.env`/keys into chat "for review"
 
 ---
 - **FAIL:** handoff скрывает red/coverage; секреты в чате.
@@ -2120,6 +2116,130 @@ G-output → coverage-critical-100, coverage-rest-90, coverage-diff-100, coverag
 **SSOT имён и счётчиков — §3.2 canonical list.** §3.0 = группы · §3.1 = алгоритмы · §3.2 = список и числа. Любое изменение числа гейтов делается только в §3.2, остальные ссылаются.
 
 **Gate details:** [§3.1 Gate algorithms](#31-gate-algorithms) · [§3.2 prime_check contract & canonical list](#32-prime_check-contract) · [§3.4 Evidence](#34-evidence-block-a26).
+
+### 3.0.1 Gate registry (ownership view — derived)
+
+**SSOT:** names · counters · order — §3.2; groups — §3.0. Эта таблица — производный ownership-view (`gate → owner-law → tier floor`); при расхождении побеждает §3.2. Гейты без owner-закона (runner-internal / conditional) перечислены только в §3.2.
+
+| Gate | Owner law(s) | Tier floor |
+|---|---|---|
+| `channel-secret-gate` | A19 · A40 | ALL |
+| `checker-integrity-gate` | B08 | ALL |
+| `config-valid` | A01 · A32 | ALL |
+| `dependency-audit` | A16 · A19 | ALL |
+| `evidence-block` | A26 · A30 · B07 · B08 | ALL |
+| `ffi-safety-gate` | A16 | ALL |
+| `gitleaks-history` | A16 · A19 | ALL |
+| `no-debug-bypass` | A16 | ALL |
+| `no-secrets` | A19 | ALL |
+| `pii-log-scan` | A16 | ALL |
+| `sbom` | A19 | ALL |
+| `secret-validation-gate` | A19 | ALL |
+| `stack-detect` | A01 | ALL |
+| `anemic-mutation-gate` | A05 · B06 | STANDARD+ |
+| `anti-fork-gate` | A08 · A17 · A39 | STANDARD+ |
+| `behavior-ssot-gate` | A08 · A11 · A17 · A39 · A65 · B01 · B02 | STANDARD+ |
+| `blast-radius-gate` | A33 | STANDARD+ |
+| `cyclomatic-gate` | A11 | STANDARD+ |
+| `dead-code-gate` | A11 | STANDARD+ |
+| `e2e-ui` | B11 | STANDARD+ |
+| `file-size-guard` | A11 | STANDARD+ |
+| `format-check` | A17 | STANDARD+ |
+| `frontend-quality` | B11 | STANDARD+ |
+| `handler-purity-gate` | A17 · A65 | STANDARD+ |
+| `i18n-gate` | A58 | STANDARD+ |
+| `immutability-gate` | A05 · A14 · B06 | STANDARD+ |
+| `import-boundaries` | A05 | STANDARD+ |
+| `import-graph-gate` | B02 | STANDARD+ |
+| `injection-fuzz` | A18 · B12 | STANDARD+ |
+| `lint` | A17 | STANDARD+ |
+| `live-surface-gate` | A35 · A36 · A65 · B01 · B11 | STANDARD+ |
+| `no-string-sql` | A18 | STANDARD+ |
+| `package-cohesion-gate` | A05a · B02 | STANDARD+ |
+| `ssrf-gate` | A18 | STANDARD+ |
+| `test-taxonomy-gate` | A12 · A12a · A24 | STANDARD+ |
+| `trust-pipeline-gate` | A41 · A65 | STANDARD+ |
+| `typecheck` | A17 | STANDARD+ |
+| `context-leak-gate` | A04 · B05 | opt |
+| `anti-null-gate` | A10 | PRIME+ |
+| `api-contract-drift` | A03 · A21 | PRIME+ |
+| `api-hygiene-gate` | A50 | PRIME+ |
+| `async-safety-gate` | A14 | PRIME+ |
+| `atomicity-gate` | A14 | PRIME+ |
+| `backfill-gate` | A20 | PRIME+ |
+| `breaker-config-gate` | B04 | PRIME+ |
+| `cache-policy-gate` | A48 | PRIME+ |
+| `ci-harden-gate` | A40 | PRIME+ |
+| `compose-security` | A23 | PRIME+ |
+| `composition-root-gate` | A06 · A35 | PRIME+ |
+| `cors-csrf-gate` | A40 | PRIME+ |
+| `coverage-critical-100` | A25 | PRIME+ |
+| `coverage-diff-100` | A25 · A31 | PRIME+ |
+| `coverage-ratchet` | A25 · A30 · A31 | PRIME+ |
+| `coverage-rest-90` | A25 | PRIME+ |
+| `decision-log-gate` | B09 | PRIME+ |
+| `dep-isolation-gate` | A44 | PRIME+ |
+| `deterministic-runtime` | A15 | PRIME+ |
+| `di-purity` | A06 | PRIME+ |
+| `docker-security` | A23 | PRIME+ |
+| `dto-boundary-gate` | A35 | PRIME+ |
+| `err-variant-gate` | A10 | PRIME+ |
+| `error-budget-gate` | A54 · B04 | PRIME+ |
+| `error-context-gate` | A10 · B03 | PRIME+ |
+| `event-contract-gate` | A35 | PRIME+ |
+| `flaky-detector` | A27 | PRIME+ |
+| `fsm-transition-gate` | B06 | PRIME+ |
+| `graphql-hygiene-gate` | A55 | PRIME+ |
+| `health-gate` | B13 | PRIME+ |
+| `iac-scan-gate` | A23 · A40 | PRIME+ |
+| `idempotency-matrix-gate` | A14 | PRIME+ |
+| `idor-ownership-gate` | A02 · A29 · A41 | PRIME+ |
+| `ignored-test-gate` | A27 | PRIME+ |
+| `intent-lock-gate` | A07 · A34 | PRIME+ |
+| `load-test-gate` | A62 | PRIME+ |
+| `lock-order-gate` | A14 · A20 | PRIME+ |
+| `log-sampling-gate` | B03 | PRIME+ |
+| `mass-assign-gate` | A41 | PRIME+ |
+| `metrics-cardinality-gate` | B03 | PRIME+ |
+| `migration-path-only` | A20 | PRIME+ |
+| `mutation-critical` | A28 | PRIME+ |
+| `no-ddl-in-app` | A20 | PRIME+ |
+| `no-pragma-no-cover` | A25 | PRIME+ |
+| `no-swallow-gate` | A10 | PRIME+ |
+| `no-transport-in-domain` | A10 | PRIME+ |
+| `notification-safety-gate` | A64 | PRIME+ |
+| `pagination-gate` | A48 | PRIME+ |
+| `param-bounds-gate` | A42 | PRIME+ |
+| `path-escape-gate` | A41 · A61 | PRIME+ |
+| `perf-budget-gate` | A48 · A54 · B10 | PRIME+ |
+| `pii-inventory-gate` | A63 | PRIME+ |
+| `plugin-boundary-gate` | A04 · A35 | PRIME+ |
+| `port-surface-gate` | A04 · A06 · A35 | PRIME+ |
+| `port-test-double-gate` | A06 · A35 | PRIME+ |
+| `prod-config` | A23 · B13 | PRIME+ |
+| `prod-guard-gate` | A46 | PRIME+ |
+| `pytest-property` | B12 | PRIME+ |
+| `query-hygiene-gate` | A48 | PRIME+ |
+| `rate-limit-gate` | A50 | PRIME+ |
+| `resource-bounds-gate` | A48 | PRIME+ |
+| `retention-gate` | A63 | PRIME+ |
+| `retry-policy-gate` | B04 | PRIME+ |
+| `route-matrix-gate` | A03 · A21 · A50 | PRIME+ |
+| `schema-drift` | A20 | PRIME+ |
+| `search-hygiene-gate` | A57 | PRIME+ |
+| `security-headers-gate` | A40 | PRIME+ |
+| `session-token-gate` | A41 | PRIME+ |
+| `snapshot-contract` | A21 | PRIME+ |
+| `spec-parity-gate` | A21 | PRIME+ |
+| `tdd-lock-gate` | A07 · A24 | PRIME+ |
+| `test-matrix-gate` | A24 · A34 | PRIME+ |
+| `test-quality-gate` | A27 | PRIME+ |
+| `tx-isolation-gate` | A20 | PRIME+ |
+| `upload-safety-gate` | A61 | PRIME+ |
+| `webhook-signature-gate` | A60 | PRIME+ |
+| `websocket-lifecycle-gate` | A56 | PRIME+ |
+| `zta-matrix-gate` | A02 · A29 | PRIME+ |
+| `pci-gate` | A59 | CRITICAL |
 
 ### 3.1 Gate algorithms
 
@@ -2746,6 +2866,8 @@ EXTENDED — 68 (enable by trigger/tier; skip honestly, never fake)
  DEPTH (3)          reasoning-gate · adversarial-gate · decision-log-gate
  OUTPUT (1)         mutation-critical (CRITICAL / invariant scope)
 ```
+
+Aliases: `frontend-quality` = `e2e-ui` (view, not counted).
 
 Registered = **139** = CORE 71 (FOCUS 31 mandatory) + EXTENDED 68. `standards-map-gate` — **CORE + FOCUS** (обязателен). Conditional steps (`iac-scan`, `ffi-safety`, `cert-forbidden`, `e2e-ui`, `prod-config`, `docker-*`, `webhook-*`, `upload-*`, `load-test`, `pii-*`, `retention`, `notification-*`, `graphql-*`, `websocket-*`, `search-*`, `i18n`, `pci`) register as `SKIPPED(ADR/N-A)` when trigger absent.
 
@@ -3453,6 +3575,7 @@ PHASE 3 — FIX (правильно)
 | **v6.5+ (senior pass)** | **Senior protocols woven throughout (single file):** Doctrine **Ask first** (§0.6) · per-role **self-questions** (§1.1) · sub-agent **questions block** (§1.11.10) · **§1.12 Domain Elicitation** · **§4.12 Senior Debugging (12)** · **§4.13 Architecture Decision (7)** · **§4.14 Senior Thinking Checklist** · **§4.15 Cross-Service** · **§4.16 Feedback Loop** · **§4.17 Self-Sufficiency** (AI решает всё сам, без человека) · woven into §1.2, §4.3, B08 |
 | **v6.5+ (TDD-LOCK deep pass)** | **A24 rewritten** → frozen test plan; **§1.3a TDD-LOCK artifact + derivation** (11 axes, blueprint format, freeze, fails-first); **PHASE 2** = execute frozen lock; new **`tdd-lock-gate`** (FOCUS → FOCUS 31 / CORE 71 / **139**); `test_matrix` = reference to `design/TDD-LOCK-<task>.md` |
 
+| **v6.6.2 (editorial pass)** | Exact-duplicate Enough rows consolidated into §2.0.1 (unique rows kept inline) · §3.0.1 Gate registry (derived ownership view; §3.2 remains SSOT) · normative checklists/Why/backtick tokens normalized to EN · STEP 0 spawn dedup (4× → one canonical pointer) |
 | **v6.6.1 (structure pass)** | **Constitution map (§0.0.1)** · **Law map by invariant (§2.0.2)** · uniform alias/law headers · `DoD-only` closed with real gates (A01/A07/A30) · B-law Enforced-by/FAIL normalized · 26 boilerplate repeats collapsed to one definition · N/A hygiene in templates · terminology PRIME≡PRIME+ · Contents + Part banners |
 | **v6.6 (synthesis pass)** | **Constitution spine:** §0.0 Axioms (AX1–AX7) + Kernel (K1–K6) + normative grammar + precedence + No-rule-loss · §2.1 Policy Index (one concern → owner → gate → evidence) · A65 Cross-Cutting Aspect Law · `Derives/FIT/NOT-FIT` on every A/B law · cross-cutting fields in Design Artifact/Pre-Flight/Evidence · no rule deleted |
 
