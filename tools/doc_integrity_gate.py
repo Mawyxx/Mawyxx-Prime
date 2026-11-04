@@ -2,7 +2,7 @@
 """REPO-ONLY validator for the MAWYXX PRIME standard text.
 
 This tool is NOT part of the agent standard and must not be referenced from
-`Mawyxx Prime V6.5.md`. It exists so maintainers can verify the constitution
+`Mawyxx Prime V6.7.md`. It exists so maintainers can verify the constitution
 itself: IDs, anchors, counters, required law fields, gate ownership, language
 policy and duplicate-free structure.
 
@@ -20,7 +20,7 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-DEFAULT = Path(__file__).resolve().parents[1] / "Mawyxx Prime V6.5.md"
+DEFAULT = Path(__file__).resolve().parents[1] / "Mawyxx Prime V6.7.md"
 LAW_RE = re.compile(r"^### (A\d{2}[a-z]?|B\d{2})\b", re.M)
 CYR = re.compile(r"[А-Яа-яЁё]")
 SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
@@ -97,10 +97,27 @@ def main() -> int:
         if CYR.search(tok):
             errors.append(f"backticked token contains Cyrillic: {tok!r}")
 
+    # test completeness markers
+    for marker in ("Test Selection Matrix", "Edge-case sweep", "### 4.9a Test data & environment"):
+        if marker not in text:
+            errors.append(f"test completeness marker missing: {marker}")
+
+    # performance contract markers
+    for marker in ("### A62 Performance and Load Contract", "PERF-LOCK", "latency_p95"):
+        if marker not in text:
+            errors.append(f"performance marker missing: {marker}")
+
+    # text-only boundary: runtime terms must not leak into the standard
+
+    for term in ("R01", "R08", "tool_manifest", "agent_audit", "agent_budget", "CONTEXT-<task>"):
+        if term in text:
+            errors.append(f"text-only standard contains runtime term: {term}")
+
     # structure / counters
     for marker in ("### 0.0 Constitution kernel", "### 0.0.1 Constitution map",
                    "### 2.0.2 Law map", "### 2.1 Policy Index",
-                   "### 3.0.1 Gate registry", "### A65 Cross-Cutting Aspect Law"):
+                   "### 3.0.1 Gate registry", "### A65 Cross-Cutting Aspect Law",
+                   "### 0.0.2 Scope boundary", "#### 5.7.10 AI-agent standards"):
         if text.count(marker) != 1:
             errors.append(f"structural marker not found exactly once: {marker}")
     if not re.search(r"A01.*A65", text):

@@ -33,9 +33,11 @@
 
 ## 🚀 What is MAWYXX PRIME
 
-**v3.0** = patterns (MIT). **v6.5** = Unified Constitution: **one file**, two layers (RUNTIME + LAW), one SSOT per topic, no duplicates, **tier-aware depth over width**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
+**v3.0** = patterns (MIT). **v6.7** = Unified Constitution: **one file**, two layers (RUNTIME + LAW), one SSOT per topic, no duplicates, **tier-aware depth over width**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
 **Laws A01–A65 + B01–B14** · 5 roles (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** under every law · **12 GOOD/BAD patterns (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3 priorities** · **Diagnostic tree** · **Testing recipes** · canonical checker map (**FOCUS 31 mandatory** → CORE 71 → **139** total, ratcheted) with depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), enforced **bidirectionally** (inline `standards.yaml`).
+
+**Scope:** a text-only constitution. It defines agent obligations, artifacts, and gates; runtime controls (context, tools, audit, budget, approval) are platform responsibilities, not part of the standard.
 
 **Project Skin · Empire Engine:** write in the project's style — with Empire discipline. Green `prime_check` from AC-names, unused ports, ignored e2e, or excluded composition is **not** done.
 
@@ -43,7 +45,7 @@
 
 **Senior protocols woven throughout:** Doctrine **Ask first** · per-role **self-questions** · sub-agent **questions block** · **Domain Elicitation** (§1.12) · **Senior Debugging** 12 steps (§4.12) · **Architecture Decision** 7 steps (§4.13) · **Senior Thinking Checklist** (§4.14) · **Cross-Service** (§4.15) · **Feedback Loop** post-mortem→gate (§4.16) · **Self-Sufficiency** (§4.17 — the AI decides everything itself, no human in the loop).
 
-**v6.5 is open in this repo** — read, fork, use.
+**v6.7 is open in this repo** — read, fork, use.
 
 ---
 
@@ -59,6 +61,8 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 - **`write-all` CI / `.env` in chat** while the app looks "secure" (A40).
 - **IDOR & mass assignment** — "logged in ⇒ any id", `update(**body)` (A41).
 - **Backend holes** — webhook without signature, upload without streaming/scan, no retention (A60–A63).
+- **Load tests without thresholds** — “it didn’t crash” is not a performance test (A62).
+- **Happy-path-only** — no edge/combinatorial tests (A12a).
 
 ---
 
@@ -76,18 +80,18 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 | Group | Laws |
 |-------|------|
 | **Core** | A01 Context/tier · A02 Zero Trust · A03 API contract · A04 Plugin boundary · A05 Layer law · A05a Cohesion · A06 DI & ports · A07 Design-first · A08 Anti-fork · A09 alias→A08 · A10 Errors · A11 Decomposition |
-| **Tests** | A12 Tests · A12a Taxonomy (24 families) · A13 DoD · A24 TDD-LOCK · A25 Coverage by risk · A27 Test quality · A28 Mutation |
+| **Tests** | A12 Tests · A12a Taxonomy (40 families, incl. 9 extended groups) · A13 DoD · A24 TDD-LOCK · A25 Coverage by risk · A27 Test quality · A28 Mutation |
 | **Security** | A16 Secure-by-design · A18 OWASP · A19 Secrets SSOT · A29 ZTA matrix · A40 Secure Continuum · A41 Trust Pipeline · A60 Webhooks · A61 Upload safety · A63 Privacy/retention |
 | **Data** | A14 Idempotency+Atomicity · A20 Migrations+Data+Transactions · A21 Contracts+Spec parity |
 | **Quality** | A15 Deterministic · A17 Clean code · A22 Checker+integrity · A23 Docker/IaC · A26 Evidence · A30 Anti-slack · A31 Legacy · A32 Monorepo · A33 Blast · A34 Intent lock · A35 Contract Surface · A36 Live Surface · A39 Behavior SSOT |
 | **Hardening** | A42 Bounds · A44 Dep isolation · A46 Config guard |
 | **Perf/API/Ops** | A48 Performance · A50 API Hygiene · A51 alias→B03 · A52 alias→B04 · A53 alias→A14 · B03 SRE+Observability · B04 Resilience+Retry |
-| **Backend** | A54 Budgets · A62 Load/soak · A64 Notifications |
+| **Backend** | A54 Budgets · A62 Performance/load · A64 Notifications |
 | **Platform** | A55 GraphQL · A56 WebSocket · A57 Search · A58 i18n · A59 PCI |
 | **Cross-cutting** | A65 Cross-Cutting Aspect Law · one owner / one application point |
 | **Aliases** | A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A49→A20 |
 
-> Reference by ID: full normative text is in **`Mawyxx Prime V6.5.md`**.
+> Reference by ID: full normative text is in **`Mawyxx Prime V6.7.md`**.
 
 ---
 
@@ -109,7 +113,7 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 | **Config Guard** | **A46** · `prod-guard-gate` | `if TESTING` without env-guard · fail-open |
 | **Contracts & Spec Parity** | **A21** · api-contract-drift · snapshot · spec-parity | field without version · spec ≠ code |
 
-Also: **A05a** cohesion · **A12a** taxonomy (24 families) · Anti-N/A · **A25** coverage honesty · **A33** blast · rich domain (**A05**/**B06**).
+Also: **A05a** cohesion · **A12a** taxonomy (40 families) · Anti-N/A · **A25** coverage honesty · **A33** blast · rich domain (**A05**/**B06**).
 
 ---
 
@@ -131,7 +135,7 @@ Also: **A05a** cohesion · **A12a** taxonomy (24 families) · Anti-N/A · **A25*
    A07 Design-first      A21 Contracts+Parity  A34 Intent lock         A55–A59 Platform
    A08 Anti-fork         A22 Checker+integrity A35 Contract Surface    A60 Webhooks
    A10 Errors            A23 Docker/IaC        A36 Live Surface        A61 Upload safety
-   A11 Decomposition     A24 TDD-LOCK          A39 Behavior SSOT       A62 Load/soak
+   A11 Decomposition     A24 TDD-LOCK          A39 Behavior SSOT       A62 Performance/load
    A12 Tests             A12a Taxonomy         A40 Secure Continuum    A63 Privacy/retention
    A13 DoD               A25 Coverage          A26 Evidence            A64 Notifications
    A65 Cross-cutting aspect  (Policy–Intent Separation · K3)
@@ -181,7 +185,7 @@ Every security/quality finding maps to a concrete control ID — **OWASP Top 10 
 
 ## ⚡ Quick Start
 
-1. Put **`Mawyxx Prime V6.5.md`** in your repository.
+1. Put **`Mawyxx Prime V6.7.md`** in your repository.
 2. Copy **`.cursorrules`** or **`.cursor/rules/prime.mdc`** into your project (both ship in this repo).
 3. Let the agent bootstrap the quality gate (`FOCUS` → `CORE` → `FULL`) and work fix-until-green.
 
@@ -192,11 +196,11 @@ Every security/quality finding maps to a concrete control ID — **OWASP Top 10 
 | File | Content | Access |
 |------|---------|--------|
 | `Mawyxx Prime V3.0.md` | Patterns · ~220 lines | **MIT** |
-| `Mawyxx Prime V6.5.md` | **Single file** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Open in repo** |
+| `Mawyxx Prime V6.7.md` | **Single file** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Open in repo** |
 | `Mawyxx-Security.md` | Standalone security-audit mega-prompt (§1.1 Surface Matrix S01–S23 · 19 sub-agents) | **Open in repo** |
 | `scripts/prime_check/` | Agent creates FOCUS→CORE→FULL per §3.2 | **Not shipped** — agent bootstraps |
 
-Full normative text lives **only** in `Mawyxx Prime V6.5.md`. This README is an index — not a second SSOT.
+Full normative text lives **only** in `Mawyxx Prime V6.7.md`. This README is an index — not a second SSOT.
 
 ---
 

@@ -33,9 +33,11 @@
 
 ## 🚀 Что такое MAWYXX PRIME
 
-**v3.0** = паттерны (MIT). **v6.5** = Unified Constitution: **один файл**, два слоя (RUNTIME + LAW), один SSOT на тему, без дублей, **tier-aware глубина важнее ширины**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
+**v3.0** = паттерны (MIT). **v6.7** = Unified Constitution: **один файл**, два слоя (RUNTIME + LAW), один SSOT на тему, без дублей, **tier-aware глубина важнее ширины**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
 **Законы A01–A65 + B01–B14** · 5 ролей (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** под каждым законом · **12 GOOD/BAD паттернов (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3** · **Diagnostic tree** · **Testing recipes** · канонический checker map (**FOCUS 31 обязательны** → CORE 71 → **139** всего, ratchet) с depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), проверяется **двусторонне** (inline `standards.yaml`).
+
+**Границы:** стандарт текстовый. Он задаёт обязанности агента, артефакты и гейты; runtime-контроль (контекст, инструменты, аудит, бюджет, approval) — ответственность платформы, а не стандарта.
 
 **Project Skin · Empire Engine:** пиши в стиле проекта — с дисциплиной Empire. Зелёный `prime_check` из имён AC, мёртвых портов, ignored e2e или exclude composition — **не** done.
 
@@ -43,7 +45,7 @@
 
 **Senior-протоколы по всему файлу:** Doctrine **Ask first** · self-вопросы у ролей · **questions block** у суб-агентов · **Domain Elicitation** (§1.12) · **Senior Debugging** 12 шагов (§4.12) · **Architecture Decision** 7 шагов (§4.13) · **Senior Thinking Checklist** (§4.14) · **Cross-Service** (§4.15) · **Feedback Loop** post-mortem→gate (§4.16) · **Self-Sufficiency** (§4.17 — AI решает всё сам, без человека).
 
-**v6.5 открыт в репо** — читай, форкай, используй.
+**v6.7 открыт в репо** — читай, форкай, используй.
 
 ---
 
@@ -59,6 +61,8 @@ AI-агенты сдают «зелёный» код, который врёт. M
 - **`write-all` CI / `.env` в чат** при «безопасном» приложении (A40).
 - **IDOR и mass assignment** — «залогинен ⇒ любой id», `update(**body)` (A41).
 - **Backend-дыры** — webhook без подписи, upload без streaming/scan, без retention (A60–A63).
+- **Нагрузочные тесты без порогов** — «не упало» ≠ performance-тест (A62).
+- **Только happy-path** — нет edge/combinatorial тестов (A12a).
 
 ---
 
@@ -76,18 +80,18 @@ AI-агенты сдают «зелёный» код, который врёт. M
 | Группа | Законы |
 |--------|--------|
 | **Core** | A01 Context/tier · A02 Zero Trust · A03 API contract · A04 Plugin boundary · A05 Layer law · A05a Cohesion · A06 DI & ports · A07 Design-first · A08 Anti-fork · A09 alias→A08 · A10 Errors · A11 Decomposition |
-| **Tests** | A12 Tests · A12a Taxonomy (24 family) · A13 DoD · A24 TDD-LOCK · A25 Coverage by risk · A27 Test quality · A28 Mutation |
+| **Tests** | A12 Tests · A12a Taxonomy (40 families, incl. 9 extended groups) · A13 DoD · A24 TDD-LOCK · A25 Coverage by risk · A27 Test quality · A28 Mutation |
 | **Security** | A16 Secure-by-design · A18 OWASP · A19 Secrets SSOT · A29 ZTA matrix · A40 Secure Continuum · A41 Trust Pipeline · A60 Webhooks · A61 Upload safety · A63 Privacy/retention |
 | **Data** | A14 Idempotency+Atomicity · A20 Migrations+Data+Transactions · A21 Contracts+Spec parity |
 | **Quality** | A15 Deterministic · A17 Clean code · A22 Checker+integrity · A23 Docker/IaC · A26 Evidence · A30 Anti-slack · A31 Legacy · A32 Monorepo · A33 Blast · A34 Intent lock · A35 Contract Surface · A36 Live Surface · A39 Behavior SSOT |
 | **Hardening** | A42 Bounds · A44 Dep isolation · A46 Config guard |
 | **Perf/API/Ops** | A48 Performance · A50 API Hygiene · A51 alias→B03 · A52 alias→B04 · A53 alias→A14 · B03 SRE+Observability · B04 Resilience+Retry |
-| **Backend** | A54 Budgets · A62 Load/soak · A64 Notifications |
+| **Backend** | A54 Budgets · A62 Performance/load · A64 Notifications |
 | **Platform** | A55 GraphQL · A56 WebSocket · A57 Search · A58 i18n · A59 PCI |
 | **Cross-cutting** | A65 Cross-Cutting Aspect Law · один owner / одна точка применения |
 | **Aliases** | A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A49→A20 |
 
-> Норматив по ID — в **`Mawyxx Prime V6.5.md`**.
+> Норматив по ID — в **`Mawyxx Prime V6.7.md`**.
 
 ---
 
@@ -109,7 +113,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 | **Config Guard** | **A46** · `prod-guard-gate` | `if TESTING` без env-guard · fail-open |
 | **Contracts & Spec Parity** | **A21** · api-contract-drift · snapshot · spec-parity | поле без version · спека ≠ код |
 
-Также: **A05a** cohesion · **A12a** taxonomy (24 family) · Anti-N/A · **A25** coverage honesty · **A33** blast · rich domain (**A05**/**B06**).
+Также: **A05a** cohesion · **A12a** taxonomy (40 families) · Anti-N/A · **A25** coverage honesty · **A33** blast · rich domain (**A05**/**B06**).
 
 ---
 
@@ -131,7 +135,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
    A07 Design-first      A21 Contracts+Parity  A34 Intent lock         A55–A59 Platform
    A08 Anti-fork         A22 Checker+integrity A35 Contract Surface    A60 Webhooks
    A10 Errors            A23 Docker/IaC        A36 Live Surface        A61 Upload safety
-   A11 Decomposition     A24 TDD-LOCK          A39 Behavior SSOT       A62 Load/soak
+   A11 Decomposition     A24 TDD-LOCK          A39 Behavior SSOT       A62 Performance/load
    A12 Tests             A12a Taxonomy         A40 Secure Continuum    A63 Privacy/retention
    A13 DoD               A25 Coverage          A26 Evidence            A64 Notifications
    A65 Cross-cutting aspect  (Policy–Intent Separation · K3)
@@ -181,7 +185,7 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 
 ## ⚡ Quick Start
 
-1. Положи **`Mawyxx Prime V6.5.md`** в репо.
+1. Положи **`Mawyxx Prime V6.7.md`** в репо.
 2. Скопируй **`.cursorrules`** или **`.cursor/rules/prime.mdc`** в проект (оба есть в этом репо).
 3. Дай агенту построить quality gate (`FOCUS` → `CORE` → `FULL`) и работать fix-until-green.
 
@@ -192,11 +196,11 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 | Файл | Содержание | Доступ |
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | Паттерны · ~220 строк | **MIT** |
-| `Mawyxx Prime V6.5.md` | **Один файл** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Открыт в репо** |
+| `Mawyxx Prime V6.7.md` | **Один файл** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Открыт в репо** |
 | `Mawyxx-Security.md` | Отдельный security-аудит mega-prompt (§1.1 Surface Matrix S01–S23 · 19 сабагентов) | **Открыт в репо** |
 | `scripts/prime_check/` | Агент создаёт FOCUS→CORE→FULL по §3.2 | **Не в репо** — агент bootstrap |
 
-Норматив — **только** в `Mawyxx Prime V6.5.md`. Этот README = карта, не второй SSOT.
+Норматив — **только** в `Mawyxx Prime V6.7.md`. Этот README = карта, не второй SSOT.
 
 ---
 
