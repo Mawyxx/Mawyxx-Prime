@@ -33,7 +33,7 @@
 
 ## 🚀 Что такое MAWYXX PRIME
 
-**v3.0** = паттерны (MIT). **v6.7** = Unified Constitution: **один файл**, два слоя (RUNTIME + LAW), один SSOT на тему, без дублей, **tier-aware глубина важнее ширины**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
+**v3.0** = паттерны (MIT). **v6.8** = Unified Constitution: **один файл**, два слоя (RUNTIME + LAW), один SSOT на тему, без дублей, **tier-aware глубина важнее ширины**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
 **Законы A01–A65 + B01–B14** · 5 ролей (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** под каждым законом · **12 GOOD/BAD паттернов (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3** · **Diagnostic tree** · **Testing recipes** · канонический checker map (**FOCUS 31 обязательны** → CORE 71 → **139** всего, ratchet) с depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), проверяется **двусторонне** (inline `standards.yaml`).
 
@@ -45,7 +45,7 @@
 
 **Senior-протоколы по всему файлу:** Doctrine **Ask first** · self-вопросы у ролей · **questions block** у суб-агентов · **Domain Elicitation** (§1.12) · **Senior Debugging** 12 шагов (§4.12) · **Architecture Decision** 7 шагов (§4.13) · **Senior Thinking Checklist** (§4.14) · **Cross-Service** (§4.15) · **Feedback Loop** post-mortem→gate (§4.16) · **Self-Sufficiency** (§4.17 — AI решает всё сам, без человека).
 
-**v6.7 открыт в репо** — читай, форкай, используй.
+**v6.8 открыт в репо** — читай, форкай, используй.
 
 ---
 
@@ -63,6 +63,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 - **Backend-дыры** — webhook без подписи, upload без streaming/scan, без retention (A60–A63).
 - **Нагрузочные тесты без порогов** — «не упало» ≠ performance-тест (A62).
 - **Только happy-path** — нет edge/combinatorial тестов (A12a).
+- **Распределённый монолит** — общие доменные сущности, общая БД, циклы (A05a/A20/§4.13a).
 
 ---
 
@@ -91,7 +92,7 @@ AI-агенты сдают «зелёный» код, который врёт. M
 | **Cross-cutting** | A65 Cross-Cutting Aspect Law · один owner / одна точка применения |
 | **Aliases** | A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A49→A20 |
 
-> Норматив по ID — в **`Mawyxx Prime V6.7.md`**.
+> Норматив по ID — в **`Mawyxx Prime V6.8.md`**.
 
 ---
 
@@ -185,7 +186,7 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 
 ## ⚡ Quick Start
 
-1. Положи **`Mawyxx Prime V6.7.md`** в репо.
+1. Положи **`Mawyxx Prime V6.8.md`** в репо.
 2. Скопируй **`.cursorrules`** или **`.cursor/rules/prime.mdc`** в проект (оба есть в этом репо).
 3. Дай агенту построить quality gate (`FOCUS` → `CORE` → `FULL`) и работать fix-until-green.
 
@@ -196,11 +197,11 @@ PHASE 5    Verifier  prime_check FULL + evidence block
 | Файл | Содержание | Доступ |
 |------|------------|--------|
 | `Mawyxx Prime V3.0.md` | Паттерны · ~220 строк | **MIT** |
-| `Mawyxx Prime V6.7.md` | **Один файл** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Открыт в репо** |
+| `Mawyxx Prime V6.8.md` | **Один файл** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Открыт в репо** |
 | `Mawyxx-Security.md` | Отдельный security-аудит mega-prompt (§1.1 Surface Matrix S01–S23 · 19 сабагентов) | **Открыт в репо** |
 | `scripts/prime_check/` | Агент создаёт FOCUS→CORE→FULL по §3.2 | **Не в репо** — агент bootstrap |
 
-Норматив — **только** в `Mawyxx Prime V6.7.md`. Этот README = карта, не второй SSOT.
+Норматив — **только** в `Mawyxx Prime V6.8.md`. Этот README = карта, не второй SSOT.
 
 ---
 

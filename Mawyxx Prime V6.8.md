@@ -1,8 +1,8 @@
-# MAWYXX PRIME v6.7 — Unified Constitution
+# MAWYXX PRIME v6.8 — Unified Constitution
 
 **Один файл. Два слоя: RUNTIME (как работать) + LAW (как писать). Ссылки по ID. Один SSOT на тему. Никаких дублей. Глубина важнее ширины: Why · PASS/FAIL · Recovery.**
 
-> **Revision:** v6.7 — synthesis + structure + editorial + scope + performance + test-completeness (kernel · policy index · law map · gate registry · text-only boundary · PERF-LOCK · Test Selection Matrix).
+> **Revision:** v6.8 — synthesis + structure + editorial + scope + performance + test-completeness + architecture + debt (kernel · policy index · law map · gate registry · text-only boundary · PERF-LOCK · Test Selection Matrix · Architecture Compass · Golden Path · C4/Team Topologies · selection matrices).
 > **Формула:** §0 Router → §1 Work → §2 Law → §3 Gates → §4 Protocols → §5 Reference.  
 > **Правда исхода:** `prime_check` exit 0 + evidence block.  
 > **Fix-until-green:** red → fix → re-run → exit 0. Никогда не бросать.
@@ -151,6 +151,18 @@ Runtime-контроль (бюджет контекста, исполнение 
 | Finance / compliance | **CRITICAL** | все | All + B09 | FULL + mutation + property + injection-fuzz |
 | Safety-critical C/C++/embedded | **CRITICAL** | все | A15, A16, B06 | clang-tidy/cppcheck + immutability |
 | Script only (no network) | **LITE** | Builder | B07 | smoke only |
+
+### 0.3a Workflow vs agent (choose the simplest)
+
+| Task shape | Use | Why |
+|---|---|---|
+| fixed steps, known path | deterministic workflow | reproducible, cheap |
+| open-ended, unknown path | agent + guardrails | discovery |
+| many independent subtasks | orchestrator-worker | parallel |
+| quality needs iteration | evaluator-optimizer | refine |
+| one-shot, high stakes | workflow + explicit authorization (§4.17) | control |
+
+**Rule:** default to workflow; agent only when the path is unknown.
 
 ### 0.4 Tier system
 
@@ -305,6 +317,7 @@ acceptance_criteria: [{id, statement, oracle.kind, oracle.assert, test}]
 blast_radius
 test_matrix: design/TDD-LOCK-<task>.md        # full locked test plan (see §1.3a) — not a vague field
 perf_lock: design/PERF-LOCK-<task>.md        # When A62 triggers
+arch: design/ARCH-<task>.md               # When structural change (§4.13a)
 test_taxonomy_map: [families → APPLIED | N/A(reason)]
 contract_surface_map: [outbound | inbound | dto_acl | api | events | strategies | composition_root]
 behavior_owners: [{id, owner_symbol, callers[]}]
@@ -501,10 +514,10 @@ aspect_registry: [{id, concern, owner, kind, order, scope, evidence}]
 
 ```
 STEP 0 — LOAD & OBEY THE STANDARD (do first; report standard_loaded=true)
-1. Locate the standard in the repo: Mawyxx Prime V6.7.md (accept Mawyxx Prime V6.5.md / MAWYXX-PRIME.md / Mawyxx-Prime.md).
+1. Locate the standard in the repo: Mawyxx Prime V6.8.md (accept Mawyxx Prime V6.7.md / Mawyxx Prime V6.5.md / MAWYXX-PRIME.md / Mawyxx-Prime.md).
 2. If missing — copy it into the repo root, then confirm:
-   https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.7.md
-   curl -fsSL "<url>" -o "Mawyxx Prime V6.7.md"   (PowerShell: Invoke-WebRequest -Uri "<url>" -OutFile "Mawyxx Prime V6.7.md")
+   https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.8.md
+   curl -fsSL "<url>" -o "Mawyxx Prime V6.8.md"   (PowerShell: Invoke-WebRequest -Uri "<url>" -OutFile "Mawyxx Prime V6.8.md")
 3. Read the listed {{SECTION_LIST}} sections — do NOT rely on memory; re-read for THIS task.
 4. In handoff_notes restate: tier · applicable laws (A-ids) · gates you run · your role boundaries.
 5. If the standard cannot be loaded → status=BLOCKED, reason=STANDARD_UNAVAILABLE — do NOT start work.
@@ -524,10 +537,10 @@ You are {{ROLE}} for MAWYXX PRIME. Execute ONLY this role for this task.
 Do NOT do other roles' work. Do NOT spawn other sub-agents.
 
 **STEP 0 — LOAD & OBEY THE STANDARD (do first, before any role work)**
-1. Locate `Mawyxx Prime V6.7.md` (accept `Mawyxx Prime V6.5.md` / `MAWYXX-PRIME.md` / `Mawyxx-Prime.md`).
+1. Locate `Mawyxx Prime V6.8.md` (accept `Mawyxx Prime V6.7.md` / `Mawyxx Prime V6.5.md` / `MAWYXX-PRIME.md` / `Mawyxx-Prime.md`).
 2. If missing — copy from:
-   https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.7.md
-   (`curl -fsSL "<url>" -o "Mawyxx Prime V6.7.md"` · PowerShell `Invoke-WebRequest -Uri "<url>" -OutFile "Mawyxx Prime V6.7.md"`)
+   https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.8.md
+   (`curl -fsSL "<url>" -o "Mawyxx Prime V6.8.md"` · PowerShell `Invoke-WebRequest -Uri "<url>" -OutFile "Mawyxx Prime V6.8.md"`)
 3. Read ONLY: {{SECTION_LIST}} — do NOT rely on memory; do NOT read the whole file.
 4. In `handoff_notes` restate: tier · applicable laws (A-ids) · gates · role boundaries.
 5. Cannot load the standard → `status=BLOCKED` (reason=STANDARD_UNAVAILABLE); do NOT start.
@@ -704,6 +717,8 @@ Questions you MUST answer before acting:
 3. EDGE CASES      — X = 0? max? null? duplicate? empty? negative?
 4. COMPLIANCE      — правила индустрии / закон / аудит?
 5. REALISTIC VOLUME— сколько users / rps / данных?
+6. QUALITY SCENARIOS— stimulus · source · response · measure (latency · availability · consistency · cost)
+7. ARCH CONSTRAINTS— deploy model · team size · consistency needs · data ownership
 ```
 **MUST:** invariants → в A20 constraints + property/state-transition tests.  
 **MUST NOT:** придумывать invariants молча — если пользователь не сказал, это `INVESTIGATE`.
@@ -941,6 +956,8 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] second capability into flat dump → package boundaries same change set
 - [ ] layer law holds **inside** packages
 - [ ] cross-capability only via public contracts / DTO / events / primitives
+- [ ] capability = bounded context; context map (shared kernel · ACL · conformist · partnership)
+- [ ] public contract only; **no shared domain entities** across contexts
 - [ ] design artifact lists `capability_slices` + `package_form`
 - [ ] config `architecture.capabilities` + `package_form` reflect reality
 - [ ] co-locate capability ports/adapters; shared `ports/` only with ADR
@@ -1312,6 +1329,10 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 **Why:** schema changes without versioned migrations corrupt data or break deploys; isolation/lock mistakes corrupt silently under load.
 - [ ] DDL only in versioned migrations; additive, numbered, idempotent
 - [ ] multi-step mutations in one transaction (or outbox)
+- [ ] transaction boundary = aggregate; one writer per aggregate
+- [ ] cross-aggregate via events/outbox; read models are projections (no dual-write)
+- [ ] reference other aggregates by ID/DTO only
+- [ ] event consumers idempotent (`event_id` dedup)
 - [ ] FSM transitions atomic under concurrency (B06)
 - [ ] NOT DDL from UC/handlers; ORM `create_all()` on prod
 - [ ] NOT long business logic in open transaction
@@ -1487,6 +1508,10 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 - [ ] `adoption_mode: legacy`
 - [ ] 100% coverage on changed files only; ratchet maintains baseline
 - [ ] grandfather debt via ADR + ticket + sunset
+- [ ] characterization tests before refactor
+- [ ] seams: isolate I/O behind ports before extraction
+- [ ] strangler fig: facade → migrate incrementally → remove old
+- [ ] expand/contract for schema/API (A20/A21)
 - [ ] NOT use legacy to avoid tests on **new** files
 - **FAIL:** legacy mode для новых файлов без тестов.
 
@@ -1533,7 +1558,7 @@ A09→A08 · A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A4
 **Min tier:** PRIME+ · **Enforced by:** `port-surface-gate` · `composition-root-gate` · `port-test-double-gate` · `live-surface-gate` · `dto-boundary-gate` · `plugin-boundary-gate` · `event-contract-gate`  
 **Why:** depending on concrete I/O in core couples business rules to infrastructure you can't fake.
 - [ ] fill `contract_surface_map` before code; each family named or `N/A(reason)`
-- [ ] families: Outbound port (I/O) · Inbound port (multi-entry) · DTO/ACL (cross-cap) · Policy/Strategy (2+) · SPI/Plugin (new provider) · API contract (exposed) · Event contract (events) · Composition root (adapters)
+- [ ] families: Outbound port (I/O) · Inbound port (multi-entry) · DTO/ACL (cross-cap) · Module public API (cross-cap) · Context map (ACL/shared kernel) · Policy/Strategy (2+) · SPI/Plugin (new provider) · API contract (exposed) · Event contract (events) · Composition root (adapters)
 - [ ] port only if I/O from UC + Fake + **call** (A36)
 - [ ] external write input enters as allowlisted Command/DTO (A41)
 - [ ] layer placement → **see A05**
@@ -2092,6 +2117,9 @@ error_budget:
 - [ ] ADR in `docs/adr/<NNNN>-<slug>.md` for non-trivial architecture/contract changes
 - [ ] template (SSOT §4.7): CONTEXT · OPTIONS(≥2) · CHOICE · REASON · TRADE-OFF · REVISIT-IF
 - [ ] ADR index updated; superseded ADR links the successor
+- [ ] architecture characteristics + quality scenarios for structural decisions (A07/§4.13a)
+- [ ] C4 context/container/component links when non-trivial
+- [ ] revisit-if includes scale/team/consistency change
 - [ ] any engineer understands *why* in 5 min
 - **FAIL:** ADR с одной опцией; пустые секции; waiver без sunset.
 
@@ -2312,6 +2340,16 @@ G-output → coverage-critical-100, coverage-rest-90, coverage-diff-100, coverag
 
 ### 3.1 Gate algorithms
 
+**`import-graph-gate` (A05/B02)**
+```
+1. Build import graph for runtime_scope (AST, not regex)
+2. FAIL cycles between packages/capabilities
+3. FAIL direction violations: core → infra/presentation/ORM/framework; banned_imports_in_core
+4. FAIL deep import into another module's internals (public API only)
+5. Stability: stable module must not depend on unstable one (I/A) → WARN→FAIL per config
+6. Hint: invert via port or move to adapter
+```
+
 **`package-cohesion-gate` (A05a)**
 ```
 1. Read package_form, capabilities[], cohesion_mode
@@ -2319,6 +2357,8 @@ G-output → coverage-critical-100, coverage-rest-90, coverage-diff-100, coverag
 3. For each changed file in scopes: path must contain /<capability>/ OR feature-package root
 4. FAIL per cohesion_mode (warn|fail)
 5. Hint: move to mirrored slice or features/<cap>/…
+6. FAIL: deep import across capabilities; public API only
+7. Context map: shared kernel/ACL declared or N/A(no cross-context)
 ```
 
 **`intent-lock-gate` (A34)**
@@ -2622,6 +2662,9 @@ G-output → coverage-critical-100, coverage-rest-90, coverage-diff-100, coverag
 2. inconsistent lock order across call sites → FAIL; lock held across IO/await → FAIL
 3. blocking ALTER/backfill in one tx on large table → FAIL (require batched expand→contract)
 4. soft-delete filter missing on a read path → FAIL
+5. transaction crosses aggregate boundary without outbox/saga → FAIL
+6. dual-write (DB + event) without outbox → FAIL
+7. event consumer not idempotent (no event_id dedup) → FAIL
 ```
 
 **`api-hygiene-gate` · `rate-limit-gate` (A50)**
@@ -3382,6 +3425,40 @@ PHASE 3 — FIX (правильно)
 **MUST NOT:** «один вариант» как решение; решение без revisit-if.
 **Enforced by:** `decision-log-gate` (ADR 6 полей).
 
+### 4.13a Architecture Compass (style · boundaries · consistency)
+
+**MUST** for structural changes (new capability · new service · boundary/data ownership change): write `design/ARCH-<task>.md` before code.
+
+**1. Style selection (default = modular monolith):**
+
+| Constraint | Choose | Avoid |
+|---|---|---|
+| one deploy + complex domain | modular monolith | microservices by default |
+| independent scaling/teams | services + ADR | distributed monolith |
+| complex workflow/audit | events/CQRS/ES + consistency plan | dual-write |
+| spiky/event workload | serverless | idle server |
+| simple CRUD | direct CRUD | Clean/DDD ceremony |
+
+**2. Boundaries:** capability = bounded context; context map = shared kernel · ACL · conformist · partnership; public contract only; **no shared domain entities** across contexts.
+**3. Aggregates:** one aggregate = one invariant + one transaction boundary; one writer; reference others by ID/DTO, not entity; cross-aggregate via events/outbox.
+**4. Dependencies:** direction inward; **no cycles**; stable dependencies; module public API only (no deep imports).
+**5. Consistency:** transaction = aggregate; cross-aggregate eventual via **outbox**; read models are projections (no dual-write); consumers idempotent by `event_id`.
+**6. Quality scenarios:** `stimulus · source · response · measure` (latency · availability · consistency · cost).
+**7. Evolution:** expand/contract · strangler fig · branch by abstraction · feature flags; no big-bang.
+**8. Anti-patterns:** big ball of mud · distributed monolith · shared DB across contexts · cyclic deps · chatty/nano services · anemic domain · smart UI · dual-write · speculative layers on CRUD.
+**9. Review (ATAM-lite):** scenarios → risks → sensitivity points → trade-offs → ADR decision.
+**10. Docs (C4):** context/container/component diagrams as code (Mermaid/Structurizr) in `docs/arch/`; link from ADR.
+**11. Team boundaries:** module/service boundaries align with ownership; cognitive load; no shared mutable ownership (Team Topologies).
+**12. Fitness:** `import-graph` cycles/stability · `package-cohesion` public API · `tx-isolation` aggregate/outbox · `behavior-ssot`; ratchet trends.
+
+**Artifact `design/ARCH-<task>.md`:**
+```
+context_map · modules · aggregates · public_api · dependency_rules
+quality_scenarios · consistency_plan · evolution_plan · decisions(ADR) · anti_patterns_avoided
+```
+
+**Enforced by:** `import-graph-gate` (cycles/direction) · `package-cohesion-gate` (public API) · `tx-isolation-gate`/`atomicity-gate` (aggregate/outbox) · `behavior-ssot-gate` (context map/ACL) · `decision-log-gate` (ADR).
+
 ### 4.14 Senior Thinking Checklist
 
 **Перед решением:**
@@ -3528,6 +3605,58 @@ PHASE 3 — FIX (правильно)
 
 ⚠️ Это **паттерны, не шаблоны**. Адаптируй под проект (Skin); важен **outcome**, не форма.
 
+### 5.2a Golden Path (canonical skeleton)
+
+**Правило:** новый capability начинается с Golden Path; отклонение — ADR. Простой CRUD — без церемонии (B07).
+
+```
+operation
+  → aspect chain: authn → schema → authz(resource) → idempotency → tx   [A65]
+  → Command/Query (allowlisted)
+  → UseCase (10–15 lines intent)
+  → Aggregate (invariants, FSM methods)
+  → Ports (outbound)
+  → Adapters (I/O; composition root only)
+  → events / outbox → subscribers
+  → read model (projection)
+```
+
+- **Files:** capability slice (A05a); one public API per module; adapters only in composition root (A35).
+- **Tests:** TDD-LOCK + Test Selection Matrix (A12a/A24); PERF-LOCK for perf (A62).
+- **Data:** transaction = aggregate; cross-aggregate via outbox (A20/A14); no dual-write.
+- **Docs:** `design/ARCH-<task>.md` + ADR (B09/§4.13a).
+- **NOT:** speculative layers/ports on CRUD; shared domain entities; deep imports; dual-write.
+
+### 5.2b Architecture selection matrices
+
+**Data:**
+
+| Need | Choose | Avoid |
+|---|---|---|
+| single writer, simple | one DB, schema per context | shared tables across contexts |
+| independent services | DB per service | shared DB |
+| audit/event history | event store + read models | dual-write |
+| read-heavy | CQRS read model | ORM joins on hot path |
+| multi-tenant | tenant column + RLS / DB per tenant | shared rows without tenant key |
+
+**API:**
+
+| Need | Choose | Avoid |
+|---|---|---|
+| CRUD/public | REST + OpenAPI | chatty RPC |
+| flexible client graph | GraphQL + depth/cost limits | unrestricted introspection |
+| internal high-throughput | gRPC/protobuf | JSON over chatty calls |
+| async/integration | events + schema version | dual-write |
+
+**UI:**
+
+| Need | Choose | Avoid |
+|---|---|---|
+| server data | server-state cache + revalidation | duplicating server state in store |
+| local UI | component/store state | business invariants in components |
+| multiple clients | BFF/API composition | leaking internal APIs |
+| large app | feature slices + shared design system | god store |
+
 ### 5.3 Glossary
 
 | Term | Meaning |
@@ -3584,6 +3713,15 @@ PHASE 3 — FIX (правильно)
 | **PERF-LOCK** | `design/PERF-LOCK-<task>.md` — perf test plan: load_model · target · oracle · data · duration · baseline (§A62) |
 | **Perf oracle** | latency_p95/p99 · throughput_rps · error_rate · memory_mb · cpu_pct · db_query_ms (§A34) |
 | **Load models** | constant · ramp · spike · soak ≥1h · capacity/breakpoint (§A62) |
+| **Bounded context** | capability boundary; public contract only; no shared domain entities (§A05a) |
+| **Aggregate** | consistency boundary: one invariant + one transaction + one writer (§A20) |
+| **Context map** | shared kernel · ACL · conformist · partnership (§A05a) |
+| **Golden Path** | canonical skeleton: operation → aspects → Command/Query → UC → Aggregate → Ports → Adapters → events (§5.2a) |
+| **Outbox** | atomic DB write + event publish; no dual-write (§A20/A14) |
+| **Read model** | projection for queries; no dual-write (§B01/A20) |
+| **Quality scenario** | stimulus · source · response · measure (§4.13a) |
+| **Expand/contract** | evolution without big-bang: expand → migrate → contract (§A20/A31) |
+| **Strangler fig** | replace legacy incrementally behind a facade (§A31) |
 
 ### 5.4 Forbidden patterns (SSOT)
 
@@ -3654,6 +3792,20 @@ PHASE 3 — FIX (правильно)
 ❌ «тесты потом»
 ```
 
+**Architecture anti-patterns:**
+```
+❌ big ball of mud
+❌ distributed monolith
+❌ shared database across contexts
+❌ cyclic package dependencies
+❌ chatty / nano services
+❌ anemic domain + fat service
+❌ smart UI
+❌ dual-write (DB + event)
+❌ shared domain entities across contexts
+❌ speculative layers/ports on CRUD
+```
+
 ### 5.5 Rule families (связи — видеть систему, не разрозненные проверки)
 
 ```
@@ -3682,6 +3834,7 @@ PHASE 3 — FIX (правильно)
 | **v6.5** | Backend pass: A60 Webhook · A61 Upload · A62 Load/Soak · A63 Privacy/Retention · A64 Notifications · A54 Budgets · A55–A59 GraphQL/WS/Search/i18n/PCI · per-language concurrency · flaky N · failure modes 30 · §2.0.1 Enough index · 138 gates (→139 in v6.5+). **Holes P0–P2:** file-based depth enforcement (docs/reasoning · docs/reviews · docs/adr) · steps_registered/green/skipped + skip_reasons · merge conflict rules · §5.7 inline (single file) + `standards.yaml` (§5.7.8) · §3.3 merged into §0.7 · flaky N=10/20 · `critical_scope` defined · aliases A49→A20, A51→B03, A52→B04, A53→A14 · router/groups updated · evidence trimmed |
 | **v6.5+ (senior pass)** | **Senior protocols woven throughout (single file):** Doctrine **Ask first** (§0.6) · per-role **self-questions** (§1.1) · sub-agent **questions block** (§1.11.10) · **§1.12 Domain Elicitation** · **§4.12 Senior Debugging (12)** · **§4.13 Architecture Decision (7)** · **§4.14 Senior Thinking Checklist** · **§4.15 Cross-Service** · **§4.16 Feedback Loop** · **§4.17 Self-Sufficiency** (AI решает всё сам, без человека) · woven into §1.2, §4.3, B08 |
 | **v6.5+ (TDD-LOCK deep pass)** | **A24 rewritten** → frozen test plan; **§1.3a TDD-LOCK artifact + derivation** (11 axes, blueprint format, freeze, fails-first); **PHASE 2** = execute frozen lock; new **`tdd-lock-gate`** (FOCUS → FOCUS 31 / CORE 71 / **139**); `test_matrix` = reference to `design/TDD-LOCK-<task>.md` |
+| **v6.8 (release)** | **Architecture + debt:** §0.3a Workflow vs agent · §4.13a Architecture Compass (style · boundaries · aggregates · dependencies · consistency · quality scenarios · evolution · anti-patterns · ATAM-lite · C4 · Team Topologies · fitness) · §5.2a Golden Path · §5.2b data/API/UI matrices · A05a context map · A20 aggregate/outbox · A35 module public API · B09 architecture characteristics · A31 characterization/seams/strangler · 40 test families + Test Selection Matrix · PERF-LOCK · text-only scope · no new laws/gates (SSOT 139) · no rules deleted |
 | **v6.7 (release)** | **Synthesis + structure + editorial + scope + performance + test-completeness:** §0.0 axioms/kernel/policy index/gate registry · §0.0.2 text-only boundary · §4.17 irreversible · §1.11.8 all untrusted context · §5.7.10 OWASP LLM/NIST/ISO 42001 · 40 test families + Test Selection Matrix + edge sweep · A34 perf oracles · §1.3a axis 13 · A62 Performance & Load Contract + PERF-LOCK · §4.9a test data & env · no rules deleted, SSOT 139 unchanged |
 | **v6.6.2 (editorial pass)** | Exact-duplicate Enough rows consolidated into §2.0.1 (unique rows kept inline) · §3.0.1 Gate registry (derived ownership view; §3.2 remains SSOT) · normative checklists/Why/backtick tokens normalized to EN · STEP 0 spawn dedup (4× → one canonical pointer) |
 | **v6.6.1 (structure pass)** | **Constitution map (§0.0.1)** · **Law map by invariant (§2.0.2)** · uniform alias/law headers · `DoD-only` closed with real gates (A01/A07/A30) · B-law Enforced-by/FAIL normalized · 26 boilerplate repeats collapsed to one definition · N/A hygiene in templates · terminology PRIME≡PRIME+ · Contents + Part banners |
@@ -3887,4 +4040,4 @@ A44 ловит **только ошибки внешнего слоя**; конк
 
 ---
 
-*End of MAWYXX PRIME v6.7*
+*End of MAWYXX PRIME v6.8*

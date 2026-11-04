@@ -33,7 +33,7 @@
 
 ## 🚀 What is MAWYXX PRIME
 
-**v3.0** = patterns (MIT). **v6.7** = Unified Constitution: **one file**, two layers (RUNTIME + LAW), one SSOT per topic, no duplicates, **tier-aware depth over width**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
+**v3.0** = patterns (MIT). **v6.8** = Unified Constitution: **one file**, two layers (RUNTIME + LAW), one SSOT per topic, no duplicates, **tier-aware depth over width**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
 **Laws A01–A65 + B01–B14** · 5 roles (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** under every law · **12 GOOD/BAD patterns (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3 priorities** · **Diagnostic tree** · **Testing recipes** · canonical checker map (**FOCUS 31 mandatory** → CORE 71 → **139** total, ratcheted) with depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), enforced **bidirectionally** (inline `standards.yaml`).
 
@@ -45,7 +45,7 @@
 
 **Senior protocols woven throughout:** Doctrine **Ask first** · per-role **self-questions** · sub-agent **questions block** · **Domain Elicitation** (§1.12) · **Senior Debugging** 12 steps (§4.12) · **Architecture Decision** 7 steps (§4.13) · **Senior Thinking Checklist** (§4.14) · **Cross-Service** (§4.15) · **Feedback Loop** post-mortem→gate (§4.16) · **Self-Sufficiency** (§4.17 — the AI decides everything itself, no human in the loop).
 
-**v6.7 is open in this repo** — read, fork, use.
+**v6.8 is open in this repo** — read, fork, use.
 
 ---
 
@@ -63,6 +63,7 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 - **Backend holes** — webhook without signature, upload without streaming/scan, no retention (A60–A63).
 - **Load tests without thresholds** — “it didn’t crash” is not a performance test (A62).
 - **Happy-path-only** — no edge/combinatorial tests (A12a).
+- **Distributed monolith** — shared domain entities, shared DB, cyclic deps (A05a/A20/§4.13a).
 
 ---
 
@@ -91,7 +92,7 @@ AI agents ship "green" code that lies. MAWYXX PRIME removes the evasions:
 | **Cross-cutting** | A65 Cross-Cutting Aspect Law · one owner / one application point |
 | **Aliases** | A37→A10 · A38→A22 · A43→A14 · A45→A14 · A47→A21 · A49→A20 |
 
-> Reference by ID: full normative text is in **`Mawyxx Prime V6.7.md`**.
+> Reference by ID: full normative text is in **`Mawyxx Prime V6.8.md`**.
 
 ---
 
@@ -185,7 +186,7 @@ Every security/quality finding maps to a concrete control ID — **OWASP Top 10 
 
 ## ⚡ Quick Start
 
-1. Put **`Mawyxx Prime V6.7.md`** in your repository.
+1. Put **`Mawyxx Prime V6.8.md`** in your repository.
 2. Copy **`.cursorrules`** or **`.cursor/rules/prime.mdc`** into your project (both ship in this repo).
 3. Let the agent bootstrap the quality gate (`FOCUS` → `CORE` → `FULL`) and work fix-until-green.
 
@@ -196,11 +197,11 @@ Every security/quality finding maps to a concrete control ID — **OWASP Top 10 
 | File | Content | Access |
 |------|---------|--------|
 | `Mawyxx Prime V3.0.md` | Patterns · ~220 lines | **MIT** |
-| `Mawyxx Prime V6.7.md` | **Single file** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Open in repo** |
+| `Mawyxx Prime V6.8.md` | **Single file** · Unified Constitution · **§0–§5** · **A01–A65** · **B01–B14** · §5.7 standards mapping (inline) | **Open in repo** |
 | `Mawyxx-Security.md` | Standalone security-audit mega-prompt (§1.1 Surface Matrix S01–S23 · 19 sub-agents) | **Open in repo** |
 | `scripts/prime_check/` | Agent creates FOCUS→CORE→FULL per §3.2 | **Not shipped** — agent bootstraps |
 
-Full normative text lives **only** in `Mawyxx Prime V6.7.md`. This README is an index — not a second SSOT.
+Full normative text lives **only** in `Mawyxx Prime V6.8.md`. This README is an index — not a second SSOT.
 
 ---
 
