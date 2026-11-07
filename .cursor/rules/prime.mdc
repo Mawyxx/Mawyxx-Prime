@@ -15,23 +15,23 @@ single source of truth. If your habits or guesses conflict with the standard —
 ## STEP 1 — Make sure the standard is present
 
 Find the standard in the repository. Accept any of:
-`Mawyxx Prime V7.0.md` · `MAWYXX-PRIME.md` · `Mawyxx-Prime.md` (legacy: `Mawyxx Prime V6.9.md`, `Mawyxx Prime V6.8.md`, `Mawyxx Prime V6.7.md`, `Mawyxx Prime V6.5.md`).
+`Mawyxx Prime V6.9.md` · `MAWYXX-PRIME.md` · `Mawyxx-Prime.md` (legacy: `Mawyxx Prime V6.8.md`, `Mawyxx Prime V6.7.md`, `Mawyxx Prime V6.5.md`).
 
 If it is NOT present — copy it into the repository root:
 
-`https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V7.0.md`
+`https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.9.md`
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V7.0.md" -o "Mawyxx Prime V7.0.md"
+curl -fsSL "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.9.md" -o "Mawyxx Prime V6.9.md"
 ```
 ```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V7.0.md" -OutFile "Mawyxx Prime V7.0.md"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V6.9.md" -OutFile "Mawyxx Prime V6.9.md"
 ```
 Confirm the file exists. Keep it in the repo from now on.
 
 ## STEP 2 — Read it (don't guess)
 
-**Read the CORE first:** §0 (Axioms · Kernel · tier · phases · evidence · gate policy) is the spine. Then read only the owner-section for your task (reference by trigger). Every law has `Derives → Kx/Ax`; derive, do not guess. Do **not** full-read by default; full-read only for PRIME+/CRITICAL audit.
+**Read the kernel first:** §0.0 (Axioms AX1–AX7 · Kernel K1–K6 · normative grammar · No-rule-loss) and §2.1 Policy Index are the spine. Then read only the owner-section for your task. Every law has `Derives → Kx/Ax`; derive, do not guess.
 
 Read the file — DO NOT rely on a previous session. Read at least the sections for
 your task; re-read when the task changes.
@@ -96,7 +96,7 @@ PHASE 5    prime_check FULL + evidence block
 ```
 Sub-agents per §1.11 when applicable (Writer ≠ Verifier).
 
-**Sub-agents — STEP 0 is mandatory (§1.11.0):** before spawning any sub-agent, the Orchestrator MUST embed in its prompt: *locate the standard (`Mawyxx Prime V7.0.md`), copy it from the raw URL if missing, read the listed sections, obey it, and report `standard_loaded=true`.* A sub-agent MUST do this **before any role work**; the Orchestrator **rejects** any output with `standard_loaded != true`.
+**Sub-agents — STEP 0 is mandatory (§1.11.0):** before spawning any sub-agent, the Orchestrator MUST embed in its prompt: *locate the standard (`Mawyxx Prime V6.9.md`), copy it from the raw URL if missing, read the listed sections, obey it, and report `standard_loaded=true`.* A sub-agent MUST do this **before any role work**; the Orchestrator **rejects** any output with `standard_loaded != true`.
 
 ## STEP 5 — Always with the standard
 
@@ -116,7 +116,7 @@ Sub-agents per §1.11 when applicable (Writer ≠ Verifier).
 - Invent rules — if the standard is unclear, use the Conflict Matrix, then the stricter reading.
 
 If download of the standard fails — retry once via
-`https://github.com/Mawyxx/Mawyxx-Prime/blob/main/Mawyxx%20Prime%20V7.0.md`,
+`https://github.com/Mawyxx/Mawyxx-Prime/blob/main/Mawyxx%20Prime%20V6.9.md`,
 then stop and report the blocker with that link.
 
 **Keywords:** AI coding standard · system prompt · Cursor rules · Windsurf rules · Copilot instructions · zero-trust · AI agents.

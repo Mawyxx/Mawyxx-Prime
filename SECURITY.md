@@ -22,7 +22,7 @@ secret is involved, rotate/revoke it first, then report.
 
 ## What is in scope
 
-- The standard text (`Mawyxx Prime V7.0.md`, `Mawyxx-Security.md`).
+- The standard text (`Mawyxx Prime V6.9.md`, `Mawyxx-Security.md`).
 - The standards mapping (§5.7 / inline `standards.yaml`).
 - Repository configuration (CI, permissions, secrets).
 
