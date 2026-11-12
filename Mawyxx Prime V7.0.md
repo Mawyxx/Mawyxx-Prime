@@ -2,7 +2,7 @@
 
 **Один файл. Два слоя: RUNTIME (как работать) + LAW (как писать). Ссылки по ID. Один SSOT на тему. Никаких дублей. Глубина важнее ширины: Why · PASS/FAIL · Recovery.**
 
-> **Revision:** v7.0.2 — adaptive orchestration: task router (tier → roles) · always-on Verifier (STANDARD+) · Design Council (architecture/security) · sub-agent contract · context notes. v7.0.1 detail kept; size flat; still one file.
+> **Revision:** v7.0.3 — operating loop (THINK → DESIGN → LOCK → BUILD → ATTACK → PROVE) · DESIGN artifact + code gate · Design Council steps · agent evals. v7.0.2 orchestration kept; size flat; still one file.
 > **Формула:** §0 Router → §1 Work → §2 Law → §3 Gates → §4 Protocols → §5 Reference.  
 > **Правда исхода:** `prime_check` exit 0 + evidence block.  
 > **Fix-until-green:** red → fix → re-run → exit 0. Никогда не бросать.
@@ -265,6 +265,8 @@ ZTA matrix · Threat Model 10Q · Trust Pipeline · IDOR/mass-assign/SSRF/path g
 
 ### 1.2 Фазы (единая последовательность)
 
+**Loop:** THINK (brief · constraints · assumptions · failure modes) → DESIGN (2–3 options · ADR · threat model · authz) → LOCK (TDD-LOCK · security AC · blast) → BUILD (ports → adapters → code → gates) → ATTACK (Guardian/Verifier find bugs) → PROVE (deterministic gates + evidence). Maps to PHASE 0–5 below.
+
 ```
 PHASE 0    — Analyst:    Clarify + Tier + adoption_mode
 PHASE 0.5  — Analyst:    Design Artifact + Default-secure 5Q + Threat Model 10Q
@@ -293,6 +295,7 @@ PHASE 5    — Verifier:   prime_check FULL + Evidence block
 ### 1.3 Design Artifact (обязателен, PHASE 0.5)
 
 ```
+design: design/DESIGN-<task>.md           # this artifact (PRIME+; before code)
 tier + triggers
 default_secure: [ответы 1–5]
 stack + existing_patterns
@@ -317,8 +320,8 @@ cross_cutting_map: [concern → aspect owner | N/A(reason)]
 aspect_registry: [{id, concern, owner, kind, order, scope, evidence}]
 ```
 
-**MUST NOT:** пустой `acceptance_criteria` на PRIME+ feature → STOP.  
-**MUST NOT:** имя теста без оракула → FAIL.  
+**MUST NOT:** пустой `acceptance_criteria` на PRIME+ feature → STOP; имя теста без оракула → FAIL.  
+**MUST NOT:** PRIME+ code before this artifact + `TDD-LOCK` exist (DESIGN/SECURITY/ARCH when triggered) → STOP.  
 **MUST:** на PRIME+ `test_matrix` ссылается на **`design/TDD-LOCK-<task>.md`** (§1.3a); нет файла → STOP.
 
 ### 1.3a TDD-LOCK artifact & derivation (MUST, PHASE 0.5 → PHASE 2)
@@ -503,14 +506,9 @@ aspect_registry: [{id, concern, owner, kind, order, scope, evidence}]
 **Sub-agent MUST** complete STEP 0 **before** any role work — otherwise the task is invalid.
 
 ```
-STEP 0 — LOAD & OBEY THE STANDARD (do first; report standard_loaded=true)
-1. Locate the standard in the repo: Mawyxx Prime V7.0.md (accept Mawyxx Prime V6.9.md / Mawyxx Prime V6.8.md / Mawyxx Prime V6.7.md / Mawyxx Prime V6.5.md / MAWYXX-PRIME.md / Mawyxx-Prime.md).
-2. If missing — copy it into the repo root, then confirm:
-   https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V7.0.md
-   curl -fsSL "<url>" -o "Mawyxx Prime V7.0.md"   (PowerShell: Invoke-WebRequest -Uri "<url>" -OutFile "Mawyxx Prime V7.0.md")
-3. Read the listed {{SECTION_LIST}} sections — do NOT rely on memory; re-read for THIS task.
-4. In handoff_notes restate: tier · applicable laws (A-ids) · gates you run · your role boundaries.
-5. If the standard cannot be loaded → status=BLOCKED, reason=STANDARD_UNAVAILABLE — do NOT start work.
+STEP 0 — LOAD & OBEY (before any role work): locate `Mawyxx Prime V7.0.md` (accept legacy v6.9–v6.5 · `MAWYXX-PRIME.md` · `Mawyxx-Prime.md`); if missing, copy from:
+https://raw.githubusercontent.com/Mawyxx/Mawyxx-Prime/main/Mawyxx%20Prime%20V7.0.md
+Read ONLY `{{SECTION_LIST}}` (not the whole file); restate tier · laws · gates · boundaries in `handoff_notes`; report `standard_loaded=true`. Cannot load → `BLOCKED(STANDARD_UNAVAILABLE)`.
 ```
 
 **MUST NOT:** begin role work, produce output, or edit files before STEP 0 is done.  
@@ -2506,6 +2504,8 @@ last_cmd: python -m scripts.prime_check
 ```
 **Honesty rule (§3.4):** `steps_green MUST = steps_registered − steps_skipped`; каждый skipped step MUST иметь reason в `skip_reasons`. «green 139/139» невозможно — это FAIL честности.
 
+**Agent evals (SHOULD, PRIME+):** 10 golden tasks × 2 modes (full · minimal); metrics = correctness · defects · time · tokens · diff size; red-team prompts = injection · IDOR · mass-assign · webhook replay · perf regression. No eval → «smarter» is belief.
+
 ---
 
 > **PART V — PROTOCOLS (when):** threat model · adversarial · debug · decisions.
@@ -2704,7 +2704,7 @@ q8_wrong:        reasoning.md §VERIFY
 7 DECISION      — ADR: выбор + причина + revisit-if (см. §4.11)
 ```
 **MUST NOT:** «один вариант» как решение; решение без revisit-if.
-**Design Council:** architecture/security → Analyst + Builder/Architect + Verifier; ≥2 варианта → ADR.
+**Design Council:** architecture/security → Analyst (constraints · quality scenarios) · Architect/Builder (≥2 options + trade-offs) · Verifier (attack the design) · Orchestrator (merge → ADR + revisit-if).
 **Enforced by:** `decision-log-gate` (ADR 6 полей).
 
 ### 4.13a Architecture Compass (style · boundaries · consistency)
