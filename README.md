@@ -35,7 +35,7 @@
 
 **v3.0** = patterns (MIT). **v7.0** = Unified Constitution: **one file**, two layers (RUNTIME + LAW), one SSOT per topic, no duplicates, **tier-aware depth over width**. Router (§0) → Work (§1) → Law (§2) → Gates (§3) → Protocols (§4) → Reference (§5).
 
-**Laws A01–A65 + B01–B14** · 5 roles (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** under every law · **12 GOOD/BAD patterns (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Two-Agent Verify** · **Bug→Gate** · **P0–P3 priorities** · **Diagnostic tree** · **Testing recipes** · canonical checker map (**FOCUS 31 mandatory** → CORE 71 → **139** total, ratcheted) with depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), enforced **bidirectionally** (inline `standards.yaml`).
+**Laws A01–A65 + B01–B14** · 5 roles (Orchestrator · Analyst · Builder · Guardian · Verifier) · **Why** under every law · **12 GOOD/BAD patterns (anti-anchoring)** · **Reasoning protocol** · **Adversarial self-review** · **Explain/ADR protocol** · **Feature Threat Model 10Q** · **Task router (tier → roles)** · **Always-on Verifier (STANDARD+)** · **Design Council** · **Bug→Gate** · **P0–P3 priorities** · **Diagnostic tree** · **Testing recipes** · canonical checker map (**FOCUS 31 mandatory** → CORE 71 → **139** total, ratcheted) with depth gates (`reasoning` · `adversarial` · `decision-log` · `standards-map` · `tdd-lock`) · **§5.7 Standards Traceability** (OWASP · CWE · ASVS · ISO 25010/5055 · CERT/MISRA), enforced **bidirectionally** (inline `standards.yaml`).
 
 **Scope:** a text-only constitution. It defines agent obligations, artifacts, and gates; runtime controls (context, tools, audit, budget, approval) are platform responsibilities, not part of the standard.
 
@@ -143,7 +143,7 @@ Also: **A05a** cohesion · **A12a** taxonomy (40 families) · Anti-N/A · **A25*
    B01 CQRS … B14 Handoff Artifact
 §3 GATES               3.0 groups · 3.1 execution model · 3.2 prime_check (FOCUS 31 → CORE 71 → 139) ·
                        3.3 P0–P3 priorities · 3.4 evidence
-§4 PROTOCOLS           4.1 Threat Model 10Q · 4.2 Two-Agent · 4.3 Bug→Gate · 4.4 Pre-Flight
+§4 PROTOCOLS           4.1 Threat Model 10Q · 4.2 Always-on Verifier · 4.3 Bug→Gate · 4.4 Pre-Flight
                        4.5 Fix-until-green · 4.6 3-strike · 4.7 Decision Log · 4.8 Diagnostic tree
                        4.9 Testing recipes · 4.10 Adversarial · 4.11 Explain
                        4.12 Senior Debugging · 4.13 Architecture Decision · 4.14 Senior Thinking
@@ -159,7 +159,7 @@ International maps (ISO 25010 · CISQ · OWASP ASVS · CERT/MISRA): **Quality Co
 
 ## 🤖 Automated Quality Gate Checker
 
-**Roles run as sub-agents (§1.11):** the Orchestrator delegates **Analyst · Builder · Guardian · Verifier** via Task tool, each with a self-contained spawn prompt (role, tier, sections to read, handoff IN, gates, output contract). Writer ≠ Verifier — adversarial review runs in a fresh session. Sub-agents return structured `[OUTPUT]`; the Orchestrator merges, dedupes, chains, and returns fixes (fix-until-green).
+**Roles run as sub-agents (§1.11):** the Orchestrator delegates **Analyst · Builder · Guardian · Verifier** via Task tool, each with a self-contained spawn prompt (role, tier, sections to read, handoff IN, gates, output contract). Writer ≠ Verifier — a fresh-context Verifier runs on every STANDARD+ change. Sub-agents return structured `[OUTPUT]`; the Orchestrator merges, dedupes, chains, and returns fixes (fix-until-green).
 
 On ≥PRIME the agent scaffolds `scripts/prime_check/`, implements the **FOCUS 31 (mandatory honest MVP)** first → green → **then** feature work, and **ratchets** to CORE 71 / EXTENDED (139 total) by trigger/tier. `standards-map-gate` is **FOCUS+CORE** and checks **ID↔gate both ways** (ID claimed ⇒ its gate green; security gate ⇒ has an ID). A semantic gate that cannot be implemented correctly is `SKIPPED(ADR)`, **never fake-green**. Runs `--diff` → FULL until `exit 0`, prints `PRIME-VERIFY-EVIDENCE`. You do not install or run the checker.
 
@@ -170,11 +170,11 @@ PHASE 1–3  Builder   Research → TDD-lock → ports/adapters/composition root
 PHASE 4    B↔G       Fix-until-green loop   (P0 before P1 before P2)
 PHASE 4.5–4.6 Guardian Security audit + review
 PHASE 4.7  Builder   Docs + ADR
-PHASE 4.8  Verifier  Two-Agent adversarial (another session/model)
+PHASE 4.8  Verifier  Always-on adversarial (another session/model)
 PHASE 5    Verifier  prime_check FULL + evidence block
 ```
 
-**Skip rules:** LITE = PHASE 0–3, no checker. Threat Model MUST when any Default-secure YES. Two-Agent MUST for PRIME+.
+**Skip rules:** LITE = PHASE 0–3, no checker. Threat Model MUST when any Default-secure YES. Always-on Verifier MUST for STANDARD+.
 
 ---
 

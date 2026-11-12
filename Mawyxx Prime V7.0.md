@@ -2,7 +2,7 @@
 
 **Один файл. Два слоя: RUNTIME (как работать) + LAW (как писать). Ссылки по ID. Один SSOT на тему. Никаких дублей. Глубина важнее ширины: Why · PASS/FAIL · Recovery.**
 
-> **Revision:** v7.0.1 — v7.0 + restored decision-critical detail: semantic gate checks (security/test/data/ops) · ASVS/OWASP API/CWE/LLM maps · external-error mapping · role forbidden · spawn example · pattern/glossary/recipes. Still one file; no changelog/runtime scope.
+> **Revision:** v7.0.2 — adaptive orchestration: task router (tier → roles) · always-on Verifier (STANDARD+) · Design Council (architecture/security) · sub-agent contract · context notes. v7.0.1 detail kept; size flat; still one file.
 > **Формула:** §0 Router → §1 Work → §2 Law → §3 Gates → §4 Protocols → §5 Reference.  
 > **Правда исхода:** `prime_check` exit 0 + evidence block.  
 > **Fix-until-green:** red → fix → re-run → exit 0. Никогда не бросать.
@@ -13,8 +13,8 @@
 **Part II — Work:** §1 roles · phases · Design Artifact · TDD-LOCK · sub-agents · Domain Elicitation.
 **Part III — Law:** §2.0 groups · §2.0.1 enough · §2.0.2 map · §2.1 Policy Index · A01–A65 · B01–B14.
 **Part IV — Gates:** §3.0 groups · §3.1 algorithms · §3.2 prime_check (FOCUS 31 → CORE 71 → 139) · §3.4 evidence.
-**Part V — Protocols:** §4.1–4.17 threat model · two-agent · bug→gate · debug · decision · thinking · self-sufficiency.
-**Part VI — Reference:** §5.1 constellation · §5.2 patterns · §5.3 glossary · §5.4 forbidden · §5.5 families · §5.7 standards.
+**Part V — Protocols:** §4.1–4.18 threat model · always-on verifier · bug→gate · debug · decision · thinking · self-sufficiency.
+**Part VI — Reference:** §5.1 constellation · §5.2 patterns · §5.3 glossary · §5.4 forbidden · §5.7 standards.
 
 ---
 
@@ -96,11 +96,12 @@ SSOT > Conflict Matrix (§1.5) > строгое чтение > tier. Копия 
 | 2 | §1 Roles + Phases | Понять как работать |
 | 3 | §2 Laws (+ Why) | Понять как писать **и почему** |
 | 4 | §3 Gates | Понять чем тебя проверят и что чинить первым |
-| 5 | §4 Protocols | Threat Model, Two-Agent, Bug→Gate, Pre-Flight, Diagnostic tree, Recipes |
+| 5 | §4 Protocols | Threat Model, Always-on Verifier, Bug→Gate, Pre-Flight, Diagnostic tree, Recipes |
 | 6 | §5 Reference | Pattern Catalog · Golden Path · Glossary · Forbidden · Traceability |
 
 **ID стабильны** (`A01`…`A65`, `B01`…`B14`, gate-names). Каждый закон имеет плоский якорь (`#a24-tdd-lock`); §-ссылки текстовые.  
 **Reading contract:** CORE (§0) — всегда; reference (§1–§5) — по триггеру §0.3; full-read — только PRIME+/CRITICAL audit, не дефолт.
+**Context:** task brief 10–15 lines; running notes in `design/NOTES-<task>.md`.
 **MUST NOT:** читать весь файл целиком каждую итерацию. Читай секцию под фазу.
 
 ### 0.3 Task router
@@ -220,12 +221,12 @@ ZTA matrix · Threat Model 10Q · Trust Pipeline · IDOR/mass-assign/SSRF/path g
 
 Глубина применяется **пропорционально tier** — не одинаковая для всех. LITE не тонет; PRIME+ использует все слои.
 
-| Tier | Why | Good/Bad (12) | Reasoning §1.10 | Adversarial §4.10 | Explain §4.11 | Recipes §4.9 | Gates (algorithms §3.1) |
-|---|---|---|---|---|---|---|---|
-| **LITE** | ✅ | — | — | — | — | — | — |
-| **STANDARD** | ✅ | ✅ | — | ✅ кратко | — | ✅ | `adversarial-gate` |
-| **PRIME+** | ✅ | ✅ | ✅ MUST | ✅ полный | ✅ (неочевидные) | ✅ | `reasoning-gate` · `adversarial-gate` · `decision-log-gate` |
-| **CRITICAL** | ✅ | ✅ | ✅ MUST | ✅ + Two-Agent §4.2 | ✅ + ADR B09 | ✅ | all + Two-Agent §4.2 |
+| Tier | Roles §1.1 | Why | Good/Bad (12) | Reasoning §1.10 | Adversarial §4.10 | Explain §4.11 | Recipes §4.9 | Gates (algorithms §3.1) |
+|---|---|---|---|---|---|---|---|---|
+| **LITE** | Builder | ✅ | — | — | — | — | — | — |
+| **STANDARD** | Builder + Verifier (always-on) | ✅ | ✅ | — | ✅ кратко | — | ✅ | `adversarial-gate` |
+| **PRIME+** | Analyst → Builder → Guardian → Verifier | ✅ | ✅ | ✅ MUST | ✅ полный | ✅ (неочевидные) | ✅ | `reasoning-gate` · `adversarial-gate` · `decision-log-gate` |
+| **CRITICAL** | + fresh model / security review | ✅ | ✅ | ✅ MUST | ✅ + always-on §4.2 | ✅ + ADR B09 | ✅ | all + always-on §4.2 |
 
 **MUST NOT:** применять слой, не входящий в твой tier (overhead / dilution).  
 **MUST:** не пропускать слой, входящий в tier — пропуск виден в evidence (A26).
@@ -244,7 +245,7 @@ ZTA matrix · Threat Model 10Q · Trust Pipeline · IDOR/mass-assign/SSRF/path g
 | **1** | **Analyst** | суб-агент `explore` (recon) + `general` | Clarify → Tier → Design Artifact → 5Q → 10Q → все maps → AC с оракулами → blast | A01, A07, A33, A34, A35, A40, A41 |
 | **2** | **Builder** | суб-агент `general` (1 на capability) | Research deps → TDD-lock → ports → adapters → composition root → perf/api/data → docs | A05–A11, A14–A20, A39, A42, A44, A46, A48, A50, A24, A65, B03, B04, B09 |
 | **3** | **Guardian** | суб-агент `general` (отдельный от Builder) | Taxonomy verify → Debug loop → Security audit → Review → Adversarial §4.10 | A12, A16, A18, A24, A25, A27, A29, A36, A39, A10, A65 |
-| **4** | **Verifier** | суб-агент `general` (**свежая сессия/модель**) | Pre-Flight → Two-Agent adversarial → prime_check FULL → Evidence | A22, A26 |
+| **4** | **Verifier** | суб-агент `general` (**свежая сессия/модель**) | Pre-Flight → always-on adversarial §4.2 → prime_check FULL → Evidence | A22, A26 |
 
 **Правила ролей:**
 - Writer ≠ Verifier. Guardian не может одобрить свой код.
@@ -277,14 +278,14 @@ PHASE 4    — Builder ↔ Guardian: Fix-Until-Green loop
 PHASE 4.5  — Guardian:   Security audit + 10Q → gates + Bug→Gate
 PHASE 4.6  — Guardian:   Review (behavior SSOT, live surface, A36/A39, A10)
 PHASE 4.7  — Builder:    Docs + ADR
-PHASE 4.8  — Verifier:   Two-Agent adversarial (другая сессия/модель)
+PHASE 4.8  — Verifier:   always-on adversarial (другая сессия/модель)
 PHASE 5    — Verifier:   prime_check FULL + Evidence block
 ```
 
 **Skip rules (D4):**
 - PHASE 4.5 (Threat Model) — обязателен если Default-secure 5Q → any YES.
 - PHASE 4.7 (Docs/ADR) — MUST для CRITICAL; SHOULD для PRIME+.
-- PHASE 4.8 (Two-Agent) — MUST для PRIME+; опционален для STANDARD.
+- PHASE 4.8 (always-on Verifier) — MUST для STANDARD+.
 - LITE — только PHASE 0–3 (Analyst+Builder), без checker.
 
 **Fix-until-green:** на любой фазе red → возврат к нужному агенту → fix → re-run. **Нет выхода с exit ≠ 0.**
@@ -578,16 +579,17 @@ N. {{…}}
 
 **Общее правило:** output любой роли возвращается Orchestrator'у, не в чат. Orchestrator мержит (row 1.11.5).
 
-#### 1.11.1 Role card (Analyst · Builder · Guardian · Verifier)
+#### 1.11.1 Task router & roles
 
-| Role | Focus | Output | Laws |
-|---|---|---|---|
-| Analyst | tier · 5Q · 10Q · maps · AC | Design Artifact | A01/A07/A33/A34/A35/A40/A41 |
-| Builder | TDD-LOCK → ports → adapters → gates | code + gate results | A05–A11/A14–A20/A24/A39/A42/A44/A46/A48/A50 |
-| Guardian | taxonomy · security · review · adversarial | findings P0–P3 | A10/A12/A16/A18/A24/A25/A27/A29/A36/A39 |
-| Verifier | Two-Agent · prime_check FULL | evidence | A22/A26 |
+| Situation | Roles | Output |
+|---|---|---|
+| Architecture / security decision | **Design Council**: Analyst + Builder/Architect + Verifier | 2–3 options + ADR + threat model |
+| Unclear requirements | Analyst | Domain Elicitation + INVESTIGATE |
 
-**Forbidden:** Analyst — prod code · Builder — skipping TDD-LOCK · Guardian — approving own code / writing code · Verifier — rubber-stamp / hidden N/A.
+**Always-on Verifier:** every STANDARD+ change gets a fresh-context reviewer; Writer ≠ Verifier.
+**Design Council:** ≥2 options + trade-offs + ADR; Verifier attacks the design.
+**Contract:** every spawn = STEP 0 · role · task/tier · blast_radius · sections · questions · JSON output · forbidden.
+**Forbidden:** Analyst — prod code · Builder — skipping TDD-LOCK · Guardian — approving own code · Verifier — rubber-stamp.
 
 **Spawn example (filled):**
 
@@ -600,26 +602,14 @@ Output JSON: role/task/status/standard_loaded/artifact/gate_results/handoff_note
 ```
 
 #### 1.11.5 Orchestrator launch & merge
-```
-1. Launch independent sub-agents in ONE message (parallel) — Task tool.
-   Every spawn prompt MUST embed the **STEP 0 — load & obey the standard** block (§1.11.0).
-2. Collect [OUTPUT]s; assign global IDs F-001… **Reject** any output with `standard_loaded != true`.
-3. Dedupe by key `(artifact_id, gate, file:line)` → merge; keep highest severity; union sources.
-4. Chain pass: combine findings → upgrade to P0 if exploit chain (§4.10).
-5. Gap pass: any role/phase uncovered → spawn it.
-6. Red → return findings to Builder sub-agent → fix → re-run (fix-until-green).
-7. Green → Verifier produces evidence → chat = summary + report/file path only.
-```
-**Conflict resolution rules (MUST):**
-```
-1. Guardian PASS + Verifier FAIL → Verifier wins (adversarial > self-review)
-2. Same bug (same file:line), different severity → higher severity wins
-3. Conflicting severities from two roles → higher wins; log BOTH in report
-4. Same finding from two sources → union sources, one entry
-5. Guardian FAIL + Verifier PASS → re-run Guardian (Builder changed after Guardian ran)
-6. Chain: finding A enables B → upgrade both to P0
-```
-**MUST NOT:** просить пользователя запускать проверки; дампить полный лог суб-агентов в чат; принимать PASS без artifact/gate_results.
+
+1. Launch independent roles in parallel; every spawn embeds STEP 0 (§1.11.0).
+2. Reject `standard_loaded != true`; assign F-001…; dedupe by `(file, rule, gate)`.
+3. Keep highest severity; chain A→B → P0; gap in roles/phases → spawn it.
+4. Red → Builder fix → re-run; green → Verifier evidence.
+5. Conflicts: Verifier > Guardian; higher severity wins, log both; Guardian FAIL + Verifier PASS → re-run Guardian.
+
+**MUST NOT:** ask the user to run checks; dump sub-agent logs to chat; accept PASS without `artifact`/`gate_results`.
 
 #### 1.11.6 Prompt-injection protection (all untrusted context)
 ```
@@ -2309,7 +2299,7 @@ atomicity: {mode: fail}
 dep_isolation: {mode: fail}
 config_guard: {mode: fail}
 spec_parity: {mode: fail}
-standards_map: inline §5.7.8         # SSOT для standards-map-gate (CORE, bidirectional) — в этом же файле
+standards_map: inline §5.7           # SSOT для standards-map-gate (CORE, bidirectional) — в этом же файле
 forbidden_patterns: ["pragma: no cover", "istanbul ignore", "assert True", "goto", "setjmp", "eval(", "exec("]
 ```
 
@@ -2539,18 +2529,13 @@ last_cmd: python -m scripts.prime_check
 
 Все ответы → в design artifact. Каждый YES → соответствующий гейт в этом PR.
 
-### 4.2 Two-Agent Verification (PHASE 4.8)
+### 4.2 Always-on Verifier (PHASE 4.8)
 
-```
-[ ] Phase A: Writer написал код + self-review
-[ ] Phase B: Verifier (другая сессия/модель) читает diff + A42/A44/A46 + A14/A21 чеклист
-[ ] Verifier prompt: "Ты — adversarial reviewer. НАЙДИ баги, не одобряй."
-[ ] Verifier ищет: bounds, atomicity, isolation, config guard, spec parity
-[ ] Если Verifier нашёл баг — Writer fix → re-verify
-```
-
-**Правило:** Writer и Verifier — разные сессии. Writer не может одобрить свой код.  
-**Спавн-пак Verifier — §1.11.4;** merge и return-fix loop — §1.11.5.
+- STANDARD+: fresh-context Verifier reads the diff, not the writer's summary.
+- Prompt: "You are an adversarial reviewer. FIND bugs, do not approve."
+- Checks: bounds · atomicity · isolation · config guard · spec parity · IDOR · mass-assign.
+- Writer ≠ Verifier; bug → fix → re-verify.
+- Evidence: `adversarial: docs/reviews/<date>-<task>.md`.
 
 ### 4.3 Bug → Gate (в том же PR)
 
@@ -2661,7 +2646,7 @@ Pixels/hwnd: real HWND style or offscreen render; unit-only doesn't close AC.
 8. Что если я неправ?                → A22 (докажи гейтом)
 ```
 
-3 prompts (для Two-Agent §4.2): **Security** «как использовать это против владельца?» · **Reliability** «как это может упасть?» · **Maintenance** «что сломается через 6 месяцев?».
+3 prompts (для always-on §4.2): **Security** «как использовать это против владельца?» · **Reliability** «как это может упасть?» · **Maintenance** «что сломается через 6 месяцев?».
 
 **MUST:** результат пишется в файл **`docs/reviews/<YYYY-MM-DD>-<task_id>.md`** — 8 полей, **каждое = ссылка на конкретный `test_name` или `gate_name`** (не «covered»/«ok»):
 
@@ -2696,31 +2681,14 @@ q8_wrong:        reasoning.md §VERIFY
 **MUST NOT:** применять к очевидным решениям (бюрократия).  
 **Enforced by:** `decision-log-gate` (evidence `decisions_logged: N`). Пример: выбор idempotency strategy (key vs ledger) — TRADE-OFF есть → запись.
 
-### 4.12 Senior Debugging Protocol (12 шагов)
+### 4.12 Senior Debugging Protocol (12 steps)
 
-**MUST при любом баге/инциденте.** Senior не «гадает по stack trace» — исследует.
+1 Reproduce 10×. 2 Read the report twice: what is NOT said? 3 Check recent changes. 4 Question assumptions.
+5 Cross-layer: API → adapter → cache → DB → network. 6 Data vs code. 7 Binary search. 8 Emergent/timing?
+9 Failing test FIRST. 10 Fix root cause, not symptom. 11 Verify neighbours. 12 Post-mortem → Bug→Gate.
 
-```
-PHASE 1 — UNDERSTAND (не трогай код)
- 1 Reproduce reliably — можешь повторить баг 10×? Нет → сначала сделай reproducible.
- 2 Read bug report twice — что НЕ сказано? «иногда» → почему/кто/когда?
- 3 Check recent changes — git log (7д), deploy timeline, миграции, feature flags.
- 4 Question assumption — «это точно N+1?» или «нам кажется, что N+1»?
-
-PHASE 2 — LOCATE (сузь область)
- 5 Cross-layer — симптом в API, причина в БД? app → adapter → cache → DB → network.
- 6 Data vs code — код плохой или данные? проверь БД напрямую.
- 7 Binary search — отключи половину системы; баг остался → он в другой половине.
- 8 Emergent — это interaction? один сервис ок, другой нет? timing? race?
-
-PHASE 3 — FIX (правильно)
- 9 Write failing test FIRST — воспроизводит баг.
-10 Fix ROOT cause, не symptom — симптом исчез ≠ баг исправлен.
-11 Verify fix не ломает соседей — full suite.
-12 Post-mortem — почему баг был возможен? какой gate должен был поймать? → §4.16 Bug→Gate.
-```
-**MUST NOT:** фикс без воспроизведения; фикс симптома; закрытие без post-mortem (для prod).
-**Enforced by:** `regression-lock` (шаг 9) + §4.16.
+**MUST NOT:** fix without reproduction; fix symptom; close prod bug without post-mortem.
+**Enforced by:** `regression-lock` + §4.16.
 
 ### 4.13 Architecture Decision Protocol (7 шагов)
 
@@ -2736,6 +2704,7 @@ PHASE 3 — FIX (правильно)
 7 DECISION      — ADR: выбор + причина + revisit-if (см. §4.11)
 ```
 **MUST NOT:** «один вариант» как решение; решение без revisit-if.
+**Design Council:** architecture/security → Analyst + Builder/Architect + Verifier; ≥2 варианта → ADR.
 **Enforced by:** `decision-log-gate` (ADR 6 полей).
 
 ### 4.13a Architecture Compass (style · boundaries · consistency)
@@ -2775,24 +2744,11 @@ quality_scenarios · consistency_plan · evolution_plan · decisions(ADR) · ant
 
 ### 4.14 Senior Thinking Checklist
 
-**Перед решением:**
-```
-[ ] Что я НЕ вижу? (unknown unknowns)      [ ] Что если это не тот слой?
-[ ] Что изменилось недавно?                [ ] Что если 100× данных/пользователей?
-[ ] Что если X упадёт / будет медленным?   [ ] Что если всё сломается одновременно?
-[ ] Что если это не баг, а требование?     [ ] Что если я неправ в чём-то базовом?
-```
-**Перед фиксом:**
-```
-[ ] Воспроизвёл? [ ] Проверил ВСЕ слои? [ ] Проверил данные, не только код?
-[ ] Понял root cause? [ ] Есть тест, ловящий баг? [ ] Фикс не сломает соседей?
-```
-**Перед сдачей:**
-```
-[ ] Что может быть не так? [ ] Что через 6 мес будет непонятно?
-[ ] Что junior поймёт неправильно? [ ] Что prod сделает иначе, чем dev?
-```
-**MUST:** отразить ответы в reasoning (§1.10) / adversarial (§4.10). **Enforced by:** `adversarial-gate`.
+- **Before decision:** what am I NOT seeing? wrong layer? what changed? 100× data/users? what if X fails? what if everything fails? is it a requirement, not a bug? what if I'm wrong?
+- **Before fix:** reproduced? all layers? data not just code? root cause? test catches it? neighbours safe?
+- **Before done:** what can be wrong? what is unclear in 6 months? what would a junior misread? what does prod do differently?
+
+**MUST:** reflect answers in reasoning/adversarial. **Enforced by:** `adversarial-gate`.
 
 ### 4.15 Cross-Service Investigation
 

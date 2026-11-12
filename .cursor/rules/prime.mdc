@@ -91,10 +91,10 @@ PHASE 0    Tier + adoption_mode + Domain Elicitation (§1.12)
 PHASE 0.5  Design Artifact + 5Q + Threat Model 10Q + maps + AC oracles + blast + design/TDD-LOCK-<task>.md
 PHASE 1–3  Execute the FROZEN TDD-LOCK (each locked test first, fail for the right reason) → ports → adapters → composition root
 PHASE 4    Fix-until-green (P0 → P1 → P2)
-PHASE 4.5–4.8 Guardian audit + review + Two-Agent adversarial
+PHASE 4.5–4.8 Guardian audit + review + Always-on Verifier adversarial
 PHASE 5    prime_check FULL + evidence block
 ```
-Sub-agents per §1.11 when applicable (Writer ≠ Verifier).
+Sub-agents per §1.11 task router: STANDARD+ gets a fresh-context Verifier; Writer ≠ Verifier.
 
 **Sub-agents — STEP 0 is mandatory (§1.11.0):** before spawning any sub-agent, the Orchestrator MUST embed in its prompt: *locate the standard (`Mawyxx Prime V7.0.md`), copy it from the raw URL if missing, read the listed sections, obey it, and report `standard_loaded=true`.* A sub-agent MUST do this **before any role work**; the Orchestrator **rejects** any output with `standard_loaded != true`.
 
