@@ -2,7 +2,7 @@
 
 **Один файл. Два слоя: RUNTIME (как работать) + LAW (как писать). Ссылки по ID. Один SSOT на тему. Никаких дублей. Глубина важнее ширины: Why · PASS/FAIL · Recovery.**
 
-> **Revision:** v7.0 — converged one-file constitution: CORE + reference zones · deterministic gates (Attestation ≠ gate) · compact laws · no changelog · no runtime scope · Security S00–S09 · Decision vs Action.
+> **Revision:** v7.0.1 — v7.0 + restored decision-critical detail: semantic gate checks (security/test/data/ops) · ASVS/OWASP API/CWE/LLM maps · external-error mapping · role forbidden · spawn example · pattern/glossary/recipes. Still one file; no changelog/runtime scope.
 > **Формула:** §0 Router → §1 Work → §2 Law → §3 Gates → §4 Protocols → §5 Reference.  
 > **Правда исхода:** `prime_check` exit 0 + evidence block.  
 > **Fix-until-green:** red → fix → re-run → exit 0. Никогда не бросать.
@@ -586,6 +586,18 @@ N. {{…}}
 | Builder | TDD-LOCK → ports → adapters → gates | code + gate results | A05–A11/A14–A20/A24/A39/A42/A44/A46/A48/A50 |
 | Guardian | taxonomy · security · review · adversarial | findings P0–P3 | A10/A12/A16/A18/A24/A25/A27/A29/A36/A39 |
 | Verifier | Two-Agent · prime_check FULL | evidence | A22/A26 |
+
+**Forbidden:** Analyst — prod code · Builder — skipping TDD-LOCK · Guardian — approving own code / writing code · Verifier — rubber-stamp / hidden N/A.
+
+**Spawn example (filled):**
+
+```markdown
+SUB-AGENT — Builder · T-1042
+STEP 0: locate Mawyxx Prime V7.0.md; read CORE + A05–A11/A14–A20/A24; report standard_loaded=true.
+Handoff IN: Design Artifact + TDD-LOCK; tier PRIME+; blast_radius=[orders].
+Job: execute frozen lock → ports → adapters → gates; stay inside blast_radius.
+Output JSON: role/task/status/standard_loaded/artifact/gate_results/handoff_notes.
+```
 
 #### 1.11.5 Orchestrator launch & merge
 ```
@@ -2184,6 +2196,48 @@ G-output → coverage-critical-100, coverage-rest-90, coverage-diff-100, coverag
 | `prod-guard` | dangerous flags panic · fail-closed |
 | `spec-parity` | response snapshot · OpenAPI cross-check |
 
+**Test/quality gate checks (semantic):**
+
+| Gate | Check |
+|---|---|
+| `test-taxonomy` | trigger → named test or N/A(reason); no happy-path-only |
+| `test-matrix` | every TDD-LOCK entry ↔ test; no orphan |
+| `intent-lock` | AC oracle asserted in body; falsifiable |
+| `tdd-lock` | lock before code; fails-first; frozen |
+| `test-quality` | non-trivial oracle; no tautology/name-only |
+| `err-variant` | each Err variant provoked via production path |
+| `live-surface` | port constructed + called; field read |
+| `no-swallow` | no `let _` / `.ok()` / empty catch on I/O |
+| `checker-integrity` | no `return GREEN` / existence-only |
+| `boundary-value` | 0 · -1 · null/empty · max · max+1 |
+| `negative-path` | state-changing/IO/auth reject + rollback |
+| `fsm-transition` | legal + illegal + terminal re-entry |
+| `regression-lock` | every bug fix → regression test |
+| `concurrency` | 2 parallel → exactly 1 side-effect |
+| `crash-recovery` | crash after claim → next call not blocked |
+| `ttl` | fake clock expiry, not sleep |
+| `crypto-params` | RSA ≥2048; no homemade; unique IV |
+| `ignored-test` | each ignore has `skipped_steps` row |
+
+**Data/contract/ops gate checks:**
+
+| Gate | Check |
+|---|---|
+| `idempotency-matrix` | stable key · dedup before side-effect · claim release · parallel guard |
+| `route-matrix` | each op × {2xx, 400, 401, 403, 404, 409, 422, 429} |
+| `migration-path-only` | DDL only in versioned migrations |
+| `no-ddl-in-app` | no `create_all` / schema sync in app |
+| `schema-drift` | migrations ↔ schema snapshot |
+| `api-contract-drift` | OpenAPI ↔ code |
+| `snapshot-contract` | response shape snapshot |
+| `tx-isolation` | read-modify-write money/inventory uses `FOR UPDATE`/`SERIALIZABLE` |
+| `lock-order` | consistent order · no lock across IO/await |
+| `backfill` | batched expand → contract |
+| `exclude-honesty` | no composition/adapters excluded |
+| `coverage` | critical 100% line+branch · rest ≥90% |
+| `flaky-detector` | N separate processes · randomized |
+| `mutation-critical` | kill rate on invariants |
+
 **Attestation ≠ gate:** `reasoning`, `adversarial`, `ADR`, `evidence` are LLM-written artifacts (PRESENT/MISSING + spot-check), not PASS/FAIL.
 
 ### 3.2 prime_check contract
@@ -2579,6 +2633,8 @@ Race: two paths, concurrent, assert one write/charge.
 Property: invariant holds on generated inputs.
 Load: k6 at target RPS · p95/p99 thresholds · soak ≥1h · spike.
 Edge: 0/1/max/max+1/null/empty/dup/wrong-type/timeout/partial/concurrent/replay/unicode/huge/malicious.
+Hot-path isolation: break cold dep → hot still 2xx; fallback logged.
+Pixels/hwnd: real HWND style or offscreen render; unit-only doesn't close AC.
 ```
 
 **Edge-case sweep (A12a):** 0 · 1 · max · max+1 · null · empty · duplicate · wrong type · out-of-order · out-of-range · timeout · partial failure · concurrent · replay · clock/TZ · unicode · huge · malicious.
@@ -2823,6 +2879,11 @@ quality_scenarios · consistency_plan · evolution_plan · decisions(ADR) · ant
 | Cross-cutting | aspect · middleware · decorator |
 | Idempotent mutation | key · ledger · outbox |
 | Performance test | PERF-LOCK + k6 |
+| Composition root | only place concrete adapters wired |
+| Thin transport | route → UC; no business logic |
+| Test double | Fake/InMemory implements port |
+| Module isolation | public API only; no deep imports |
+| Input validation | schema at boundary |
 
 ⚠️ Patterns, not templates. Adapt to Skin (B07).
 
@@ -2885,6 +2946,12 @@ operation
 | Golden Path | operation → aspects → Command/Query → UC → Aggregate → Ports → Adapters → events |
 | Security manifest | `design/SECURITY-<task>.md`: assets · data classes · trust boundaries · authz |
 | Reversibility | dry-run · backup · soft-delete · flag · staging · rollback |
+| hot-path / cold-path | critical request path / non-critical external call (§A44) |
+| small unit | ≤120 lines/file · function ≤40 · cyclomatic ≤10 (§A11) |
+| rich domain | lifecycle via entity methods, not public setter (§A05/B06) |
+| load / soak / spike | target RPS · ≥1h no leak · burst degrade (§A62) |
+| stop-the-line | fix red before new code (§A30) |
+| FOCUS / CORE / EXTENDED | 31 / 71 / 139 gates (`checker_maturity`) |
 
 ### 5.4 Forbidden patterns (SSOT)
 
@@ -2937,6 +3004,71 @@ operation
 | 362 | `idempotency-matrix-gate` · `atomicity-gate` |
 | 476 | `anti-null-gate` |
 | 200 | `pii-log-scan` · `no-debug-bypass` |
+
+**OWASP API Top 10 → gate (compact):**
+
+| API | Gate |
+|---|---|
+| API1 BOLA | `idor-ownership` |
+| API2 Broken auth | `zta-matrix` · `session-token` |
+| API3 BOPLA | `mass-assign` |
+| API4 Resource consumption | `param-bounds` |
+| API5 BFLA | `zta-matrix` |
+| API6 Sensitive flows | `idempotency-matrix` · `trust-pipeline` |
+| API7 SSRF | `ssrf` |
+| API8 Misconfiguration | `prod-config` · `security-headers` |
+| API9 Inventory | `api-contract-drift` |
+| API10 Unsafe consumption | `dep-isolation` · `dependency-audit` |
+
+**ISO 25010 / CISQ / CERT (compact):**
+
+| Standard | Gate |
+|---|---|
+| ISO 25010 | A05 · A12 · A16 · A48 · B03 |
+| ISO 5055 (CISQ) | 7 AST gates |
+| CERT / MISRA | `ffi-safety` · `cert-forbidden` |
+
+**ASVS 4.0 → gate (compact):**
+
+| Chapter | Gate |
+|---|---|
+| V2 Authentication | `zta-matrix` |
+| V3 Session | `session-token` |
+| V4 Access control | `zta-matrix` · `idor` · `mass-assign` |
+| V5 Validation | `injection-fuzz` · `no-string-sql` |
+| V6 Crypto | `tls-min-version` · A19 |
+| V7 Logging | `pii-log-scan` · `error-context` |
+| V8 Data protection | A19 · encryption-at-rest |
+| V9 Communications | `tls-min-version` |
+| V13 API | `route-matrix` · `api-contract-drift` |
+| V14 Config | `prod-config` · `prod-guard` |
+
+**AI-agent standards (text-only):**
+
+| ID | Control | Gate / status |
+|---|---|---|
+| LLM01 | Prompt injection | `injection-fuzz` + §1.11.6 |
+| LLM02 | Insecure output | `no-string-sql` · `security-headers` |
+| LLM03 | Training data poisoning | `dependency-audit` |
+| LLM04 | Model DoS | `param-bounds` · `rate-limit`; model-level `OUT-OF-SCOPE` |
+| LLM05 | Supply chain | `dependency-audit` · `sbom` |
+| LLM06 | Sensitive info | `pii-log-scan` · `gitleaks` |
+| LLM07 | Plugin design | `plugin-boundary` |
+| LLM08 | Excessive agency | §4.17 + `OUT-OF-SCOPE(platform)` |
+| LLM09 | Overreliance | `intent-lock` · `tdd-lock` |
+| LLM10 | Model theft | `OUT-OF-SCOPE(platform)` |
+
+**External-layer error mapping (A44):**
+
+| Stack | Catch only | Map to |
+|---|---|---|
+| Python | `TimeoutError` · `asyncio.TimeoutError` · `ConnectionError` · `httpx.HTTPStatusError` | named domain Err |
+| Go | `context.DeadlineExceeded` · `net.Error` · `resp.StatusCode` | named domain Err |
+| Node/TS | `AbortError` · `ECONNREFUSED`/`ETIMEDOUT` · `!res.ok` | named domain Err |
+| Java/Kotlin | `SocketTimeoutException` · `IOException` · `HttpClientErrorException` | named domain Err |
+| Rust | `tokio::time::error::Elapsed` · `std::io::Error` · `reqwest::Error::status` | named domain Err |
+
+**ID tagging:** one primary ID per security finding; no ID spam; style/refactor/typo → no ID; out-of-scope declared.
 
 **Rules:** one primary ID per security finding; ID ⇒ its gate green; security gate ⇒ ≥1 ID; out-of-scope is declared, not claimed covered (A18/§5.7).
 
